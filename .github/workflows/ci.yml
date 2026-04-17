@@ -53,10 +53,12 @@ jobs:
         run: go vet ./...
 
       # 步骤6: 运行 golangci-lint 代码质量检查
+      # 使用 goinstall 模式，用项目自身的 Go 1.25 编译 golangci-lint，避免版本不兼容
       - name: 代码质量检查 (golangci-lint)
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
+          install-mode: goinstall
           args: ./...
 
       # 步骤7: 运行 gosec 安全检查
