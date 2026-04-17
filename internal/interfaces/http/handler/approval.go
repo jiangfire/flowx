@@ -370,7 +370,7 @@ func (h *ApprovalHandler) Approve(c *gin.Context) {
 	userID := c.GetString("user_id")
 
 	var req approveRequest
-	c.ShouldBindJSON(&req) // comment 非必填
+	_ = c.ShouldBindJSON(&req) // comment 非必填
 
 	ap, err := h.svc.Approve(c.Request.Context(), tenantID, userID, &approvalapp.ApproveRequest{
 		InstanceID: instanceID,

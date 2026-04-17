@@ -93,7 +93,7 @@ func (s *DataGovExcelService) ExportPolicies(ctx context.Context, policies []dat
 		headers[i] = col.header
 	}
 	cell, _ := excelize.CoordinatesToCellName(1, 1)
-	f.SetSheetRow(sheet, cell, &headers)
+	_ = f.SetSheetRow(sheet, cell, &headers)
 
 	// 写入数据行
 	for rowIdx, p := range policies {
@@ -118,7 +118,7 @@ func (s *DataGovExcelService) ExportPolicies(ctx context.Context, policies []dat
 			}
 		}
 		cell, _ := excelize.CoordinatesToCellName(1, row)
-		f.SetSheetRow(sheet, cell, &values)
+		_ = f.SetSheetRow(sheet, cell, &values)
 	}
 
 	buf, err := f.WriteToBuffer()
@@ -299,7 +299,7 @@ func (s *DataGovExcelService) ExportAssets(ctx context.Context, assets []datagov
 		headers[i] = col.header
 	}
 	cell, _ := excelize.CoordinatesToCellName(1, 1)
-	f.SetSheetRow(sheet, cell, &headers)
+	_ = f.SetSheetRow(sheet, cell, &headers)
 
 	// 写入数据行
 	for rowIdx, a := range assets {
@@ -326,7 +326,7 @@ func (s *DataGovExcelService) ExportAssets(ctx context.Context, assets []datagov
 			}
 		}
 		cell, _ := excelize.CoordinatesToCellName(1, row)
-		f.SetSheetRow(sheet, cell, &values)
+		_ = f.SetSheetRow(sheet, cell, &values)
 	}
 
 	buf, err := f.WriteToBuffer()
@@ -506,7 +506,7 @@ func (s *DataGovExcelService) ExportRules(ctx context.Context, rules []datagov.D
 		headers[i] = col.header
 	}
 	cell, _ := excelize.CoordinatesToCellName(1, 1)
-	f.SetSheetRow(sheet, cell, &headers)
+	_ = f.SetSheetRow(sheet, cell, &headers)
 
 	// 写入数据行
 	for rowIdx, r := range rules {
@@ -531,7 +531,7 @@ func (s *DataGovExcelService) ExportRules(ctx context.Context, rules []datagov.D
 			}
 		}
 		cell, _ := excelize.CoordinatesToCellName(1, row)
-		f.SetSheetRow(sheet, cell, &values)
+		_ = f.SetSheetRow(sheet, cell, &values)
 	}
 
 	buf, err := f.WriteToBuffer()

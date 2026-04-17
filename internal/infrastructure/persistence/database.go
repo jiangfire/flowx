@@ -60,7 +60,8 @@ func InitDB(cfg config.DatabaseConfig, logLevel string) (*gorm.DB, error) {
 	}
 
 	// 注册UUID v7生成器作为默认主键生成回调
-	db.Callback().Create().Before("gorm:create").Register("uuid_v7_generator", func(db *gorm.DB) {
+	//nolint:gosec // G104: GORM callback registration won't fail in practice
+	_ = db.Callback().Create().Before("gorm:create").Register("uuid_v7_generator", func(db *gorm.DB) {
 		if db.Statement.Schema != nil {
 			// 查找名为ID的string类型字段
 			for _, field := range db.Statement.Schema.Fields {

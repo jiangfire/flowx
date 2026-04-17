@@ -52,7 +52,20 @@ jobs:
       - name: 代码静态检查 (go vet)
         run: go vet ./...
 
-      # 步骤6: 运行测试并生成覆盖率报告
+      # 步骤6: 运行 golangci-lint 代码质量检查
+      - name: 代码质量检查 (golangci-lint)
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: ./...
+
+      # 步骤7: 运行 gosec 安全检查
+      - name: 安全检查 (gosec)
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          gosec ./...
+
+      # 步骤8: 运行测试并生成覆盖率报告
       - name: 运行测试
         run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
@@ -64,7 +77,7 @@ jobs:
           go tool cover -func=coverage.out >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
-      # 步骤7: 构建二进制文件（禁用 CGO 以确保静态链接）
+      # 步骤9: 构建二进制文件（禁用 CGO 以确保静态链接）
       - name: 构建二进制文件
         env:
           CGO_ENABLED: "0"

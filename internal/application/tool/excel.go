@@ -87,7 +87,7 @@ func (s *ExcelService) ExportTools(ctx context.Context, tools []tool.Tool, colum
 		headers[i] = col.header
 	}
 	cell, _ := excelize.CoordinatesToCellName(1, 1)
-	f.SetSheetRow(sheet, cell, &headers)
+	_ = f.SetSheetRow(sheet, cell, &headers)
 
 	// 写入数据行
 	for rowIdx, tl := range tools {
@@ -102,7 +102,7 @@ func (s *ExcelService) ExportTools(ctx context.Context, tools []tool.Tool, colum
 		if err != nil {
 			return nil, fmt.Errorf("生成单元格坐标失败: %w", err)
 		}
-		f.SetSheetRow(sheet, cell, &values)
+		_ = f.SetSheetRow(sheet, cell, &values)
 	}
 
 	buf, err := f.WriteToBuffer()

@@ -219,7 +219,7 @@ func (h *AgentHandler) ApproveTask(c *gin.Context) {
 	var req struct {
 		Comment string `json:"comment"`
 	}
-	c.ShouldBindJSON(&req) // comment 非必填
+	_ = c.ShouldBindJSON(&req) // comment 非必填
 
 	task, err := h.service.ApproveTask(c.Request.Context(), tenantID, userID, taskID, req.Comment)
 	if err != nil {
