@@ -1,0 +1,15 @@
+.git
+.github
+*.md
+tmp/
+data/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+.env
+.env.*
+bin/

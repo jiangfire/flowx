@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  flowx-server:
+    build: .
+    container_name: flowx-server
+    ports:
+      - "8080:8080"
+    environment:
+      - FLOWX_SERVER_PORT=8080
+      - FLOWX_DATABASE_HOST=flowx-postgres
+      - FLOWX_DATABASE_PORT=5432
+      - FLOWX_DATABASE_USER=flowx
+      - FLOWX_DATABASE_PASSWORD=flowx123
+      - FLOWX_DATABASE_DBNAME=flowx
+      - FLOWX_DATABASE_SSLMODE=disable
+      - FLOWX_DATABASE_MAX_IDLE_CONNS=10
+      - FLOWX_DATABASE_MAX_OPEN_CONNS=100
+      - FLOWX_REDIS_HOST=flowx-redis
+      - FLOWX_REDIS_PORT=6379
+      - FLOWX_REDIS_PASSWORD=
+      - FLOWX_JWT_SECRET=flowx-jwt-secret-change-in-production
+      - FLOWX_JWT_EXPIRE_HOURS=24
+      - FLOWX_LLM_ENDPOINT=http://localhost:11434/v1
+      - FLOWX_LLM_MODEL=qwen2.5:7b
+      - FLOWX_LLM_TIMEOUT=30
+      - GIN_MODE=release
+    depends_on:
+      flowx-postgres:
+        condition: service_healthy
+      flowx-redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - flowx-network
+
+  flowx-postgres:
+    image: postgres:16-alpine
+    container_name: flowx-postgres
+    environment:
+      POSTGRES_USER: flowx
+      POSTGRES_PASSWORD: flowx123
+      POSTGRES_DB: flowx
+    ports:
+      - "5432:5432"
+    volumes:
+      - flowx-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowx -d flowx"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - flowx-network
+
+  flowx-redis:
+    image: redis:7-alpine
+    container_name: flowx-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - flowx-redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - flowx-network
+
+volumes:
+  flowx-pgdata:
+  flowx-redisdata:
+
+networks:
+  flowx-network:
+    driver: bridge

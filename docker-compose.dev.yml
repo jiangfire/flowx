@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  flowx-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+    environment:
+      - GIN_MODE=debug
+      - FLOWX_LOG_LEVEL=debug
