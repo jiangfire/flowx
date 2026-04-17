@@ -7,7 +7,7 @@ MAIN_PATH=./cmd/server
 
 # Build
 build:
-	$(GO) build -o bin/$(BINARY_NAME) $(MAIN_PATH)
+	CGO_ENABLED=0 $(GO) build -o bin/$(BINARY_NAME) $(MAIN_PATH)
 
 # Run
 run:

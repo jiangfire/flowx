@@ -18,7 +18,7 @@
 
 | 层级 | 技术 |
 |------|------|
-| 语言 | Go 1.24 |
+| 语言 | Go 1.25 |
 | Web 框架 | Gin |
 | ORM | GORM |
 | 数据库 | PostgreSQL / SQLite（测试） |
@@ -71,7 +71,7 @@ flowx/
 
 ### 环境要求
 
-- Go 1.24+
+- Go 1.25+
 - PostgreSQL 14+（生产）/ SQLite（开发测试）
 - Redis 7+（可选，用于缓存）
 
