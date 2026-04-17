@@ -41,6 +41,18 @@ type loginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+// @Summary      用户注册
+// @Description  注册新用户账号
+// @Tags         认证
+// @Accept       json
+// @Produce      json
+// @Param        request  body  registerRequest  true  "注册请求参数"
+// @Success      201  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      409  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Router       /auth/register [post]
+//
 // Register 用户注册
 // POST /api/v1/auth/register
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -70,6 +82,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	})
 }
 
+// @Summary      用户登录
+// @Description  使用用户名和密码登录获取令牌
+// @Tags         认证
+// @Accept       json
+// @Produce      json
+// @Param        request  body  loginRequest  true  "登录请求参数"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Router       /auth/login [post]
+//
 // Login 用户登录
 // POST /api/v1/auth/login
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -94,6 +117,18 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	})
 }
 
+// @Summary      获取用户信息
+// @Description  获取当前登录用户的详细信息
+// @Tags         认证
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /auth/profile [get]
+//
 // Profile 获取用户信息
 // GET /api/v1/auth/profile
 func (h *AuthHandler) Profile(c *gin.Context) {

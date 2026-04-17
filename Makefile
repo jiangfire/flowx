@@ -1,4 +1,4 @@
-.PHONY: build run test clean deps migrate docker-build docker-up docker-down docker-logs docker-restart all test-short
+.PHONY: build run test clean deps migrate swagger docker-build docker-up docker-down docker-logs docker-restart all test-short
 
 # Go parameters
 BINARY_NAME=flowx-server
@@ -31,6 +31,10 @@ deps:
 # Database migration
 migrate:
 	$(GO) run $(MAIN_PATH) --migrate
+
+# Swagger docs
+swagger:
+	swag init -g cmd/server/main.go -o docs --parseDependency --parseInternal
 
 # Docker
 docker-build:

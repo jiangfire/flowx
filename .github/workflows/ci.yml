@@ -1,0 +1,71 @@
+# FlowX CI 工作流
+# 在每次推送和 PR 时自动运行代码检查、测试和构建
+
+name: CI
+
+on:
+  # 推送到 main 分支时触发
+  push:
+    branches: [main]
+  # 向 main 分支发起 PR 时触发
+  pull_request:
+    branches: [main]
+
+# 防止同一分支/PR的多次运行互相干扰
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 代码检查、测试与构建
+  build:
+    name: 检查、测试与构建
+    runs-on: ubuntu-latest
+
+    steps:
+      # 步骤1: 检出代码
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # 步骤2: 安装 Go 1.25
+      - name: 安装 Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      # 步骤3: 缓存 Go 模块，加速后续构建
+      - name: 缓存 Go 模块
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      # 步骤4: 下载依赖
+      - name: 下载依赖
+        run: go mod download
+
+      # 步骤5: 运行 go vet 静态分析
+      - name: 代码静态检查 (go vet)
+        run: go vet ./...
+
+      # 步骤6: 运行测试并生成覆盖率报告
+      - name: 运行测试
+        run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      # 输出测试覆盖率摘要
+      - name: 显示测试覆盖率
+        run: |
+          echo "## 测试覆盖率" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          go tool cover -func=coverage.out >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      # 步骤7: 构建二进制文件（禁用 CGO 以确保静态链接）
+      - name: 构建二进制文件
+        env:
+          CGO_ENABLED: "0"
+        run: go build -ldflags="-s -w" -o flowx-server ./cmd/server

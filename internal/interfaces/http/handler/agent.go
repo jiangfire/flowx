@@ -23,6 +23,17 @@ func NewAgentHandler(service *agentapp.AgentService) *AgentHandler {
 
 // ==================== 工具列表 ====================
 
+// @Summary      获取可用工具列表
+// @Description  获取Agent可用的工具列表
+// @Tags         Agent智能体
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /agent/tools [get]
+//
 // ListTools 获取可用工具列表
 // GET /api/v1/agent/tools
 func (h *AgentHandler) ListTools(c *gin.Context) {
@@ -54,6 +65,19 @@ type taskStepReq struct {
 	Params      map[string]any `json:"params"`
 }
 
+// @Summary      创建并执行任务
+// @Description  创建Agent任务并自动执行
+// @Tags         Agent智能体
+// @Accept       json
+// @Produce      json
+// @Param        request  body  createTaskRequest  true  "创建任务请求参数"
+// @Success      201  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /agent/tasks [post]
+//
 // CreateTask 创建并执行任务
 // POST /api/v1/agent/tasks
 func (h *AgentHandler) CreateTask(c *gin.Context) {
@@ -100,6 +124,20 @@ func (h *AgentHandler) CreateTask(c *gin.Context) {
 	})
 }
 
+// @Summary      任务列表
+// @Description  分页查询Agent任务列表，支持按状态筛选
+// @Tags         Agent智能体
+// @Accept       json
+// @Produce      json
+// @Param        page       query  int     false  "页码"      default(1)
+// @Param        page_size  query  int     false  "每页数量"  default(20)
+// @Param        status     query  string  false  "任务状态"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /agent/tasks [get]
+//
 // ListTasks 任务列表
 // GET /api/v1/agent/tasks
 func (h *AgentHandler) ListTasks(c *gin.Context) {
@@ -124,6 +162,19 @@ func (h *AgentHandler) ListTasks(c *gin.Context) {
 	response.Paginated(c, items, paginated.Total, paginated.Page, paginated.PageSize)
 }
 
+// @Summary      任务详情
+// @Description  根据ID获取Agent任务详细信息
+// @Tags         Agent智能体
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "任务ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /agent/tasks/{id} [get]
+//
 // GetTask 任务详情
 // GET /api/v1/agent/tasks/:id
 func (h *AgentHandler) GetTask(c *gin.Context) {
@@ -143,6 +194,21 @@ func (h *AgentHandler) GetTask(c *gin.Context) {
 	response.Success(c, agentapp.TaskToResponse(*task))
 }
 
+// @Summary      审批通过任务
+// @Description  审批通过指定的Agent任务
+// @Tags         Agent智能体
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string          true  "任务ID"
+// @Param        request  body  object          false  "审批请求 {comment: string}"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /agent/tasks/{id}/approve [post]
+//
 // ApproveTask 审批通过
 // POST /api/v1/agent/tasks/:id/approve
 func (h *AgentHandler) ApproveTask(c *gin.Context) {
@@ -172,6 +238,21 @@ func (h *AgentHandler) ApproveTask(c *gin.Context) {
 	response.Success(c, agentapp.TaskToResponse(*task))
 }
 
+// @Summary      拒绝任务
+// @Description  拒绝指定的Agent任务
+// @Tags         Agent智能体
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string  true  "任务ID"
+// @Param        request  body  object  true  "拒绝请求 {comment: string}"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /agent/tasks/{id}/reject [post]
+//
 // RejectTask 拒绝任务
 // POST /api/v1/agent/tasks/:id/reject
 func (h *AgentHandler) RejectTask(c *gin.Context) {

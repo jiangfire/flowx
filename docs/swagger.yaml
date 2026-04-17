@@ -1,0 +1,4019 @@
+basePath: /api/v1
+definitions:
+  git_neolidy_top_neo_flowx_internal_application_datagov.CreateAssetRequest:
+    properties:
+      classification:
+        type: string
+      description:
+        type: string
+      format:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+      owner_id:
+        type: string
+      record_count:
+        type: integer
+      schema:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      size:
+        type: integer
+      source:
+        type: string
+      source_id:
+        type: string
+      status:
+        type: string
+      tags:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      type:
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_datagov.CreatePolicyRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      priority:
+        type: integer
+      rules:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      scope:
+        type: string
+      scope_value:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_datagov.CreateRuleRequest:
+    properties:
+      config:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      description:
+        type: string
+      name:
+        type: string
+      severity:
+        type: string
+      status:
+        type: string
+      target_asset:
+        type: string
+      target_field:
+        type: string
+      type:
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_datagov.RunQualityCheckRequest:
+    properties:
+      asset_id:
+        type: string
+      rule_id:
+        type: string
+    required:
+    - asset_id
+    - rule_id
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_datagov.UpdateAssetRequest:
+    properties:
+      classification:
+        type: string
+      description:
+        type: string
+      format:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+      owner_id:
+        type: string
+      record_count:
+        type: integer
+      schema:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      size:
+        type: integer
+      source:
+        type: string
+      source_id:
+        type: string
+      status:
+        type: string
+      tags:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      type:
+        type: string
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_datagov.UpdatePolicyRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      priority:
+        type: integer
+      rules:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      scope:
+        type: string
+      scope_value:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_datagov.UpdateRuleRequest:
+    properties:
+      config:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      description:
+        type: string
+      name:
+        type: string
+      severity:
+        type: string
+      status:
+        type: string
+      target_asset:
+        type: string
+      target_field:
+        type: string
+      type:
+        type: string
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_notification.CreateNotificationRequest:
+    properties:
+      category:
+        type: string
+      channel:
+        type: string
+      content:
+        type: string
+      extra:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      receiver_id:
+        type: string
+      ref_id:
+        type: string
+      ref_type:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+    required:
+    - receiver_id
+    - title
+    - type
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_notification.CreatePreferenceRequest:
+    properties:
+      channel:
+        type: string
+      enabled:
+        type: boolean
+      mute_until:
+        type: string
+      type:
+        type: string
+      user_id:
+        type: string
+    required:
+    - channel
+    - type
+    - user_id
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_notification.CreateTemplateRequest:
+    properties:
+      channel:
+        type: string
+      code:
+        type: string
+      content_tpl:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      title_tpl:
+        type: string
+      type:
+        type: string
+      variables:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+    required:
+    - channel
+    - code
+    - content_tpl
+    - name
+    - title_tpl
+    - type
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_notification.SendNotificationRequest:
+    properties:
+      channel:
+        type: string
+      receiver_id:
+        type: string
+      ref_id:
+        type: string
+      ref_type:
+        type: string
+      template_code:
+        type: string
+      variables:
+        additionalProperties:
+          type: string
+        type: object
+    required:
+    - receiver_id
+    - template_code
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_notification.UpdateNotificationRequest:
+    properties:
+      category:
+        type: string
+      channel:
+        type: string
+      content:
+        type: string
+      extra:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      ref_id:
+        type: string
+      ref_type:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_notification.UpdatePreferenceRequest:
+    properties:
+      enabled:
+        type: boolean
+      mute_until:
+        type: string
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_notification.UpdateTemplateRequest:
+    properties:
+      channel:
+        type: string
+      content_tpl:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      title_tpl:
+        type: string
+      variables:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_tool.CreateConnectorRequest:
+    properties:
+      auth_config:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      auth_type:
+        type: string
+      config:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      endpoint:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+    required:
+    - endpoint
+    - name
+    - type
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_tool.CreateToolRequest:
+    properties:
+      category:
+        type: string
+      config:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      connector_id:
+        type: string
+      description:
+        type: string
+      endpoint:
+        type: string
+      icon:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_tool.UpdateConnectorRequest:
+    properties:
+      auth_config:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      auth_type:
+        type: string
+      config:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      endpoint:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+    type: object
+  git_neolidy_top_neo_flowx_internal_application_tool.UpdateToolRequest:
+    properties:
+      category:
+        type: string
+      config:
+        $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_domain_base.JSON'
+      connector_id:
+        type: string
+      description:
+        type: string
+      endpoint:
+        type: string
+      icon:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+    type: object
+  git_neolidy_top_neo_flowx_internal_domain_base.JSON:
+    additionalProperties: {}
+    type: object
+  git_neolidy_top_neo_flowx_pkg_response.APIResponse:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+  internal_interfaces_http_handler.approveRequest:
+    properties:
+      comment:
+        type: string
+    type: object
+  internal_interfaces_http_handler.createTaskRequest:
+    properties:
+      context:
+        additionalProperties: {}
+        type: object
+      description:
+        maxLength: 500
+        type: string
+      require_approval:
+        type: boolean
+      steps:
+        items:
+          $ref: '#/definitions/internal_interfaces_http_handler.taskStepReq'
+        minItems: 1
+        type: array
+      type:
+        maxLength: 50
+        type: string
+      workflow_id:
+        description: 关联的工作流定义 ID（可选）
+        type: string
+    required:
+    - description
+    - steps
+    - type
+    type: object
+  internal_interfaces_http_handler.createWorkflowRequest:
+    properties:
+      definition:
+        additionalProperties: {}
+        type: object
+      description:
+        type: string
+      name:
+        maxLength: 200
+        type: string
+      type:
+        maxLength: 50
+        type: string
+    required:
+    - definition
+    - name
+    - type
+    type: object
+  internal_interfaces_http_handler.forwardRequest:
+    properties:
+      comment:
+        type: string
+      to_approver_id:
+        type: string
+    required:
+    - to_approver_id
+    type: object
+  internal_interfaces_http_handler.loginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  internal_interfaces_http_handler.registerRequest:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 100
+        minLength: 6
+        type: string
+      tenant_id:
+        maxLength: 26
+        minLength: 1
+        type: string
+      username:
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - tenant_id
+    - username
+    type: object
+  internal_interfaces_http_handler.rejectRequest:
+    properties:
+      comment:
+        type: string
+    required:
+    - comment
+    type: object
+  internal_interfaces_http_handler.startApprovalRequest:
+    properties:
+      context:
+        additionalProperties: {}
+        type: object
+      title:
+        maxLength: 500
+        type: string
+      workflow_id:
+        type: string
+    required:
+    - title
+    - workflow_id
+    type: object
+  internal_interfaces_http_handler.taskStepReq:
+    properties:
+      description:
+        type: string
+      params:
+        additionalProperties: {}
+        type: object
+      type:
+        type: string
+    required:
+    - type
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: neolidy@outlook.com
+    name: jiangfire
+    url: https://github.com/jiangfire/flowx
+  description: 企业级智能工具治理与流程编排平台 API 文档
+  license:
+    name: MIT
+    url: https://github.com/jiangfire/flowx/blob/main/LICENSE
+  termsOfService: https://github.com/jiangfire/flowx
+  title: FlowX API
+  version: "1.0"
+paths:
+  /agent/tasks:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询Agent任务列表，支持按状态筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 任务状态
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 任务列表
+      tags:
+      - Agent智能体
+    post:
+      consumes:
+      - application/json
+      description: 创建Agent任务并自动执行
+      parameters:
+      - description: 创建任务请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interfaces_http_handler.createTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建并执行任务
+      tags:
+      - Agent智能体
+  /agent/tasks/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取Agent任务详细信息
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 任务详情
+      tags:
+      - Agent智能体
+  /agent/tasks/{id}/approve:
+    post:
+      consumes:
+      - application/json
+      description: 审批通过指定的Agent任务
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: '审批请求 {comment: string}'
+        in: body
+        name: request
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 审批通过任务
+      tags:
+      - Agent智能体
+  /agent/tasks/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: 拒绝指定的Agent任务
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: '拒绝请求 {comment: string}'
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 拒绝任务
+      tags:
+      - Agent智能体
+  /agent/tools:
+    get:
+      consumes:
+      - application/json
+      description: 获取Agent可用的工具列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取可用工具列表
+      tags:
+      - Agent智能体
+  /approvals:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询审批实例列表，支持按状态、工作流筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 实例状态
+        in: query
+        name: status
+        type: string
+      - description: 工作流ID
+        in: query
+        name: workflow_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 审批实例列表
+      tags:
+      - 审批工作流
+    post:
+      consumes:
+      - application/json
+      description: 基于工作流发起审批实例
+      parameters:
+      - description: 发起审批请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interfaces_http_handler.startApprovalRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 发起审批
+      tags:
+      - 审批工作流
+  /approvals/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取审批实例详细信息
+      parameters:
+      - description: 审批实例ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 审批实例详情
+      tags:
+      - 审批工作流
+  /approvals/{id}/approve:
+    post:
+      consumes:
+      - application/json
+      description: 审批通过指定审批实例
+      parameters:
+      - description: 审批实例ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 审批通过请求参数
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/internal_interfaces_http_handler.approveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 审批通过
+      tags:
+      - 审批工作流
+  /approvals/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: 取消指定审批实例
+      parameters:
+      - description: 审批实例ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 取消审批
+      tags:
+      - 审批工作流
+  /approvals/{id}/forward:
+    post:
+      consumes:
+      - application/json
+      description: 将审批实例转审给其他审批人
+      parameters:
+      - description: 审批实例ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 转审请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interfaces_http_handler.forwardRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 转审
+      tags:
+      - 审批工作流
+  /approvals/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: 驳回指定审批实例
+      parameters:
+      - description: 审批实例ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 审批驳回请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interfaces_http_handler.rejectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 审批驳回
+      tags:
+      - 审批工作流
+  /approvals/{id}/suggestion:
+    get:
+      consumes:
+      - application/json
+      description: 获取AI对指定审批实例的建议
+      parameters:
+      - description: 审批实例ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取AI审批建议
+      tags:
+      - 审批工作流
+  /approvals/pending:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前用户的待审批列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 我的待审批列表
+      tags:
+      - 审批工作流
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 使用用户名和密码登录获取令牌
+      parameters:
+      - description: 登录请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interfaces_http_handler.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      summary: 用户登录
+      tags:
+      - 认证
+  /auth/profile:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前登录用户的详细信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取用户信息
+      tags:
+      - 认证
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: 注册新用户账号
+      parameters:
+      - description: 注册请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interfaces_http_handler.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      summary: 用户注册
+      tags:
+      - 认证
+  /connectors:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询连接器列表，支持按类型、状态筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 连接器类型
+        in: query
+        name: type
+        type: string
+      - description: 连接器状态
+        in: query
+        name: status
+        type: string
+      - description: 关键词搜索
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 连接器列表
+      tags:
+      - 工具管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的连接器
+      parameters:
+      - description: 创建连接器请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_tool.CreateConnectorRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建连接器
+      tags:
+      - 工具管理
+  /connectors/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据ID删除连接器
+      parameters:
+      - description: 连接器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除连接器
+      tags:
+      - 工具管理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取连接器详细信息
+      parameters:
+      - description: 连接器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 连接器详情
+      tags:
+      - 工具管理
+    put:
+      consumes:
+      - application/json
+      description: 根据ID更新连接器信息
+      parameters:
+      - description: 连接器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新连接器请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_tool.UpdateConnectorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新连接器
+      tags:
+      - 工具管理
+  /data-assets:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询数据资产列表，支持按类型、状态、分类、来源筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 资产类型
+        in: query
+        name: type
+        type: string
+      - description: 资产状态
+        in: query
+        name: status
+        type: string
+      - description: 数据分类
+        in: query
+        name: classification
+        type: string
+      - description: 数据来源
+        in: query
+        name: source
+        type: string
+      - description: 关键词搜索
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 数据资产列表
+      tags:
+      - 数据治理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的数据资产
+      parameters:
+      - description: 创建数据资产请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_datagov.CreateAssetRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建数据资产
+      tags:
+      - 数据治理
+  /data-assets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据ID删除数据资产
+      parameters:
+      - description: 数据资产ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除数据资产
+      tags:
+      - 数据治理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取数据资产详细信息
+      parameters:
+      - description: 数据资产ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 数据资产详情
+      tags:
+      - 数据治理
+    put:
+      consumes:
+      - application/json
+      description: 根据ID更新数据资产信息
+      parameters:
+      - description: 数据资产ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新数据资产请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_datagov.UpdateAssetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新数据资产
+      tags:
+      - 数据治理
+  /data-assets/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出数据资产列表为Excel文件
+      parameters:
+      - description: '导出列配置 {columns: []string}'
+        in: body
+        name: request
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 导出数据资产
+      tags:
+      - 数据治理
+  /data-assets/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 通过Excel文件批量导入数据资产
+      parameters:
+      - description: Excel文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 导入数据资产
+      tags:
+      - 数据治理
+  /data-policies:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询数据策略列表，支持按类型、状态、范围筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 策略类型
+        in: query
+        name: type
+        type: string
+      - description: 策略状态
+        in: query
+        name: status
+        type: string
+      - description: 策略范围
+        in: query
+        name: scope
+        type: string
+      - description: 关键词搜索
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 数据策略列表
+      tags:
+      - 数据治理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的数据治理策略
+      parameters:
+      - description: 创建数据策略请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_datagov.CreatePolicyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建数据策略
+      tags:
+      - 数据治理
+  /data-policies/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据ID删除数据策略
+      parameters:
+      - description: 数据策略ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除数据策略
+      tags:
+      - 数据治理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取数据策略详细信息
+      parameters:
+      - description: 数据策略ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 数据策略详情
+      tags:
+      - 数据治理
+    put:
+      consumes:
+      - application/json
+      description: 根据ID更新数据策略信息
+      parameters:
+      - description: 数据策略ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新数据策略请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_datagov.UpdatePolicyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新数据策略
+      tags:
+      - 数据治理
+  /data-policies/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出数据策略列表为Excel文件
+      parameters:
+      - description: '导出列配置 {columns: []string}'
+        in: body
+        name: request
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 导出数据策略
+      tags:
+      - 数据治理
+  /data-policies/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 通过Excel文件批量导入数据策略
+      parameters:
+      - description: Excel文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 导入数据策略
+      tags:
+      - 数据治理
+  /data-quality/checks:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询数据质量检查列表，支持按规则、资产、状态筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 规则ID
+        in: query
+        name: rule_id
+        type: string
+      - description: 资产ID
+        in: query
+        name: asset_id
+        type: string
+      - description: 检查状态
+        in: query
+        name: status
+        type: string
+      - description: 触发方式
+        in: query
+        name: triggered_by
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 数据质量检查列表
+      tags:
+      - 数据治理
+  /data-quality/checks/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取数据质量检查详细信息
+      parameters:
+      - description: 数据质量检查ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 数据质量检查详情
+      tags:
+      - 数据治理
+  /data-quality/checks/run:
+    post:
+      consumes:
+      - application/json
+      description: 手动触发数据质量检查
+      parameters:
+      - description: 执行数据质量检查请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_datagov.RunQualityCheckRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 执行数据质量检查
+      tags:
+      - 数据治理
+  /data-quality/rules:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询数据质量规则列表，支持按类型、状态、严重程度筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 规则类型
+        in: query
+        name: type
+        type: string
+      - description: 规则状态
+        in: query
+        name: status
+        type: string
+      - description: 严重程度
+        in: query
+        name: severity
+        type: string
+      - description: 目标资产
+        in: query
+        name: target_asset
+        type: string
+      - description: 关键词搜索
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 数据质量规则列表
+      tags:
+      - 数据治理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的数据质量规则
+      parameters:
+      - description: 创建数据质量规则请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_datagov.CreateRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建数据质量规则
+      tags:
+      - 数据治理
+  /data-quality/rules/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据ID删除数据质量规则
+      parameters:
+      - description: 数据质量规则ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除数据质量规则
+      tags:
+      - 数据治理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取数据质量规则详细信息
+      parameters:
+      - description: 数据质量规则ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 数据质量规则详情
+      tags:
+      - 数据治理
+    put:
+      consumes:
+      - application/json
+      description: 根据ID更新数据质量规则信息
+      parameters:
+      - description: 数据质量规则ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新数据质量规则请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_datagov.UpdateRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新数据质量规则
+      tags:
+      - 数据治理
+  /data-quality/rules/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出数据质量规则列表为Excel文件
+      parameters:
+      - description: '导出列配置 {columns: []string}'
+        in: body
+        name: request
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 导出数据质量规则
+      tags:
+      - 数据治理
+  /data-quality/rules/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 通过Excel文件批量导入数据质量规则
+      parameters:
+      - description: Excel文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 导入数据质量规则
+      tags:
+      - 数据治理
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: 检查服务运行状态和版本信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 健康检查
+      tags:
+      - 系统
+  /notification-preferences:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询通知偏好列表，支持按用户、类型、渠道筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 用户ID
+        in: query
+        name: user_id
+        type: string
+      - description: 偏好类型
+        in: query
+        name: type
+        type: string
+      - description: 通知渠道
+        in: query
+        name: channel
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 通知偏好列表
+      tags:
+      - 通知系统
+    post:
+      consumes:
+      - application/json
+      description: 创建新的通知偏好设置
+      parameters:
+      - description: 创建通知偏好请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_notification.CreatePreferenceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建通知偏好
+      tags:
+      - 通知系统
+  /notification-preferences/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据ID删除通知偏好设置
+      parameters:
+      - description: 通知偏好ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除通知偏好
+      tags:
+      - 通知系统
+    put:
+      consumes:
+      - application/json
+      description: 根据ID更新通知偏好设置
+      parameters:
+      - description: 通知偏好ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新通知偏好请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_notification.UpdatePreferenceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新通知偏好
+      tags:
+      - 通知系统
+  /notification-templates:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询通知模板列表，支持按类型、状态筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 模板类型
+        in: query
+        name: type
+        type: string
+      - description: 模板状态
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 通知模板列表
+      tags:
+      - 通知系统
+    post:
+      consumes:
+      - application/json
+      description: 创建新的通知模板
+      parameters:
+      - description: 创建通知模板请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_notification.CreateTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建通知模板
+      tags:
+      - 通知系统
+  /notification-templates/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据ID删除通知模板
+      parameters:
+      - description: 通知模板ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除通知模板
+      tags:
+      - 通知系统
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取通知模板详细信息
+      parameters:
+      - description: 通知模板ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 通知模板详情
+      tags:
+      - 通知系统
+    put:
+      consumes:
+      - application/json
+      description: 根据ID更新通知模板信息
+      parameters:
+      - description: 通知模板ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新通知模板请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_notification.UpdateTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新通知模板
+      tags:
+      - 通知系统
+  /notifications:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询通知列表，支持按类型、分类、已读状态筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 通知类型
+        in: query
+        name: type
+        type: string
+      - description: 通知分类
+        in: query
+        name: category
+        type: string
+      - description: 已读状态
+        in: query
+        name: is_read
+        type: string
+      - description: 通知状态
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 通知列表
+      tags:
+      - 通知系统
+    post:
+      consumes:
+      - application/json
+      description: 创建新的通知
+      parameters:
+      - description: 创建通知请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_notification.CreateNotificationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建通知
+      tags:
+      - 通知系统
+  /notifications/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据ID删除通知
+      parameters:
+      - description: 通知ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除通知
+      tags:
+      - 通知系统
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取通知详细信息
+      parameters:
+      - description: 通知ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 通知详情
+      tags:
+      - 通知系统
+    put:
+      consumes:
+      - application/json
+      description: 根据ID更新通知信息
+      parameters:
+      - description: 通知ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新通知请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_notification.UpdateNotificationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新通知
+      tags:
+      - 通知系统
+  /notifications/{id}/read:
+    put:
+      consumes:
+      - application/json
+      description: 将指定通知标记为已读
+      parameters:
+      - description: 通知ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 标记通知为已读
+      tags:
+      - 通知系统
+  /notifications/read-all:
+    put:
+      consumes:
+      - application/json
+      description: 将当前用户所有通知标记为已读
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 标记所有通知为已读
+      tags:
+      - 通知系统
+  /notifications/send:
+    post:
+      consumes:
+      - application/json
+      description: 使用通知模板发送通知给指定用户
+      parameters:
+      - description: 发送通知请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_notification.SendNotificationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 通过模板发送通知
+      tags:
+      - 通知系统
+  /notifications/unread-count:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前用户的未读通知数量
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取未读通知数量
+      tags:
+      - 通知系统
+  /process-definitions:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询流程定义列表，支持按状态、关键词筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 定义状态
+        in: query
+        name: status
+        type: string
+      - description: 关键词搜索
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 流程定义列表
+      tags:
+      - BPMN流程
+    post:
+      consumes:
+      - application/json
+      description: 部署新的BPMN流程定义（YAML格式）
+      parameters:
+      - description: YAML格式的流程定义
+        in: body
+        name: body
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 部署流程定义
+      tags:
+      - BPMN流程
+  /process-definitions/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取流程定义详细信息
+      parameters:
+      - description: 流程定义ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 流程定义详情
+      tags:
+      - BPMN流程
+  /process-instances:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询流程实例列表，支持按状态筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 实例状态
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 流程实例列表
+      tags:
+      - BPMN流程
+    post:
+      consumes:
+      - application/json
+      description: 根据流程定义启动新的流程实例
+      parameters:
+      - description: '启动流程请求 {definition_id: string, variables: map}'
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 启动流程实例
+      tags:
+      - BPMN流程
+  /process-instances/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取流程实例详细信息
+      parameters:
+      - description: 流程实例ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 流程实例详情
+      tags:
+      - BPMN流程
+  /process-instances/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: 取消指定流程实例
+      parameters:
+      - description: 流程实例ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 取消流程实例
+      tags:
+      - BPMN流程
+  /process-instances/{id}/resume:
+    post:
+      consumes:
+      - application/json
+      description: 恢复已挂起的流程实例
+      parameters:
+      - description: 流程实例ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 恢复流程实例
+      tags:
+      - BPMN流程
+  /process-instances/{id}/suspend:
+    post:
+      consumes:
+      - application/json
+      description: 挂起指定流程实例
+      parameters:
+      - description: 流程实例ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 挂起流程实例
+      tags:
+      - BPMN流程
+  /process-instances/{id}/tasks:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定流程实例的所有任务
+      parameters:
+      - description: 流程实例ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取流程实例的任务列表
+      tags:
+      - BPMN流程
+  /process-instances/{id}/tasks/{taskId}/complete:
+    post:
+      consumes:
+      - application/json
+      description: 完成指定的流程任务
+      parameters:
+      - description: 流程实例ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 任务ID
+        in: path
+        name: taskId
+        required: true
+        type: string
+      - description: '提交数据 {submitted_data: map}'
+        in: body
+        name: request
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 完成任务
+      tags:
+      - BPMN流程
+  /process-tasks/pending:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定处理人的待办任务列表
+      parameters:
+      - description: 处理人
+        in: query
+        name: assignee
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取待办任务
+      tags:
+      - BPMN流程
+  /tools:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询工具列表，支持按类型、状态、分类筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 工具类型
+        in: query
+        name: type
+        type: string
+      - description: 工具状态
+        in: query
+        name: status
+        type: string
+      - description: 工具分类
+        in: query
+        name: category
+        type: string
+      - description: 关键词搜索
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 工具列表
+      tags:
+      - 工具管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的工具
+      parameters:
+      - description: 创建工具请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_tool.CreateToolRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建工具
+      tags:
+      - 工具管理
+  /tools/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据ID删除工具
+      parameters:
+      - description: 工具ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除工具
+      tags:
+      - 工具管理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取工具详细信息
+      parameters:
+      - description: 工具ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 工具详情
+      tags:
+      - 工具管理
+    put:
+      consumes:
+      - application/json
+      description: 根据ID更新工具信息
+      parameters:
+      - description: 工具ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新工具请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/git_neolidy_top_neo_flowx_internal_application_tool.UpdateToolRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新工具
+      tags:
+      - 工具管理
+  /tools/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出工具列表为Excel文件
+      parameters:
+      - description: '导出列配置 {columns: []string}'
+        in: body
+        name: request
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 导出工具
+      tags:
+      - 工具管理
+  /tools/export/{task_id}:
+    get:
+      consumes:
+      - application/json
+      description: 查询工具导出任务的状态
+      parameters:
+      - description: 任务ID
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 查询导出任务状态
+      tags:
+      - 工具管理
+  /tools/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 通过Excel文件批量导入工具
+      parameters:
+      - description: Excel文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 导入工具
+      tags:
+      - 工具管理
+  /workflows:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询工作流列表，支持按类型、状态筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 工作流类型
+        in: query
+        name: type
+        type: string
+      - description: 工作流状态
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 工作流列表
+      tags:
+      - 审批工作流
+    post:
+      consumes:
+      - application/json
+      description: 创建新的审批工作流定义
+      parameters:
+      - description: 创建工作流请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interfaces_http_handler.createWorkflowRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建工作流
+      tags:
+      - 审批工作流
+  /workflows/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取工作流详细信息
+      parameters:
+      - description: 工作流ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 工作流详情
+      tags:
+      - 审批工作流
+  /workflows/{id}/activate:
+    post:
+      consumes:
+      - application/json
+      description: 激活指定的工作流
+      parameters:
+      - description: 工作流ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 激活工作流
+      tags:
+      - 审批工作流
+  /workflows/{id}/archive:
+    post:
+      consumes:
+      - application/json
+      description: 归档指定的工作流
+      parameters:
+      - description: 工作流ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 归档工作流
+      tags:
+      - 审批工作流
+securityDefinitions:
+  BearerAuth:
+    description: 'JWT Bearer Token，格式: Bearer {token}'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

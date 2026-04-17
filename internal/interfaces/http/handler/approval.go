@@ -30,6 +30,19 @@ type createWorkflowRequest struct {
 	Definition  map[string]any `json:"definition" binding:"required"`
 }
 
+// @Summary      创建工作流
+// @Description  创建新的审批工作流定义
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        request  body  createWorkflowRequest  true  "创建工作流请求参数"
+// @Success      201  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /workflows [post]
+//
 // CreateWorkflow 创建工作流
 // POST /api/v1/workflows
 func (h *ApprovalHandler) CreateWorkflow(c *gin.Context) {
@@ -66,6 +79,21 @@ type listWorkflowsRequest struct {
 	PageSize int    `form:"page_size,default=20" binding:"min=1,max=100"`
 }
 
+// @Summary      工作流列表
+// @Description  分页查询工作流列表，支持按类型、状态筛选
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        page       query  int     false  "页码"      default(1)
+// @Param        page_size  query  int     false  "每页数量"  default(20)
+// @Param        type       query  string  false  "工作流类型"
+// @Param        status     query  string  false  "工作流状态"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /workflows [get]
+//
 // ListWorkflows 工作流列表
 // GET /api/v1/workflows
 func (h *ApprovalHandler) ListWorkflows(c *gin.Context) {
@@ -91,6 +119,19 @@ func (h *ApprovalHandler) ListWorkflows(c *gin.Context) {
 	response.Paginated(c, workflows, result.Total, result.Page, result.PageSize)
 }
 
+// @Summary      工作流详情
+// @Description  根据ID获取工作流详细信息
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "工作流ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /workflows/{id} [get]
+//
 // GetWorkflow 工作流详情
 // GET /api/v1/workflows/:id
 func (h *ApprovalHandler) GetWorkflow(c *gin.Context) {
@@ -110,6 +151,19 @@ func (h *ApprovalHandler) GetWorkflow(c *gin.Context) {
 	response.Success(c, w)
 }
 
+// @Summary      激活工作流
+// @Description  激活指定的工作流
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "工作流ID"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /workflows/{id}/activate [post]
+//
 // ActivateWorkflow 激活工作流
 // POST /api/v1/workflows/:id/activate
 func (h *ApprovalHandler) ActivateWorkflow(c *gin.Context) {
@@ -125,6 +179,19 @@ func (h *ApprovalHandler) ActivateWorkflow(c *gin.Context) {
 	response.Success(c, w)
 }
 
+// @Summary      归档工作流
+// @Description  归档指定的工作流
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "工作流ID"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /workflows/{id}/archive [post]
+//
 // ArchiveWorkflow 归档工作流
 // POST /api/v1/workflows/:id/archive
 func (h *ApprovalHandler) ArchiveWorkflow(c *gin.Context) {
@@ -149,6 +216,20 @@ type startApprovalRequest struct {
 	Context    map[string]any `json:"context"`
 }
 
+// @Summary      发起审批
+// @Description  基于工作流发起审批实例
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        request  body  startApprovalRequest  true  "发起审批请求参数"
+// @Success      201  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /approvals [post]
+//
 // StartApproval 发起审批
 // POST /api/v1/approvals
 func (h *ApprovalHandler) StartApproval(c *gin.Context) {
@@ -189,6 +270,21 @@ type listInstancesRequest struct {
 	PageSize   int    `form:"page_size,default=20" binding:"min=1,max=100"`
 }
 
+// @Summary      审批实例列表
+// @Description  分页查询审批实例列表，支持按状态、工作流筛选
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        page         query  int     false  "页码"        default(1)
+// @Param        page_size    query  int     false  "每页数量"    default(20)
+// @Param        status       query  string  false  "实例状态"
+// @Param        workflow_id  query  string  false  "工作流ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /approvals [get]
+//
 // ListInstances 审批实例列表
 // GET /api/v1/approvals
 func (h *ApprovalHandler) ListInstances(c *gin.Context) {
@@ -214,6 +310,19 @@ func (h *ApprovalHandler) ListInstances(c *gin.Context) {
 	response.Paginated(c, instances, result.Total, result.Page, result.PageSize)
 }
 
+// @Summary      审批实例详情
+// @Description  根据ID获取审批实例详细信息
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "审批实例ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /approvals/{id} [get]
+//
 // GetInstance 审批实例详情
 // GET /api/v1/approvals/:id
 func (h *ApprovalHandler) GetInstance(c *gin.Context) {
@@ -238,6 +347,21 @@ type approveRequest struct {
 	Comment string `json:"comment"`
 }
 
+// @Summary      审批通过
+// @Description  审批通过指定审批实例
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string           true  "审批实例ID"
+// @Param        request  body  approveRequest   false  "审批通过请求参数"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /approvals/{id}/approve [post]
+//
 // Approve 审批通过
 // POST /api/v1/approvals/:id/approve
 func (h *ApprovalHandler) Approve(c *gin.Context) {
@@ -277,6 +401,21 @@ type rejectRequest struct {
 	Comment string `json:"comment" binding:"required"`
 }
 
+// @Summary      审批驳回
+// @Description  驳回指定审批实例
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string          true  "审批实例ID"
+// @Param        request  body  rejectRequest   true  "审批驳回请求参数"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /approvals/{id}/reject [post]
+//
 // Reject 审批驳回
 // POST /api/v1/approvals/:id/reject
 func (h *ApprovalHandler) Reject(c *gin.Context) {
@@ -320,6 +459,21 @@ type forwardRequest struct {
 	Comment      string `json:"comment"`
 }
 
+// @Summary      转审
+// @Description  将审批实例转审给其他审批人
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string           true  "审批实例ID"
+// @Param        request  body  forwardRequest   true  "转审请求参数"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /approvals/{id}/forward [post]
+//
 // Forward 转审
 // POST /api/v1/approvals/:id/forward
 func (h *ApprovalHandler) Forward(c *gin.Context) {
@@ -354,6 +508,20 @@ func (h *ApprovalHandler) Forward(c *gin.Context) {
 	response.Success(c, ap)
 }
 
+// @Summary      取消审批
+// @Description  取消指定审批实例
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "审批实例ID"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /approvals/{id}/cancel [post]
+//
 // CancelInstance 取消审批
 // POST /api/v1/approvals/:id/cancel
 func (h *ApprovalHandler) CancelInstance(c *gin.Context) {
@@ -377,6 +545,19 @@ func (h *ApprovalHandler) CancelInstance(c *gin.Context) {
 	response.Success(c, gin.H{"message": "取消成功"})
 }
 
+// @Summary      获取AI审批建议
+// @Description  获取AI对指定审批实例的建议
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "审批实例ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /approvals/{id}/suggestion [get]
+//
 // GetSuggestion 获取 AI 审批建议
 // GET /api/v1/approvals/:id/suggestion
 func (h *ApprovalHandler) GetSuggestion(c *gin.Context) {
@@ -396,6 +577,17 @@ func (h *ApprovalHandler) GetSuggestion(c *gin.Context) {
 	response.Success(c, gin.H{"suggestion": suggestion})
 }
 
+// @Summary      我的待审批列表
+// @Description  获取当前用户的待审批列表
+// @Tags         审批工作流
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /approvals/pending [get]
+//
 // GetMyPendingApprovals 我的待审批列表
 // GET /api/v1/approvals/pending
 func (h *ApprovalHandler) GetMyPendingApprovals(c *gin.Context) {

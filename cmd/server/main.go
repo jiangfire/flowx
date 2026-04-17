@@ -1,5 +1,25 @@
 package main
 
+// @title           FlowX API
+// @version         1.0
+// @description     企业级智能工具治理与流程编排平台 API 文档
+// @termsOfService  https://github.com/jiangfire/flowx
+
+// @contact.name   jiangfire
+// @contact.url    https://github.com/jiangfire/flowx
+// @contact.email  neolidy@outlook.com
+
+// @license.name  MIT
+// @license.url   https://github.com/jiangfire/flowx/blob/main/LICENSE
+
+// @host      localhost:8080
+// @BasePath  /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description JWT Bearer Token，格式: Bearer {token}
+
 import (
 	"context"
 	"flag"
@@ -17,6 +37,8 @@ import (
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/server"
 	httpInterface "git.neolidy.top/neo/flowx/internal/interfaces/http"
+
+	_ "git.neolidy.top/neo/flowx/docs" // Swagger 文档
 )
 
 func main() {

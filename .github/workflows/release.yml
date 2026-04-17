@@ -1,0 +1,142 @@
+# FlowX 发布工作流
+# 当推送版本标签（如 v1.0.0）时，自动构建多平台二进制文件并创建 GitHub Release
+
+name: Release
+
+on:
+  # 仅在推送版本标签时触发（匹配 v* 格式，如 v1.0.0、v2.1.3-rc1）
+  push:
+    tags:
+      - "v*"
+
+# 发布工作流需要写入权限以创建 Release
+permissions:
+  contents: write
+
+jobs:
+  # 多平台构建
+  build:
+    name: 构建二进制文件 (${{ matrix.os }}/${{ matrix.arch }})
+    runs-on: ubuntu-latest
+
+    # 使用矩阵策略并行构建多个平台
+    strategy:
+      matrix:
+        include:
+          # Linux AMD64
+          - goos: linux
+            goarch: amd64
+            os: linux
+            arch: amd64
+            ext: ""
+          # Linux ARM64
+          - goos: linux
+            goarch: arm64
+            os: linux
+            arch: arm64
+            ext: ""
+          # macOS AMD64 (Intel)
+          - goos: darwin
+            goarch: amd64
+            os: darwin
+            arch: amd64
+            ext: ""
+          # macOS ARM64 (Apple Silicon)
+          - goos: darwin
+            goarch: arm64
+            os: darwin
+            arch: arm64
+            ext: ""
+          # Windows AMD64
+          - goos: windows
+            goarch: amd64
+            os: windows
+            arch: amd64
+            ext: ".exe"
+
+    steps:
+      # 步骤1: 检出代码
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # 步骤2: 安装 Go 1.25
+      - name: 安装 Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      # 步骤3: 缓存 Go 模块
+      - name: 缓存 Go 模块
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      # 步骤4: 下载依赖
+      - name: 下载依赖
+        run: go mod download
+
+      # 步骤5: 构建目标平台的二进制文件
+      - name: 构建二进制文件 (${{ matrix.os }}/${{ matrix.arch }})
+        env:
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          go build -ldflags="-s -w" \
+            -o flowx-server-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }} \
+            ./cmd/server
+
+      # 步骤6: 上传构建产物，供后续 Release 任务使用
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: flowx-server-${{ matrix.os }}-${{ matrix.arch }}
+          path: flowx-server-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }}
+          retention-days: 1
+
+  # 创建 GitHub Release 并附带所有二进制文件
+  release:
+    name: 创建 GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      # 步骤1: 检出代码（用于生成校验和）
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # 步骤2: 下载所有构建产物
+      - name: 下载所有构建产物
+        uses: actions/download-artifact@v4
+        with:
+          path: ./dist
+          merge-multiple: true
+
+      # 步骤3: 生成 SHA256 校验和文件
+      - name: 生成校验和文件
+        working-directory: ./dist
+        run: |
+          # 按文件名排序生成 SHA256 校验和
+          sha256sum flowx-server-* > checksums.txt
+          echo "## 校验和文件内容" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat checksums.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      # 步骤4: 创建 GitHub Release 并上传所有文件
+      - name: 创建 GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # 使用标签名作为 Release 标题
+          name: ${{ github.ref_name }}
+          # 自动生成 Release 说明（基于提交记录）
+          generate_release_notes: true
+          # 所有构建产物（二进制文件 + 校验和文件）
+          files: |
+            ./dist/flowx-server-*
+            ./dist/checksums.txt

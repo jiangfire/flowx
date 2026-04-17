@@ -26,6 +26,19 @@ func NewDataGovHandler(service *datagovapp.DataGovService, excelService *datagov
 
 // ==================== 数据策略 CRUD ====================
 
+// @Summary      创建数据策略
+// @Description  创建新的数据治理策略
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        request  body  datagovapp.CreatePolicyRequest  true  "创建数据策略请求参数"
+// @Success      201  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-policies [post]
+//
 // CreatePolicy 创建数据策略
 // POST /api/v1/data-policies
 func (h *DataGovHandler) CreatePolicy(c *gin.Context) {
@@ -54,6 +67,23 @@ func (h *DataGovHandler) CreatePolicy(c *gin.Context) {
 	})
 }
 
+// @Summary      数据策略列表
+// @Description  分页查询数据策略列表，支持按类型、状态、范围筛选
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        page       query  int     false  "页码"      default(1)
+// @Param        page_size  query  int     false  "每页数量"  default(20)
+// @Param        type       query  string  false  "策略类型"
+// @Param        status     query  string  false  "策略状态"
+// @Param        scope      query  string  false  "策略范围"
+// @Param        keyword    query  string  false  "关键词搜索"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-policies [get]
+//
 // ListPolicies 数据策略列表
 // GET /api/v1/data-policies
 func (h *DataGovHandler) ListPolicies(c *gin.Context) {
@@ -80,6 +110,19 @@ func (h *DataGovHandler) ListPolicies(c *gin.Context) {
 	response.Paginated(c, policies, paginated.Total, paginated.Page, paginated.PageSize)
 }
 
+// @Summary      数据策略详情
+// @Description  根据ID获取数据策略详细信息
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "数据策略ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-policies/{id} [get]
+//
 // GetPolicy 数据策略详情
 // GET /api/v1/data-policies/:id
 func (h *DataGovHandler) GetPolicy(c *gin.Context) {
@@ -103,6 +146,21 @@ func (h *DataGovHandler) GetPolicy(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// @Summary      更新数据策略
+// @Description  根据ID更新数据策略信息
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string                         true  "数据策略ID"
+// @Param        request  body  datagovapp.UpdatePolicyRequest  true  "更新数据策略请求参数"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-policies/{id} [put]
+//
 // UpdatePolicy 更新数据策略
 // PUT /api/v1/data-policies/:id
 func (h *DataGovHandler) UpdatePolicy(c *gin.Context) {
@@ -132,6 +190,19 @@ func (h *DataGovHandler) UpdatePolicy(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// @Summary      删除数据策略
+// @Description  根据ID删除数据策略
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "数据策略ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-policies/{id} [delete]
+//
 // DeletePolicy 删除数据策略
 // DELETE /api/v1/data-policies/:id
 func (h *DataGovHandler) DeletePolicy(c *gin.Context) {
@@ -157,6 +228,19 @@ func (h *DataGovHandler) DeletePolicy(c *gin.Context) {
 
 // ==================== 数据资产 CRUD ====================
 
+// @Summary      创建数据资产
+// @Description  创建新的数据资产
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        request  body  datagovapp.CreateAssetRequest  true  "创建数据资产请求参数"
+// @Success      201  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-assets [post]
+//
 // CreateAsset 创建数据资产
 // POST /api/v1/data-assets
 func (h *DataGovHandler) CreateAsset(c *gin.Context) {
@@ -185,6 +269,24 @@ func (h *DataGovHandler) CreateAsset(c *gin.Context) {
 	})
 }
 
+// @Summary      数据资产列表
+// @Description  分页查询数据资产列表，支持按类型、状态、分类、来源筛选
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        page           query  int     false  "页码"        default(1)
+// @Param        page_size      query  int     false  "每页数量"    default(20)
+// @Param        type           query  string  false  "资产类型"
+// @Param        status         query  string  false  "资产状态"
+// @Param        classification query  string  false  "数据分类"
+// @Param        source         query  string  false  "数据来源"
+// @Param        keyword        query  string  false  "关键词搜索"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-assets [get]
+//
 // ListAssets 数据资产列表
 // GET /api/v1/data-assets
 func (h *DataGovHandler) ListAssets(c *gin.Context) {
@@ -212,6 +314,19 @@ func (h *DataGovHandler) ListAssets(c *gin.Context) {
 	response.Paginated(c, assets, paginated.Total, paginated.Page, paginated.PageSize)
 }
 
+// @Summary      数据资产详情
+// @Description  根据ID获取数据资产详细信息
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "数据资产ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-assets/{id} [get]
+//
 // GetAsset 数据资产详情
 // GET /api/v1/data-assets/:id
 func (h *DataGovHandler) GetAsset(c *gin.Context) {
@@ -235,6 +350,21 @@ func (h *DataGovHandler) GetAsset(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// @Summary      更新数据资产
+// @Description  根据ID更新数据资产信息
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string                        true  "数据资产ID"
+// @Param        request  body  datagovapp.UpdateAssetRequest  true  "更新数据资产请求参数"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-assets/{id} [put]
+//
 // UpdateAsset 更新数据资产
 // PUT /api/v1/data-assets/:id
 func (h *DataGovHandler) UpdateAsset(c *gin.Context) {
@@ -264,6 +394,19 @@ func (h *DataGovHandler) UpdateAsset(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// @Summary      删除数据资产
+// @Description  根据ID删除数据资产
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "数据资产ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-assets/{id} [delete]
+//
 // DeleteAsset 删除数据资产
 // DELETE /api/v1/data-assets/:id
 func (h *DataGovHandler) DeleteAsset(c *gin.Context) {
@@ -289,6 +432,19 @@ func (h *DataGovHandler) DeleteAsset(c *gin.Context) {
 
 // ==================== 数据质量规则 CRUD ====================
 
+// @Summary      创建数据质量规则
+// @Description  创建新的数据质量规则
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        request  body  datagovapp.CreateRuleRequest  true  "创建数据质量规则请求参数"
+// @Success      201  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-quality/rules [post]
+//
 // CreateRule 创建数据质量规则
 // POST /api/v1/data-quality/rules
 func (h *DataGovHandler) CreateRule(c *gin.Context) {
@@ -317,6 +473,24 @@ func (h *DataGovHandler) CreateRule(c *gin.Context) {
 	})
 }
 
+// @Summary      数据质量规则列表
+// @Description  分页查询数据质量规则列表，支持按类型、状态、严重程度筛选
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        page          query  int     false  "页码"        default(1)
+// @Param        page_size     query  int     false  "每页数量"    default(20)
+// @Param        type          query  string  false  "规则类型"
+// @Param        status        query  string  false  "规则状态"
+// @Param        severity      query  string  false  "严重程度"
+// @Param        target_asset  query  string  false  "目标资产"
+// @Param        keyword       query  string  false  "关键词搜索"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-quality/rules [get]
+//
 // ListRules 数据质量规则列表
 // GET /api/v1/data-quality/rules
 func (h *DataGovHandler) ListRules(c *gin.Context) {
@@ -344,6 +518,19 @@ func (h *DataGovHandler) ListRules(c *gin.Context) {
 	response.Paginated(c, rules, paginated.Total, paginated.Page, paginated.PageSize)
 }
 
+// @Summary      数据质量规则详情
+// @Description  根据ID获取数据质量规则详细信息
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "数据质量规则ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-quality/rules/{id} [get]
+//
 // GetRule 数据质量规则详情
 // GET /api/v1/data-quality/rules/:id
 func (h *DataGovHandler) GetRule(c *gin.Context) {
@@ -367,6 +554,21 @@ func (h *DataGovHandler) GetRule(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// @Summary      更新数据质量规则
+// @Description  根据ID更新数据质量规则信息
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string                       true  "数据质量规则ID"
+// @Param        request  body  datagovapp.UpdateRuleRequest  true  "更新数据质量规则请求参数"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-quality/rules/{id} [put]
+//
 // UpdateRule 更新数据质量规则
 // PUT /api/v1/data-quality/rules/:id
 func (h *DataGovHandler) UpdateRule(c *gin.Context) {
@@ -396,6 +598,19 @@ func (h *DataGovHandler) UpdateRule(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// @Summary      删除数据质量规则
+// @Description  根据ID删除数据质量规则
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "数据质量规则ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-quality/rules/{id} [delete]
+//
 // DeleteRule 删除数据质量规则
 // DELETE /api/v1/data-quality/rules/:id
 func (h *DataGovHandler) DeleteRule(c *gin.Context) {
@@ -421,6 +636,23 @@ func (h *DataGovHandler) DeleteRule(c *gin.Context) {
 
 // ==================== 数据质量检查 ====================
 
+// @Summary      数据质量检查列表
+// @Description  分页查询数据质量检查列表，支持按规则、资产、状态筛选
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        page          query  int     false  "页码"        default(1)
+// @Param        page_size     query  int     false  "每页数量"    default(20)
+// @Param        rule_id       query  string  false  "规则ID"
+// @Param        asset_id      query  string  false  "资产ID"
+// @Param        status        query  string  false  "检查状态"
+// @Param        triggered_by  query  string  false  "触发方式"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-quality/checks [get]
+//
 // ListChecks 数据质量检查列表
 // GET /api/v1/data-quality/checks
 func (h *DataGovHandler) ListChecks(c *gin.Context) {
@@ -447,6 +679,19 @@ func (h *DataGovHandler) ListChecks(c *gin.Context) {
 	response.Paginated(c, checks, paginated.Total, paginated.Page, paginated.PageSize)
 }
 
+// @Summary      数据质量检查详情
+// @Description  根据ID获取数据质量检查详细信息
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "数据质量检查ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-quality/checks/{id} [get]
+//
 // GetCheck 数据质量检查详情
 // GET /api/v1/data-quality/checks/:id
 func (h *DataGovHandler) GetCheck(c *gin.Context) {
@@ -470,6 +715,19 @@ func (h *DataGovHandler) GetCheck(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// @Summary      执行数据质量检查
+// @Description  手动触发数据质量检查
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        request  body  datagovapp.RunQualityCheckRequest  true  "执行数据质量检查请求参数"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-quality/checks/run [post]
+//
 // RunQualityCheck 执行数据质量检查
 // POST /api/v1/data-quality/checks/run
 func (h *DataGovHandler) RunQualityCheck(c *gin.Context) {
@@ -500,6 +758,18 @@ func (h *DataGovHandler) RunQualityCheck(c *gin.Context) {
 
 // ==================== Excel 导入导出 ====================
 
+// @Summary      导出数据策略
+// @Description  导出数据策略列表为Excel文件
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        request  body  object  false  "导出列配置 {columns: []string}"
+// @Success      200  {file}  file
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-policies/export [post]
+//
 // ExportPolicies 导出数据策略
 // POST /api/v1/data-policies/export
 func (h *DataGovHandler) ExportPolicies(c *gin.Context) {
@@ -527,6 +797,19 @@ func (h *DataGovHandler) ExportPolicies(c *gin.Context) {
 	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buf.Bytes())
 }
 
+// @Summary      导入数据策略
+// @Description  通过Excel文件批量导入数据策略
+// @Tags         数据治理
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        file  formData  file  true  "Excel文件"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-policies/import [post]
+//
 // ImportPolicies 导入数据策略
 // POST /api/v1/data-policies/import
 func (h *DataGovHandler) ImportPolicies(c *gin.Context) {
@@ -554,6 +837,18 @@ func (h *DataGovHandler) ImportPolicies(c *gin.Context) {
 	response.Success(c, results)
 }
 
+// @Summary      导出数据资产
+// @Description  导出数据资产列表为Excel文件
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        request  body  object  false  "导出列配置 {columns: []string}"
+// @Success      200  {file}  file
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-assets/export [post]
+//
 // ExportAssets 导出数据资产
 // POST /api/v1/data-assets/export
 func (h *DataGovHandler) ExportAssets(c *gin.Context) {
@@ -581,6 +876,19 @@ func (h *DataGovHandler) ExportAssets(c *gin.Context) {
 	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buf.Bytes())
 }
 
+// @Summary      导入数据资产
+// @Description  通过Excel文件批量导入数据资产
+// @Tags         数据治理
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        file  formData  file  true  "Excel文件"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-assets/import [post]
+//
 // ImportAssets 导入数据资产
 // POST /api/v1/data-assets/import
 func (h *DataGovHandler) ImportAssets(c *gin.Context) {
@@ -608,6 +916,18 @@ func (h *DataGovHandler) ImportAssets(c *gin.Context) {
 	response.Success(c, results)
 }
 
+// @Summary      导出数据质量规则
+// @Description  导出数据质量规则列表为Excel文件
+// @Tags         数据治理
+// @Accept       json
+// @Produce      json
+// @Param        request  body  object  false  "导出列配置 {columns: []string}"
+// @Success      200  {file}  file
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-quality/rules/export [post]
+//
 // ExportRules 导出数据质量规则
 // POST /api/v1/data-quality/rules/export
 func (h *DataGovHandler) ExportRules(c *gin.Context) {
@@ -635,6 +955,19 @@ func (h *DataGovHandler) ExportRules(c *gin.Context) {
 	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buf.Bytes())
 }
 
+// @Summary      导入数据质量规则
+// @Description  通过Excel文件批量导入数据质量规则
+// @Tags         数据治理
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        file  formData  file  true  "Excel文件"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /data-quality/rules/import [post]
+//
 // ImportRules 导入数据质量规则
 // POST /api/v1/data-quality/rules/import
 func (h *DataGovHandler) ImportRules(c *gin.Context) {

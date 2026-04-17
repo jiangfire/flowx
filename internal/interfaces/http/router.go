@@ -7,10 +7,15 @@ import (
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/handler"
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // SetupRouter 注册所有路由
 func SetupRouter(r *gin.Engine, container *app.Container) {
+	// Swagger 文档（无需认证）
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	// API v1
 	v1 := r.Group("/api/v1")
 	{

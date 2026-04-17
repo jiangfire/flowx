@@ -22,6 +22,19 @@ func NewBPMNHandler(service *bpmnapp.ProcessService) *BPMNHandler {
 
 // ==================== 流程定义 ====================
 
+// @Summary      部署流程定义
+// @Description  部署新的BPMN流程定义（YAML格式）
+// @Tags         BPMN流程
+// @Accept       json
+// @Produce      json
+// @Param        body  body  string  true  "YAML格式的流程定义"
+// @Success      201  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /process-definitions [post]
+//
 // DeployDefinition 部署流程定义
 // POST /api/v1/process-definitions
 func (h *BPMNHandler) DeployDefinition(c *gin.Context) {
@@ -46,6 +59,21 @@ func (h *BPMNHandler) DeployDefinition(c *gin.Context) {
 	})
 }
 
+// @Summary      流程定义列表
+// @Description  分页查询流程定义列表，支持按状态、关键词筛选
+// @Tags         BPMN流程
+// @Accept       json
+// @Produce      json
+// @Param        page       query  int     false  "页码"      default(1)
+// @Param        page_size  query  int     false  "每页数量"  default(20)
+// @Param        status     query  string  false  "定义状态"
+// @Param        keyword    query  string  false  "关键词搜索"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /process-definitions [get]
+//
 // ListDefinitions 流程定义列表
 // GET /api/v1/process-definitions
 func (h *BPMNHandler) ListDefinitions(c *gin.Context) {
@@ -70,6 +98,19 @@ func (h *BPMNHandler) ListDefinitions(c *gin.Context) {
 	response.Paginated(c, defs, total, filter.Page, filter.PageSize)
 }
 
+// @Summary      流程定义详情
+// @Description  根据ID获取流程定义详细信息
+// @Tags         BPMN流程
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "流程定义ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /process-definitions/{id} [get]
+//
 // GetDefinition 流程定义详情
 // GET /api/v1/process-definitions/:id
 func (h *BPMNHandler) GetDefinition(c *gin.Context) {
@@ -87,6 +128,19 @@ func (h *BPMNHandler) GetDefinition(c *gin.Context) {
 
 // ==================== 流程实例 ====================
 
+// @Summary      启动流程实例
+// @Description  根据流程定义启动新的流程实例
+// @Tags         BPMN流程
+// @Accept       json
+// @Produce      json
+// @Param        request  body  object  true  "启动流程请求 {definition_id: string, variables: map}"
+// @Success      201  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /process-instances [post]
+//
 // StartProcess 启动流程实例
 // POST /api/v1/process-instances
 func (h *BPMNHandler) StartProcess(c *gin.Context) {
@@ -115,6 +169,20 @@ func (h *BPMNHandler) StartProcess(c *gin.Context) {
 	})
 }
 
+// @Summary      流程实例列表
+// @Description  分页查询流程实例列表，支持按状态筛选
+// @Tags         BPMN流程
+// @Accept       json
+// @Produce      json
+// @Param        page       query  int     false  "页码"      default(1)
+// @Param        page_size  query  int     false  "每页数量"  default(20)
+// @Param        status     query  string  false  "实例状态"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /process-instances [get]
+//
 // ListProcessInstances 流程实例列表
 // GET /api/v1/process-instances
 func (h *BPMNHandler) ListProcessInstances(c *gin.Context) {
@@ -138,6 +206,19 @@ func (h *BPMNHandler) ListProcessInstances(c *gin.Context) {
 	response.Paginated(c, instances, total, filter.Page, filter.PageSize)
 }
 
+// @Summary      流程实例详情
+// @Description  根据ID获取流程实例详细信息
+// @Tags         BPMN流程
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "流程实例ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /process-instances/{id} [get]
+//
 // GetProcessInstance 流程实例详情
 // GET /api/v1/process-instances/:id
 func (h *BPMNHandler) GetProcessInstance(c *gin.Context) {
@@ -153,6 +234,19 @@ func (h *BPMNHandler) GetProcessInstance(c *gin.Context) {
 	response.Success(c, inst)
 }
 
+// @Summary      挂起流程实例
+// @Description  挂起指定流程实例
+// @Tags         BPMN流程
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "流程实例ID"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /process-instances/{id}/suspend [post]
+//
 // SuspendProcess 挂起流程实例
 // POST /api/v1/process-instances/:id/suspend
 func (h *BPMNHandler) SuspendProcess(c *gin.Context) {
@@ -167,6 +261,19 @@ func (h *BPMNHandler) SuspendProcess(c *gin.Context) {
 	response.Success(c, nil)
 }
 
+// @Summary      恢复流程实例
+// @Description  恢复已挂起的流程实例
+// @Tags         BPMN流程
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "流程实例ID"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /process-instances/{id}/resume [post]
+//
 // ResumeProcess 恢复流程实例
 // POST /api/v1/process-instances/:id/resume
 func (h *BPMNHandler) ResumeProcess(c *gin.Context) {
@@ -181,6 +288,19 @@ func (h *BPMNHandler) ResumeProcess(c *gin.Context) {
 	response.Success(c, nil)
 }
 
+// @Summary      取消流程实例
+// @Description  取消指定流程实例
+// @Tags         BPMN流程
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "流程实例ID"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /process-instances/{id}/cancel [post]
+//
 // CancelProcess 取消流程实例
 // POST /api/v1/process-instances/:id/cancel
 func (h *BPMNHandler) CancelProcess(c *gin.Context) {
@@ -195,6 +315,18 @@ func (h *BPMNHandler) CancelProcess(c *gin.Context) {
 	response.Success(c, nil)
 }
 
+// @Summary      获取流程实例的任务列表
+// @Description  获取指定流程实例的所有任务
+// @Tags         BPMN流程
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "流程实例ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /process-instances/{id}/tasks [get]
+//
 // GetProcessTasks 获取流程实例的任务列表
 // GET /api/v1/process-instances/:id/tasks
 func (h *BPMNHandler) GetProcessTasks(c *gin.Context) {
@@ -210,6 +342,21 @@ func (h *BPMNHandler) GetProcessTasks(c *gin.Context) {
 	response.Success(c, tasks)
 }
 
+// @Summary      完成任务
+// @Description  完成指定的流程任务
+// @Tags         BPMN流程
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string  true  "流程实例ID"
+// @Param        taskId   path  string  true  "任务ID"
+// @Param        request  body  object  false  "提交数据 {submitted_data: map}"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /process-instances/{id}/tasks/{taskId}/complete [post]
+//
 // CompleteTask 完成任务
 // POST /api/v1/process-instances/:id/tasks/:taskId/complete
 func (h *BPMNHandler) CompleteTask(c *gin.Context) {
@@ -230,6 +377,18 @@ func (h *BPMNHandler) CompleteTask(c *gin.Context) {
 	response.Success(c, nil)
 }
 
+// @Summary      获取待办任务
+// @Description  获取指定处理人的待办任务列表
+// @Tags         BPMN流程
+// @Accept       json
+// @Produce      json
+// @Param        assignee  query  string  false  "处理人"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /process-tasks/pending [get]
+//
 // GetPendingTasks 获取待办任务
 // GET /api/v1/process-tasks/pending
 func (h *BPMNHandler) GetPendingTasks(c *gin.Context) {

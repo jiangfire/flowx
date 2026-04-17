@@ -40,6 +40,19 @@ func getUserRole(c *gin.Context) string {
 
 // ==================== 工具 CRUD ====================
 
+// @Summary      创建工具
+// @Description  创建新的工具
+// @Tags         工具管理
+// @Accept       json
+// @Produce      json
+// @Param        request  body  toolapp.CreateToolRequest  true  "创建工具请求参数"
+// @Success      201  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /tools [post]
+//
 // CreateTool 创建工具
 // POST /api/v1/tools
 func (h *ToolHandler) CreateTool(c *gin.Context) {
@@ -78,6 +91,23 @@ func (h *ToolHandler) CreateTool(c *gin.Context) {
 	})
 }
 
+// @Summary      工具列表
+// @Description  分页查询工具列表，支持按类型、状态、分类筛选
+// @Tags         工具管理
+// @Accept       json
+// @Produce      json
+// @Param        page       query  int     false  "页码"           default(1)
+// @Param        page_size  query  int     false  "每页数量"       default(20)
+// @Param        type       query  string  false  "工具类型"
+// @Param        status     query  string  false  "工具状态"
+// @Param        category   query  string  false  "工具分类"
+// @Param        keyword    query  string  false  "关键词搜索"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /tools [get]
+//
 // ListTools 工具列表
 // GET /api/v1/tools
 func (h *ToolHandler) ListTools(c *gin.Context) {
@@ -104,6 +134,19 @@ func (h *ToolHandler) ListTools(c *gin.Context) {
 	response.Paginated(c, tools, paginated.Total, paginated.Page, paginated.PageSize)
 }
 
+// @Summary      工具详情
+// @Description  根据ID获取工具详细信息
+// @Tags         工具管理
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "工具ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /tools/{id} [get]
+//
 // GetTool 工具详情
 // GET /api/v1/tools/:id
 func (h *ToolHandler) GetTool(c *gin.Context) {
@@ -127,6 +170,21 @@ func (h *ToolHandler) GetTool(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// @Summary      更新工具
+// @Description  根据ID更新工具信息
+// @Tags         工具管理
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string                       true  "工具ID"
+// @Param        request  body  toolapp.UpdateToolRequest    true  "更新工具请求参数"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /tools/{id} [put]
+//
 // UpdateTool 更新工具
 // PUT /api/v1/tools/:id
 func (h *ToolHandler) UpdateTool(c *gin.Context) {
@@ -166,6 +224,19 @@ func (h *ToolHandler) UpdateTool(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// @Summary      删除工具
+// @Description  根据ID删除工具
+// @Tags         工具管理
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "工具ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /tools/{id} [delete]
+//
 // DeleteTool 删除工具
 // DELETE /api/v1/tools/:id
 func (h *ToolHandler) DeleteTool(c *gin.Context) {
@@ -191,6 +262,18 @@ func (h *ToolHandler) DeleteTool(c *gin.Context) {
 
 // ==================== Excel 导入导出 ====================
 
+// @Summary      导出工具
+// @Description  导出工具列表为Excel文件
+// @Tags         工具管理
+// @Accept       json
+// @Produce      json
+// @Param        request  body  object  false  "导出列配置 {columns: []string}"
+// @Success      200  {file}  file
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /tools/export [post]
+//
 // ExportTools 创建导出任务
 // POST /api/v1/tools/export
 func (h *ToolHandler) ExportTools(c *gin.Context) {
@@ -222,6 +305,19 @@ func (h *ToolHandler) ExportTools(c *gin.Context) {
 	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buf.Bytes())
 }
 
+// @Summary      导入工具
+// @Description  通过Excel文件批量导入工具
+// @Tags         工具管理
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        file  formData  file  true  "Excel文件"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /tools/import [post]
+//
 // ImportTools 导入 Excel
 // POST /api/v1/tools/import
 func (h *ToolHandler) ImportTools(c *gin.Context) {
@@ -249,6 +345,18 @@ func (h *ToolHandler) ImportTools(c *gin.Context) {
 	response.Success(c, results)
 }
 
+// @Summary      查询导出任务状态
+// @Description  查询工具导出任务的状态
+// @Tags         工具管理
+// @Accept       json
+// @Produce      json
+// @Param        task_id  path  string  true  "任务ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /tools/export/{task_id} [get]
+//
 // GetExportStatus 查询导出任务状态（预留接口）
 // GET /api/v1/tools/export/:task_id
 func (h *ToolHandler) GetExportStatus(c *gin.Context) {
@@ -263,6 +371,19 @@ func (h *ToolHandler) GetExportStatus(c *gin.Context) {
 
 // ==================== 连接器 CRUD ====================
 
+// @Summary      创建连接器
+// @Description  创建新的连接器
+// @Tags         工具管理
+// @Accept       json
+// @Produce      json
+// @Param        request  body  toolapp.CreateConnectorRequest  true  "创建连接器请求参数"
+// @Success      201  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /connectors [post]
+//
 // CreateConnector 创建连接器
 // POST /api/v1/connectors
 func (h *ToolHandler) CreateConnector(c *gin.Context) {
@@ -287,6 +408,22 @@ func (h *ToolHandler) CreateConnector(c *gin.Context) {
 	})
 }
 
+// @Summary      连接器列表
+// @Description  分页查询连接器列表，支持按类型、状态筛选
+// @Tags         工具管理
+// @Accept       json
+// @Produce      json
+// @Param        page       query  int     false  "页码"      default(1)
+// @Param        page_size  query  int     false  "每页数量"  default(20)
+// @Param        type       query  string  false  "连接器类型"
+// @Param        status     query  string  false  "连接器状态"
+// @Param        keyword    query  string  false  "关键词搜索"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /connectors [get]
+//
 // ListConnectors 连接器列表
 // GET /api/v1/connectors
 func (h *ToolHandler) ListConnectors(c *gin.Context) {
@@ -312,6 +449,19 @@ func (h *ToolHandler) ListConnectors(c *gin.Context) {
 	response.Paginated(c, connectors, paginated.Total, paginated.Page, paginated.PageSize)
 }
 
+// @Summary      连接器详情
+// @Description  根据ID获取连接器详细信息
+// @Tags         工具管理
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "连接器ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /connectors/{id} [get]
+//
 // GetConnector 连接器详情
 // GET /api/v1/connectors/:id
 func (h *ToolHandler) GetConnector(c *gin.Context) {
@@ -335,6 +485,21 @@ func (h *ToolHandler) GetConnector(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// @Summary      更新连接器
+// @Description  根据ID更新连接器信息
+// @Tags         工具管理
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string                          true  "连接器ID"
+// @Param        request  body  toolapp.UpdateConnectorRequest  true  "更新连接器请求参数"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  response.APIResponse
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /connectors/{id} [put]
+//
 // UpdateConnector 更新连接器
 // PUT /api/v1/connectors/:id
 func (h *ToolHandler) UpdateConnector(c *gin.Context) {
@@ -364,6 +529,19 @@ func (h *ToolHandler) UpdateConnector(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// @Summary      删除连接器
+// @Description  根据ID删除连接器
+// @Tags         工具管理
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "连接器ID"
+// @Success      200  {object}  map[string]any
+// @Failure      401  {object}  response.APIResponse
+// @Failure      404  {object}  response.APIResponse
+// @Failure      500  {object}  response.APIResponse
+// @Security     BearerAuth
+// @Router       /connectors/{id} [delete]
+//
 // DeleteConnector 删除连接器
 // DELETE /api/v1/connectors/:id
 func (h *ToolHandler) DeleteConnector(c *gin.Context) {
