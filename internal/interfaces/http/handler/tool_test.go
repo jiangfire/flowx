@@ -16,7 +16,7 @@ import (
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -64,42 +64,6 @@ func generateTestToken(t *testing.T, jwtService auth.JWTService, tenantID string
 	return token
 }
 
-// setupAuthedRouter 设置带认证中间件的路由
-func setupAuthedRouter(r *gin.Engine, jwtService auth.JWTService, token string, registerRoutes func(*gin.Engine, *ToolHandler)) {
-	authMiddleware := middleware.AuthMiddleware(jwtService)
-	tenantMiddleware := middleware.TenantMiddleware()
-
-	r.Use(func(c *gin.Context) {
-		c.Request.Header.Set("Authorization", "Bearer "+token)
-		c.Next()
-	})
-	r.Use(authMiddleware, tenantMiddleware)
-	registerRoutes(r, nil) // handler 在路由注册时设置
-}
-
-// registerToolRoutes 注册工具路由
-func registerToolRoutes(r *gin.Engine, h *ToolHandler) {
-	tools := r.Group("/api/v1/tools")
-	{
-		tools.POST("", h.CreateTool)
-		tools.GET("", h.ListTools)
-		tools.GET("/:id", h.GetTool)
-		tools.PUT("/:id", h.UpdateTool)
-		tools.DELETE("/:id", h.DeleteTool)
-		tools.POST("/export", h.ExportTools)
-		tools.POST("/import", h.ImportTools)
-		tools.GET("/export/:task_id", h.GetExportStatus)
-	}
-
-	connectors := r.Group("/api/v1/connectors")
-	{
-		connectors.POST("", h.CreateConnector)
-		connectors.GET("", h.ListConnectors)
-		connectors.GET("/:id", h.GetConnector)
-		connectors.PUT("/:id", h.UpdateConnector)
-		connectors.DELETE("/:id", h.DeleteConnector)
-	}
-}
 
 // setupToolHandlerWithAuth 创建带认证的工具 Handler 测试环境
 func setupToolHandlerWithAuth(t *testing.T) (*ToolHandler, *gin.Engine, string) {
@@ -160,7 +124,7 @@ func TestCreateTool_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	if resp["code"].(float64) != 0 {
 		t.Errorf("期望 code 为 0，实际为 %v", resp["code"])
 	}
@@ -205,7 +169,7 @@ func TestListTools(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["total"].(float64) != 0 {
 		t.Errorf("期望 total 为 0，实际为 %v", data["total"])
@@ -242,7 +206,7 @@ func TestListTools_FilterByType(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["total"].(float64) != 1 {
 		t.Errorf("期望过滤后 total 为 1，实际为 %v", data["total"])
@@ -263,7 +227,7 @@ func TestGetTool_Success(t *testing.T) {
 	r.ServeHTTP(w1, req1)
 
 	var createResp map[string]any
-	json.Unmarshal(w1.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w1.Body.Bytes(), &createResp)
 	toolID := createResp["data"].(map[string]any)["id"].(string)
 
 	// 查询详情
@@ -277,7 +241,7 @@ func TestGetTool_Success(t *testing.T) {
 	}
 
 	var getResp map[string]any
-	json.Unmarshal(w2.Body.Bytes(), &getResp)
+	_ = json.Unmarshal(w2.Body.Bytes(), &getResp)
 	data := getResp["data"].(map[string]any)
 	if data["name"] != "TestTool" {
 		t.Errorf("期望 name 为 'TestTool'，实际为 '%v'", data["name"])
@@ -312,7 +276,7 @@ func TestUpdateTool_Success(t *testing.T) {
 	r.ServeHTTP(w1, req1)
 
 	var createResp map[string]any
-	json.Unmarshal(w1.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w1.Body.Bytes(), &createResp)
 	toolID := createResp["data"].(map[string]any)["id"].(string)
 
 	// 更新
@@ -329,7 +293,7 @@ func TestUpdateTool_Success(t *testing.T) {
 	}
 
 	var updateResp map[string]any
-	json.Unmarshal(w2.Body.Bytes(), &updateResp)
+	_ = json.Unmarshal(w2.Body.Bytes(), &updateResp)
 	data := updateResp["data"].(map[string]any)
 	if data["name"] != "NewName" {
 		t.Errorf("期望 name 为 'NewName'，实际为 '%v'", data["name"])
@@ -350,7 +314,7 @@ func TestDeleteTool_Success(t *testing.T) {
 	r.ServeHTTP(w1, req1)
 
 	var createResp map[string]any
-	json.Unmarshal(w1.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w1.Body.Bytes(), &createResp)
 	toolID := createResp["data"].(map[string]any)["id"].(string)
 
 	// 删除
@@ -409,7 +373,7 @@ func TestGetExportStatus(t *testing.T) {
 	}
 
 	var statusResp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &statusResp)
+	_ = json.Unmarshal(w.Body.Bytes(), &statusResp)
 	data := statusResp["data"].(map[string]any)
 	if data["status"] == nil {
 		t.Error("期望响应包含 status")
@@ -422,16 +386,16 @@ func TestImportTools(t *testing.T) {
 
 	// 创建测试 xlsx 文件
 	f := excelize.NewFile()
-	f.SetSheetRow("Sheet1", "A1", &[]string{"name", "type", "status"})
-	f.SetSheetRow("Sheet1", "A2", &[]string{"ImportedTool", "eda", "active"})
+	_ = f.SetSheetRow("Sheet1", "A1", &[]string{"name", "type", "status"})
+	_ = f.SetSheetRow("Sheet1", "A2", &[]string{"ImportedTool", "eda", "active"})
 	buf, _ := f.WriteToBuffer()
 
 	// 创建 multipart form
 	var requestBody bytes.Buffer
 	writer := multipart.NewWriter(&requestBody)
 	part, _ := writer.CreateFormFile("file", "tools.xlsx")
-	part.Write(buf.Bytes())
-	writer.Close()
+	_, _ = part.Write(buf.Bytes())
+	_ = writer.Close()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodPost, "/api/v1/tools/import", &requestBody)
@@ -468,7 +432,7 @@ func TestCreateConnector_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["name"] != "Windchill" {
 		t.Errorf("期望 name 为 'Windchill'，实际为 '%v'", data["name"])
@@ -507,7 +471,7 @@ func TestGetConnector_Success(t *testing.T) {
 	r.ServeHTTP(w1, req1)
 
 	var createResp map[string]any
-	json.Unmarshal(w1.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w1.Body.Bytes(), &createResp)
 	connID := createResp["data"].(map[string]any)["id"].(string)
 
 	// 查询详情
@@ -553,7 +517,7 @@ func TestUpdateConnector_Success(t *testing.T) {
 	r.ServeHTTP(w1, req1)
 
 	var createResp map[string]any
-	json.Unmarshal(w1.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w1.Body.Bytes(), &createResp)
 	connID := createResp["data"].(map[string]any)["id"].(string)
 
 	// 更新
@@ -570,7 +534,7 @@ func TestUpdateConnector_Success(t *testing.T) {
 	}
 
 	var updateResp map[string]any
-	json.Unmarshal(w2.Body.Bytes(), &updateResp)
+	_ = json.Unmarshal(w2.Body.Bytes(), &updateResp)
 	data := updateResp["data"].(map[string]any)
 	if data["name"] != "NewName" {
 		t.Errorf("期望 name 为 'NewName'，实际为 '%v'", data["name"])
@@ -595,7 +559,7 @@ func TestDeleteConnector_Success(t *testing.T) {
 	r.ServeHTTP(w1, req1)
 
 	var createResp map[string]any
-	json.Unmarshal(w1.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w1.Body.Bytes(), &createResp)
 	connID := createResp["data"].(map[string]any)["id"].(string)
 
 	// 删除

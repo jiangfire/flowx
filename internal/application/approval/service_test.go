@@ -11,7 +11,7 @@ import (
 	"git.neolidy.top/neo/flowx/internal/application/ai"
 	"git.neolidy.top/neo/flowx/internal/domain/approval"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -53,7 +53,7 @@ func setupServiceTestWithLLM(t *testing.T, suggestion string) (ApprovalService, 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(respBytes)
+		_, _ = w.Write(respBytes)
 	}))
 
 	llmSvc := ai.NewLLMService(server.URL, "test-key", 5*time.Second)
@@ -244,7 +244,7 @@ func TestApprove_LastStep(t *testing.T) {
 	})
 
 	// 第一步审批通过
-	svc.Approve(ctx, "tenant-001", "approver-1", &ApproveRequest{
+	_, _ = svc.Approve(ctx, "tenant-001", "approver-1", &ApproveRequest{
 		InstanceID: inst.ID,
 		Comment:    "技术审核通过",
 	})
@@ -391,13 +391,13 @@ func TestGetMyPendingApprovals_Success(t *testing.T) {
 		WorkflowID: w.ID,
 		Title:      "部署 nginx",
 	})
-	svc.StartApproval(ctx, "tenant-001", "initiator-001", &StartApprovalRequest{
+	_, _ = svc.StartApproval(ctx, "tenant-001", "initiator-001", &StartApprovalRequest{
 		WorkflowID: w.ID,
 		Title:      "部署 redis",
 	})
 
 	// 审批第一个
-	svc.Approve(ctx, "tenant-001", "approver-1", &ApproveRequest{
+	_, _ = svc.Approve(ctx, "tenant-001", "approver-1", &ApproveRequest{
 		InstanceID: inst1.ID,
 		Comment:    "通过",
 	})

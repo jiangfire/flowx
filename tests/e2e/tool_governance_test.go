@@ -13,7 +13,7 @@ import (
 	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	bizerrors "git.neolidy.top/neo/flowx/pkg/errors"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 

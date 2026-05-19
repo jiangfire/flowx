@@ -280,8 +280,9 @@ func (h *NotificationHandler) MarkAsRead(c *gin.Context) {
 // PUT /api/v1/notifications/read-all
 func (h *NotificationHandler) MarkAllAsRead(c *gin.Context) {
 	userID := c.GetString("user_id")
+	tenantID := c.GetString("tenant_id")
 
-	err := h.service.MarkAllAsRead(c.Request.Context(), userID)
+	err := h.service.MarkAllAsRead(c.Request.Context(), tenantID, userID)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "全部标记已读失败")
 		return
@@ -305,8 +306,9 @@ func (h *NotificationHandler) MarkAllAsRead(c *gin.Context) {
 // GET /api/v1/notifications/unread-count
 func (h *NotificationHandler) GetUnreadCount(c *gin.Context) {
 	userID := c.GetString("user_id")
+	tenantID := c.GetString("tenant_id")
 
-	count, err := h.service.GetUnreadCount(c.Request.Context(), userID)
+	count, err := h.service.GetUnreadCount(c.Request.Context(), tenantID, userID)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "获取未读数量失败")
 		return

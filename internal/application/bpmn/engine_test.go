@@ -194,7 +194,7 @@ func TestEngine_InclusiveGateway(t *testing.T) {
 		}
 		// Complete all
 		for _, task := range tasks {
-			engine.CompleteTask(inst.ID, task.ID, "user1", nil)
+			_ = engine.CompleteTask(inst.ID, task.ID, "user1", nil)
 		}
 		inst = engine.GetInstance(inst.ID)
 		if inst.Status != "completed" {
@@ -431,7 +431,7 @@ func TestEngine_ExecutionHistory(t *testing.T) {
 
 	// Complete task and check more history
 	tasks := engine.GetPendingTasks(inst.ID)
-	engine.CompleteTask(inst.ID, tasks[0].ID, "user1", nil)
+	_ = engine.CompleteTask(inst.ID, tasks[0].ID, "user1", nil)
 
 	history = engine.GetHistory(inst.ID)
 	hasEndEnter := false
@@ -498,7 +498,7 @@ func TestEngine_Cancel_AlreadyCompleted(t *testing.T) {
 	engine := NewEngine()
 	inst := startInstance(t, engine, def, nil)
 	tasks := engine.GetPendingTasks(inst.ID)
-	engine.CompleteTask(inst.ID, tasks[0].ID, "user1", nil)
+	_ = engine.CompleteTask(inst.ID, tasks[0].ID, "user1", nil)
 
 	// Cancel completed instance should be safe (no-op)
 	engine.Cancel(inst.ID)
@@ -554,7 +554,7 @@ func TestEngine_ParallelGateway_WaitForAll(t *testing.T) {
 	tasks := engine.GetPendingTasks(inst.ID)
 
 	// Complete only one task
-	engine.CompleteTask(inst.ID, tasks[0].ID, "user1", nil)
+	_ = engine.CompleteTask(inst.ID, tasks[0].ID, "user1", nil)
 
 	inst = engine.GetInstance(inst.ID)
 	if inst.Status == "completed" {
@@ -565,7 +565,7 @@ func TestEngine_ParallelGateway_WaitForAll(t *testing.T) {
 	}
 
 	// Complete second task -> now completed
-	engine.CompleteTask(inst.ID, tasks[1].ID, "user1", nil)
+	_ = engine.CompleteTask(inst.ID, tasks[1].ID, "user1", nil)
 	inst = engine.GetInstance(inst.ID)
 	if inst.Status != "completed" {
 		t.Fatalf("expected completed, got %s", inst.Status)
@@ -643,14 +643,14 @@ func TestEngine_ParallelGateway_DifferentCompletionOrder(t *testing.T) {
 			taskBID = task.ID
 		}
 	}
-	engine.CompleteTask(inst.ID, taskBID, "admin", nil)
+	_ = engine.CompleteTask(inst.ID, taskBID, "admin", nil)
 	inst = engine.GetInstance(inst.ID)
 	if inst.Status == "completed" {
 		t.Error("should not complete after only one of two parallel tasks")
 	}
 	// Complete taskA
 	remaining := engine.GetPendingTasks(inst.ID)
-	engine.CompleteTask(inst.ID, remaining[0].ID, "admin", nil)
+	_ = engine.CompleteTask(inst.ID, remaining[0].ID, "admin", nil)
 	inst = engine.GetInstance(inst.ID)
 	if inst.Status != "completed" {
 		t.Errorf("expected completed, got %s", inst.Status)

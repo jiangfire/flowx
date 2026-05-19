@@ -28,11 +28,11 @@ func (r *mockDefRepo) Create(_ context.Context, def *bpmn.ProcessDefinition) err
 	return nil
 }
 
-func (r *mockDefRepo) GetByID(_ context.Context, id string) (*bpmn.ProcessDefinition, error) {
+func (r *mockDefRepo) GetByID(_ context.Context, tenantID, id string) (*bpmn.ProcessDefinition, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	def, ok := r.store[id]
-	if !ok {
+	if !ok || def.TenantID != tenantID {
 		return nil, fmt.Errorf("流程定义 %s 不存在", id)
 	}
 	return def, nil
@@ -58,10 +58,12 @@ func (r *mockDefRepo) Update(_ context.Context, def *bpmn.ProcessDefinition) err
 	return nil
 }
 
-func (r *mockDefRepo) Delete(_ context.Context, id string) error {
+func (r *mockDefRepo) Delete(_ context.Context, tenantID, id string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	delete(r.store, id)
+	if def, ok := r.store[id]; ok && def.TenantID == tenantID {
+		delete(r.store, id)
+	}
 	return nil
 }
 
@@ -86,11 +88,11 @@ func (r *mockInstRepo) Create(_ context.Context, inst *bpmn.ProcessInstance) err
 	return nil
 }
 
-func (r *mockInstRepo) GetByID(_ context.Context, id string) (*bpmn.ProcessInstance, error) {
+func (r *mockInstRepo) GetByID(_ context.Context, tenantID, id string) (*bpmn.ProcessInstance, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	inst, ok := r.store[id]
-	if !ok {
+	if !ok || inst.TenantID != tenantID {
 		return nil, fmt.Errorf("流程实例 %s 不存在", id)
 	}
 	return inst, nil
@@ -140,22 +142,22 @@ func (r *mockTaskRepo) Create(_ context.Context, task *bpmn.ProcessTask) error {
 	return nil
 }
 
-func (r *mockTaskRepo) GetByID(_ context.Context, id string) (*bpmn.ProcessTask, error) {
+func (r *mockTaskRepo) GetByID(_ context.Context, tenantID, id string) (*bpmn.ProcessTask, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	task, ok := r.store[id]
-	if !ok {
+	if !ok || task.TenantID != tenantID {
 		return nil, fmt.Errorf("任务 %s 不存在", id)
 	}
 	return task, nil
 }
 
-func (r *mockTaskRepo) ListByInstance(_ context.Context, instanceID string) ([]*bpmn.ProcessTask, error) {
+func (r *mockTaskRepo) ListByInstance(_ context.Context, tenantID, instanceID string) ([]*bpmn.ProcessTask, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var result []*bpmn.ProcessTask
 	for _, task := range r.store {
-		if task.InstanceID == instanceID {
+		if task.InstanceID == instanceID && task.TenantID == tenantID {
 			result = append(result, task)
 		}
 	}
@@ -205,12 +207,12 @@ func (r *mockHistoryRepo) Create(_ context.Context, h *bpmn.ExecutionHistory) er
 	return nil
 }
 
-func (r *mockHistoryRepo) ListByInstance(_ context.Context, instanceID string) ([]*bpmn.ExecutionHistory, error) {
+func (r *mockHistoryRepo) ListByInstance(_ context.Context, tenantID, instanceID string) ([]*bpmn.ExecutionHistory, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var result []*bpmn.ExecutionHistory
 	for _, h := range r.store {
-		if h.InstanceID == instanceID {
+		if h.InstanceID == instanceID && h.TenantID == tenantID {
 			result = append(result, h)
 		}
 	}
@@ -372,6 +374,7 @@ func TestProcessService_GetDefinition_Success(t *testing.T) {
 		Name:     "测试流程",
 		Version:  1,
 		Status:   "active",
+		TenantID: "tenant1",
 		Elements: []bpmn.Element{},
 	}
 	defRepo.store["def-001"] = def
@@ -468,7 +471,7 @@ func TestProcessService_StartProcess_Success(t *testing.T) {
 	}
 
 	// 验证实例已持久化
-	persisted, err := instRepo.GetByID(context.Background(), inst.ID)
+	persisted, err := instRepo.GetByID(context.Background(), "tenant1", inst.ID)
 	if err != nil {
 		t.Fatalf("期望实例已持久化，但查询出错: %v", err)
 	}
@@ -477,7 +480,7 @@ func TestProcessService_StartProcess_Success(t *testing.T) {
 	}
 
 	// 验证待办任务已持久化
-	tasks, err := taskRepo.ListByInstance(context.Background(), inst.ID)
+	tasks, err := taskRepo.ListByInstance(context.Background(), "tenant1", inst.ID)
 	if err != nil {
 		t.Fatalf("期望查询任务成功，但出错: %v", err)
 	}
@@ -492,7 +495,7 @@ func TestProcessService_StartProcess_Success(t *testing.T) {
 	}
 
 	// 验证执行历史已持久化
-	histories, err := historyRepo.ListByInstance(context.Background(), inst.ID)
+	histories, err := historyRepo.ListByInstance(context.Background(), "tenant1", inst.ID)
 	if err != nil {
 		t.Fatalf("期望查询历史成功，但出错: %v", err)
 	}
@@ -563,7 +566,7 @@ func TestProcessService_GetProcessInstance_Success(t *testing.T) {
 	}
 
 	// 确认实例确实在仓储中
-	_, err = instRepo.GetByID(context.Background(), inst.ID)
+	_, err = instRepo.GetByID(context.Background(), "tenant1", inst.ID)
 	if err != nil {
 		t.Fatal("实例应已持久化到仓储中")
 	}
@@ -654,7 +657,7 @@ func TestProcessService_SuspendProcess_Success(t *testing.T) {
 	}
 
 	// 验证持久化状态已更新
-	persisted, err := instRepo.GetByID(context.Background(), inst.ID)
+	persisted, err := instRepo.GetByID(context.Background(), "tenant1", inst.ID)
 	if err != nil {
 		t.Fatalf("查询持久化实例出错: %v", err)
 	}
@@ -705,7 +708,7 @@ func TestProcessService_ResumeProcess_Success(t *testing.T) {
 	}
 
 	// 验证持久化状态已更新
-	persisted, err := instRepo.GetByID(context.Background(), inst.ID)
+	persisted, err := instRepo.GetByID(context.Background(), "tenant1", inst.ID)
 	if err != nil {
 		t.Fatalf("查询持久化实例出错: %v", err)
 	}
@@ -749,7 +752,7 @@ func TestProcessService_CancelProcess_Success(t *testing.T) {
 	}
 
 	// 验证持久化状态已更新
-	persisted, err := instRepo.GetByID(context.Background(), inst.ID)
+	persisted, err := instRepo.GetByID(context.Background(), "tenant1", inst.ID)
 	if err != nil {
 		t.Fatalf("查询持久化实例出错: %v", err)
 	}
@@ -812,7 +815,7 @@ func TestProcessService_GetPendingTasks_Success(t *testing.T) {
 	}
 
 	// 确认任务已通过仓储持久化
-	allTasks, err := taskRepo.ListByInstance(context.Background(), inst.ID)
+	allTasks, err := taskRepo.ListByInstance(context.Background(), "tenant1", inst.ID)
 	if err != nil {
 		t.Fatalf("查询实例任务出错: %v", err)
 	}
@@ -850,7 +853,7 @@ func TestProcessService_CompleteTask_Success(t *testing.T) {
 	}
 
 	// 验证任务状态已更新为 completed
-	updatedTask, err := taskRepo.GetByID(context.Background(), taskID)
+	updatedTask, err := taskRepo.GetByID(context.Background(), "tenant1", taskID)
 	if err != nil {
 		t.Fatalf("查询任务出错: %v", err)
 	}
@@ -862,7 +865,7 @@ func TestProcessService_CompleteTask_Success(t *testing.T) {
 	}
 
 	// 验证流程实例状态已更新为 completed（因为 userTask 后面是 endEvent）
-	updatedInst, err := instRepo.GetByID(context.Background(), inst.ID)
+	updatedInst, err := instRepo.GetByID(context.Background(), "tenant1", inst.ID)
 	if err != nil {
 		t.Fatalf("查询实例出错: %v", err)
 	}
@@ -871,7 +874,7 @@ func TestProcessService_CompleteTask_Success(t *testing.T) {
 	}
 
 	// 验证执行历史中有新记录（完成任务 + 到达 endEvent）
-	histories, err := historyRepo.ListByInstance(context.Background(), inst.ID)
+	histories, err := historyRepo.ListByInstance(context.Background(), "tenant1", inst.ID)
 	if err != nil {
 		t.Fatalf("查询历史出错: %v", err)
 	}
@@ -1044,7 +1047,7 @@ func TestProcessService_FullLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("挂起失败: %v", err)
 	}
-	suspendedInst, _ := instRepo.GetByID(context.Background(), inst.ID)
+	suspendedInst, _ := instRepo.GetByID(context.Background(), "tenant1", inst.ID)
 	if suspendedInst.Status != "suspended" {
 		t.Fatalf("期望 suspended，实际为 %s", suspendedInst.Status)
 	}
@@ -1054,7 +1057,7 @@ func TestProcessService_FullLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("恢复失败: %v", err)
 	}
-	resumedInst, _ := instRepo.GetByID(context.Background(), inst.ID)
+	resumedInst, _ := instRepo.GetByID(context.Background(), "tenant1", inst.ID)
 	if resumedInst.Status != "running" {
 		t.Fatalf("期望 running，实际为 %s", resumedInst.Status)
 	}
@@ -1066,19 +1069,19 @@ func TestProcessService_FullLifecycle(t *testing.T) {
 	}
 
 	// 9. 验证流程已完成
-	completedInst, _ := instRepo.GetByID(context.Background(), inst.ID)
+	completedInst, _ := instRepo.GetByID(context.Background(), "tenant1", inst.ID)
 	if completedInst.Status != "completed" {
 		t.Fatalf("期望 completed，实际为 %s", completedInst.Status)
 	}
 
 	// 10. 验证任务已标记完成
-	completedTask, _ := taskRepo.GetByID(context.Background(), pendingTasks[0].ID)
+	completedTask, _ := taskRepo.GetByID(context.Background(), "tenant1", pendingTasks[0].ID)
 	if completedTask.Status != "completed" {
 		t.Fatalf("期望任务 completed，实际为 %s", completedTask.Status)
 	}
 
 	// 11. 验证历史记录
-	histories, _ := historyRepo.ListByInstance(context.Background(), inst.ID)
+	histories, _ := historyRepo.ListByInstance(context.Background(), "tenant1", inst.ID)
 	if len(histories) == 0 {
 		t.Fatal("期望有历史记录")
 	}
@@ -1224,7 +1227,7 @@ elements:
 	}
 
 	// 验证新任务已通过仓储持久化
-	allTasks, err := taskRepo.ListByInstance(context.Background(), inst.ID)
+	allTasks, err := taskRepo.ListByInstance(context.Background(), "tenant1", inst.ID)
 	if err != nil {
 		t.Fatalf("查询实例任务出错: %v", err)
 	}
@@ -1233,7 +1236,7 @@ elements:
 	}
 
 	// 验证历史记录已持久化（包含完成任务和新任务进入的历史）
-	allHistory, err := historyRepo.ListByInstance(context.Background(), inst.ID)
+	allHistory, err := historyRepo.ListByInstance(context.Background(), "tenant1", inst.ID)
 	if err != nil {
 		t.Fatalf("查询历史出错: %v", err)
 	}

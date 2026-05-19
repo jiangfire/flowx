@@ -45,6 +45,7 @@ func (s *ProcessService) DeployDefinition(ctx context.Context, tenantID string, 
 	if def.Status == "" {
 		def.Status = "active"
 	}
+	def.TenantID = tenantID
 
 	if err := s.defRepo.Create(ctx, &def); err != nil {
 		return nil, fmt.Errorf("保存流程定义失败: %w", err)
@@ -55,7 +56,7 @@ func (s *ProcessService) DeployDefinition(ctx context.Context, tenantID string, 
 
 // GetDefinition 获取流程定义
 func (s *ProcessService) GetDefinition(ctx context.Context, tenantID, id string) (*bpmn.ProcessDefinition, error) {
-	return s.defRepo.GetByID(ctx, id)
+	return s.defRepo.GetByID(ctx, tenantID, id)
 }
 
 // ListDefinitions 查询流程定义列表
@@ -66,9 +67,12 @@ func (s *ProcessService) ListDefinitions(ctx context.Context, tenantID string, f
 
 // StartProcess 启动流程实例
 func (s *ProcessService) StartProcess(ctx context.Context, tenantID, defID, startedBy string, variables map[string]any) (*bpmn.ProcessInstance, error) {
-	def, err := s.defRepo.GetByID(ctx, defID)
+	def, err := s.defRepo.GetByID(ctx, tenantID, defID)
 	if err != nil {
 		return nil, fmt.Errorf("获取流程定义失败: %w", err)
+	}
+	if def.TenantID != tenantID {
+		return nil, fmt.Errorf("流程定义不存在")
 	}
 
 	// 使用内存引擎启动流程
@@ -101,7 +105,7 @@ func (s *ProcessService) StartProcess(ctx context.Context, tenantID, defID, star
 
 // GetProcessInstance 获取流程实例
 func (s *ProcessService) GetProcessInstance(ctx context.Context, tenantID, id string) (*bpmn.ProcessInstance, error) {
-	return s.instRepo.GetByID(ctx, id)
+	return s.instRepo.GetByID(ctx, tenantID, id)
 }
 
 // ListProcessInstances 查询流程实例列表
@@ -112,44 +116,55 @@ func (s *ProcessService) ListProcessInstances(ctx context.Context, tenantID stri
 
 // SuspendProcess 挂起流程实例
 func (s *ProcessService) SuspendProcess(ctx context.Context, tenantID, id string) error {
-	inst, err := s.instRepo.GetByID(ctx, id)
+	inst, err := s.instRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return err
 	}
 
 	s.engine.Suspend(id)
+	if s.engine.GetInstance(id) == nil {
+		return fmt.Errorf("instance runtime state not found (may be lost after restart)")
+	}
 	inst.Status = "suspended"
 	return s.instRepo.Update(ctx, inst)
 }
 
 // ResumeProcess 恢复流程实例
 func (s *ProcessService) ResumeProcess(ctx context.Context, tenantID, id string) error {
-	inst, err := s.instRepo.GetByID(ctx, id)
+	inst, err := s.instRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return err
 	}
 
 	s.engine.Resume(id)
+	if s.engine.GetInstance(id) == nil {
+		return fmt.Errorf("instance runtime state not found (may be lost after restart)")
+	}
 	inst.Status = "running"
 	return s.instRepo.Update(ctx, inst)
 }
 
 // CancelProcess 取消流程实例
 func (s *ProcessService) CancelProcess(ctx context.Context, tenantID, id string) error {
-	inst, err := s.instRepo.GetByID(ctx, id)
+	inst, err := s.instRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return err
 	}
 
 	s.engine.Cancel(id)
+	if s.engine.GetInstance(id) == nil {
+		return fmt.Errorf("instance runtime state not found (may be lost after restart)")
+	}
 	inst.Status = "cancelled"
 
 	// 更新所有未完成的任务状态为 cancelled
-	pendingTasks, _ := s.taskRepo.ListByInstance(ctx, id)
-	for _, t := range pendingTasks {
-		if t.Status == "pending" {
-			t.Status = "cancelled"
-			_ = s.taskRepo.Update(ctx, t)
+	pendingTasks, err := s.taskRepo.ListByInstance(ctx, tenantID, id)
+	if err == nil {
+		for _, t := range pendingTasks {
+			if t.Status == "pending" {
+				t.Status = "cancelled"
+				_ = s.taskRepo.Update(ctx, t)
+			}
 		}
 	}
 
@@ -163,9 +178,19 @@ func (s *ProcessService) GetPendingTasks(ctx context.Context, tenantID, assignee
 
 // CompleteTask 完成任务
 func (s *ProcessService) CompleteTask(ctx context.Context, tenantID, taskID, completedBy string, submittedData map[string]any) error {
-	task, err := s.taskRepo.GetByID(ctx, taskID)
+	task, err := s.taskRepo.GetByID(ctx, tenantID, taskID)
 	if err != nil {
 		return err
+	}
+	if task.TenantID != tenantID {
+		return fmt.Errorf("流程任务不存在")
+	}
+
+	// 确保引擎内存中存在该实例，若不在则尝试从 DB 恢复
+	if !s.engine.HasInstance(task.InstanceID) {
+		if err := s.ensureInstanceInEngine(ctx, tenantID, task.InstanceID); err != nil {
+			return fmt.Errorf("流程实例运行态不可恢复: %w", err)
+		}
 	}
 
 	if err := s.engine.CompleteTask(task.InstanceID, taskID, completedBy, submittedData); err != nil {
@@ -185,7 +210,7 @@ func (s *ProcessService) CompleteTask(ctx context.Context, tenantID, taskID, com
 	// 持久化引擎新产生的待办任务（跳过已持久化的部分）
 	allPending := s.engine.GetPendingTasks(task.InstanceID)
 	// 获取已持久化的任务 ID 集合
-	existingTasks, _ := s.taskRepo.ListByInstance(ctx, task.InstanceID)
+	existingTasks, _ := s.taskRepo.ListByInstance(ctx, tenantID, task.InstanceID)
 	existingTaskIDs := make(map[string]bool)
 	for _, et := range existingTasks {
 		existingTaskIDs[et.ID] = true
@@ -201,7 +226,7 @@ func (s *ProcessService) CompleteTask(ctx context.Context, tenantID, taskID, com
 	// 持久化新增的执行历史（跳过已持久化的部分）
 	allHistories := s.engine.GetHistory(task.InstanceID)
 	// 从 DB 获取已持久化的历史数量
-	existingHistories, _ := s.historyRepo.ListByInstance(ctx, task.InstanceID)
+	existingHistories, _ := s.historyRepo.ListByInstance(ctx, tenantID, task.InstanceID)
 	existingCount := len(existingHistories)
 	if len(allHistories) > existingCount {
 		newHistories := allHistories[existingCount:]
@@ -226,10 +251,38 @@ func (s *ProcessService) CompleteTask(ctx context.Context, tenantID, taskID, com
 
 // GetProcessTasks 获取流程实例的任务列表
 func (s *ProcessService) GetProcessTasks(ctx context.Context, tenantID, instanceID string) ([]*bpmn.ProcessTask, error) {
-	return s.taskRepo.ListByInstance(ctx, instanceID)
+	return s.taskRepo.ListByInstance(ctx, tenantID, instanceID)
 }
 
 // GetProcessHistory 获取流程实例的执行历史
 func (s *ProcessService) GetProcessHistory(ctx context.Context, tenantID, instanceID string) ([]*bpmn.ExecutionHistory, error) {
-	return s.historyRepo.ListByInstance(ctx, instanceID)
+	return s.historyRepo.ListByInstance(ctx, tenantID, instanceID)
+}
+
+// ensureInstanceInEngine 从持久化存储重建运行时状态到内存引擎
+func (s *ProcessService) ensureInstanceInEngine(ctx context.Context, tenantID, instanceID string) error {
+	inst, err := s.instRepo.GetByID(ctx, tenantID, instanceID)
+	if err != nil {
+		return err
+	}
+	if inst.TenantID != tenantID {
+		return fmt.Errorf("流程实例不存在")
+	}
+
+	def, err := s.defRepo.GetByID(ctx, tenantID, inst.DefinitionID)
+	if err != nil {
+		return err
+	}
+
+	tasks, err := s.taskRepo.ListByInstance(ctx, tenantID, instanceID)
+	if err != nil {
+		return err
+	}
+
+	histories, err := s.historyRepo.ListByInstance(ctx, tenantID, instanceID)
+	if err != nil {
+		return err
+	}
+
+	return s.engine.RestoreInstance(inst, def, tasks, histories)
 }

@@ -71,7 +71,7 @@ func (r *processDefinitionRepository) Create(ctx context.Context, def *bpmn.Proc
 	if def.ID == "" {
 		def.ID = base.GenerateUUID()
 	}
-	po, err := toProcessDefinitionPO("", def)
+	po, err := toProcessDefinitionPO(def.TenantID, def)
 	if err != nil {
 		return err
 	}
@@ -79,9 +79,9 @@ func (r *processDefinitionRepository) Create(ctx context.Context, def *bpmn.Proc
 }
 
 // GetByID 根据 ID 查询流程定义
-func (r *processDefinitionRepository) GetByID(ctx context.Context, id string) (*bpmn.ProcessDefinition, error) {
+func (r *processDefinitionRepository) GetByID(ctx context.Context, tenantID, id string) (*bpmn.ProcessDefinition, error) {
 	var po processDefinitionPO
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&po).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&po).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("流程定义不存在: %s", id)
 		}
@@ -136,11 +136,11 @@ func (r *processDefinitionRepository) List(ctx context.Context, filter bpmnapp.P
 
 // Update 更新流程定义
 func (r *processDefinitionRepository) Update(ctx context.Context, def *bpmn.ProcessDefinition) error {
-	po, err := toProcessDefinitionPO("", def)
+	po, err := toProcessDefinitionPO(def.TenantID, def)
 	if err != nil {
 		return err
 	}
-	return r.db.WithContext(ctx).Model(&processDefinitionPO{}).Where("id = ?", def.ID).Updates(map[string]any{
+	return r.db.WithContext(ctx).Model(&processDefinitionPO{}).Where("id = ? AND tenant_id = ?", def.ID, def.TenantID).Updates(map[string]any{
 		"name":            po.Name,
 		"version":         po.Version,
 		"status":          po.Status,
@@ -149,8 +149,8 @@ func (r *processDefinitionRepository) Update(ctx context.Context, def *bpmn.Proc
 }
 
 // Delete 软删除流程定义
-func (r *processDefinitionRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&processDefinitionPO{}, "id = ?", id).Error
+func (r *processDefinitionRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&processDefinitionPO{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }
 
 // ==================== ProcessInstanceRepository ====================
@@ -174,9 +174,9 @@ func (r *processInstanceRepository) Create(ctx context.Context, inst *bpmn.Proce
 }
 
 // GetByID 根据 ID 查询流程实例
-func (r *processInstanceRepository) GetByID(ctx context.Context, id string) (*bpmn.ProcessInstance, error) {
+func (r *processInstanceRepository) GetByID(ctx context.Context, tenantID, id string) (*bpmn.ProcessInstance, error) {
 	var inst bpmn.ProcessInstance
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&inst).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&inst).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("流程实例不存在: %s", id)
 		}
@@ -248,9 +248,9 @@ func (r *processTaskRepository) Create(ctx context.Context, task *bpmn.ProcessTa
 }
 
 // GetByID 根据 ID 查询流程任务
-func (r *processTaskRepository) GetByID(ctx context.Context, id string) (*bpmn.ProcessTask, error) {
+func (r *processTaskRepository) GetByID(ctx context.Context, tenantID, id string) (*bpmn.ProcessTask, error) {
 	var task bpmn.ProcessTask
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&task).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&task).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("流程任务不存在: %s", id)
 		}
@@ -260,9 +260,9 @@ func (r *processTaskRepository) GetByID(ctx context.Context, id string) (*bpmn.P
 }
 
 // ListByInstance 根据实例 ID 查询任务列表
-func (r *processTaskRepository) ListByInstance(ctx context.Context, instanceID string) ([]*bpmn.ProcessTask, error) {
+func (r *processTaskRepository) ListByInstance(ctx context.Context, tenantID, instanceID string) ([]*bpmn.ProcessTask, error) {
 	var tasks []bpmn.ProcessTask
-	if err := r.db.WithContext(ctx).Where("instance_id = ?", instanceID).Order("created_at ASC").Find(&tasks).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("instance_id = ? AND tenant_id = ?", instanceID, tenantID).Order("created_at ASC").Find(&tasks).Error; err != nil {
 		return nil, fmt.Errorf("查询流程任务列表失败: %w", err)
 	}
 	result := make([]*bpmn.ProcessTask, len(tasks))
@@ -315,9 +315,9 @@ func (r *executionHistoryRepository) Create(ctx context.Context, h *bpmn.Executi
 }
 
 // ListByInstance 根据实例 ID 查询执行历史
-func (r *executionHistoryRepository) ListByInstance(ctx context.Context, instanceID string) ([]*bpmn.ExecutionHistory, error) {
+func (r *executionHistoryRepository) ListByInstance(ctx context.Context, tenantID, instanceID string) ([]*bpmn.ExecutionHistory, error) {
 	var histories []bpmn.ExecutionHistory
-	if err := r.db.WithContext(ctx).Where("instance_id = ?", instanceID).Order("created_at ASC").Find(&histories).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("instance_id = ? AND tenant_id = ?", instanceID, tenantID).Order("created_at ASC").Find(&histories).Error; err != nil {
 		return nil, fmt.Errorf("查询执行历史列表失败: %w", err)
 	}
 	result := make([]*bpmn.ExecutionHistory, len(histories))

@@ -10,7 +10,7 @@ import (
 	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"github.com/xuri/excelize/v2"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -46,12 +46,12 @@ func createTestExcelFile(headers []string, rows [][]string) (*bytes.Buffer, erro
 	sheet := "Sheet1"
 
 	cell, _ := excelize.CoordinatesToCellName(1, 1)
-	f.SetSheetRow(sheet, cell, &headers)
+	_ = f.SetSheetRow(sheet, cell, &headers)
 
 	for i, row := range rows {
 		rowNum := i + 2
 		cell, _ := excelize.CoordinatesToCellName(1, rowNum)
-		f.SetSheetRow(sheet, cell, &row)
+		_ = f.SetSheetRow(sheet, cell, &row)
 	}
 
 	return f.WriteToBuffer()
@@ -98,7 +98,7 @@ func TestExportPolicies(t *testing.T) {
 	if err != nil {
 		t.Fatalf("读取导出文件失败: %v", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
@@ -130,7 +130,7 @@ func TestExportPolicies_Empty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("读取导出文件失败: %v", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
@@ -298,7 +298,7 @@ func TestExportAssets(t *testing.T) {
 	if err != nil {
 		t.Fatalf("读取导出文件失败: %v", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
@@ -418,7 +418,7 @@ func TestExportRules(t *testing.T) {
 	if err != nil {
 		t.Fatalf("读取导出文件失败: %v", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {

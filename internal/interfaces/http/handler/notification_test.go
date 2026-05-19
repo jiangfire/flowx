@@ -14,7 +14,7 @@ import (
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -127,7 +127,7 @@ func TestCreateNotification_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	if resp["code"].(float64) != 0 {
 		t.Errorf("期望 code 为 0，实际为 %v", resp["code"])
 	}
@@ -173,7 +173,7 @@ func TestListNotifications_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["total"].(float64) != 0 {
 		t.Errorf("期望 total 为 0，实际为 %v", data["total"])
@@ -212,7 +212,7 @@ func TestMarkAsRead_Success(t *testing.T) {
 	r.ServeHTTP(w1, req1)
 
 	var createResp map[string]any
-	json.Unmarshal(w1.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w1.Body.Bytes(), &createResp)
 	notifID := createResp["data"].(map[string]any)["id"].(string)
 
 	// 标记已读
@@ -254,7 +254,7 @@ func TestGetUnreadCount_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["count"].(float64) != 0 {
 		t.Errorf("期望 count 为 0，实际为 %v", data["count"])
@@ -288,7 +288,7 @@ func TestCreateTemplate_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["code"] != "approval_notify" {
 		t.Errorf("期望 code 为 'approval_notify'，实际为 '%v'", data["code"])
@@ -333,7 +333,7 @@ func TestCreatePreference_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["user_id"] != "user-001" {
 		t.Errorf("期望 user_id 为 'user-001'，实际为 '%v'", data["user_id"])
@@ -383,7 +383,7 @@ func TestSendNotification_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w2.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w2.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["title"] != "通知 - 测试标题" {
 		t.Errorf("期望 title 为 '通知 - 测试标题'，实际为 '%v'", data["title"])

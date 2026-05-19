@@ -9,7 +9,7 @@ import (
 	"git.neolidy.top/neo/flowx/internal/domain/notification"
 	notifapp "git.neolidy.top/neo/flowx/internal/application/notification"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -284,12 +284,12 @@ func TestMarkAllAsRead_Success(t *testing.T) {
 		}
 	}
 
-	err := svc.MarkAllAsRead(context.Background(), "user-001")
+	err := svc.MarkAllAsRead(context.Background(), "tenant-001", "user-001")
 	if err != nil {
 		t.Fatalf("全部标记已读失败: %v", err)
 	}
 
-	count, err := svc.GetUnreadCount(context.Background(), "user-001")
+	count, err := svc.GetUnreadCount(context.Background(), "tenant-001", "user-001")
 	if err != nil {
 		t.Fatalf("获取未读数量失败: %v", err)
 	}
@@ -317,7 +317,7 @@ func TestGetUnreadCount_Success(t *testing.T) {
 		}
 	}
 
-	count, err := svc.GetUnreadCount(context.Background(), "user-001")
+	count, err := svc.GetUnreadCount(context.Background(), "tenant-001", "user-001")
 	if err != nil {
 		t.Fatalf("获取未读数量失败: %v", err)
 	}

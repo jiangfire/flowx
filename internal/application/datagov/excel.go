@@ -139,7 +139,7 @@ func (s *DataGovExcelService) ImportPolicies(ctx context.Context, data []byte, t
 	if err != nil {
 		return nil, fmt.Errorf("打开 Excel 文件失败: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
@@ -347,7 +347,7 @@ func (s *DataGovExcelService) ImportAssets(ctx context.Context, data []byte, ten
 	if err != nil {
 		return nil, fmt.Errorf("打开 Excel 文件失败: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
@@ -552,7 +552,7 @@ func (s *DataGovExcelService) ImportRules(ctx context.Context, data []byte, tena
 	if err != nil {
 		return nil, fmt.Errorf("打开 Excel 文件失败: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {

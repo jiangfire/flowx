@@ -8,7 +8,7 @@ import (
 	"git.neolidy.top/neo/flowx/internal/domain/datagov"
 	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -220,9 +220,9 @@ func TestListPolicies_WithTypeFilter(t *testing.T) {
 	ctx := context.Background()
 
 	// 创建不同类型的策略
-	svc.CreatePolicy(ctx, testTenantID, &datagovapp.CreatePolicyRequest{Name: "保留策略", Type: "retention"})
-	svc.CreatePolicy(ctx, testTenantID, &datagovapp.CreatePolicyRequest{Name: "分类策略", Type: "classification"})
-	svc.CreatePolicy(ctx, testTenantID, &datagovapp.CreatePolicyRequest{Name: "保留策略2", Type: "retention"})
+	_, _ = svc.CreatePolicy(ctx, testTenantID, &datagovapp.CreatePolicyRequest{Name: "保留策略", Type: "retention"})
+	_, _ = svc.CreatePolicy(ctx, testTenantID, &datagovapp.CreatePolicyRequest{Name: "分类策略", Type: "classification"})
+	_, _ = svc.CreatePolicy(ctx, testTenantID, &datagovapp.CreatePolicyRequest{Name: "保留策略2", Type: "retention"})
 
 	policies, _, err := svc.ListPolicies(ctx, testTenantID, datagovapp.ListPoliciesFilter{Type: "retention"})
 	if err != nil {
@@ -237,8 +237,8 @@ func TestListPolicies_WithStatusFilter(t *testing.T) {
 	svc, _ := setupTestService(t)
 	ctx := context.Background()
 
-	svc.CreatePolicy(ctx, testTenantID, &datagovapp.CreatePolicyRequest{Name: "活跃策略", Type: "retention", Status: "active"})
-	svc.CreatePolicy(ctx, testTenantID, &datagovapp.CreatePolicyRequest{Name: "草稿策略", Type: "retention", Status: "draft"})
+	_, _ = svc.CreatePolicy(ctx, testTenantID, &datagovapp.CreatePolicyRequest{Name: "活跃策略", Type: "retention", Status: "active"})
+	_, _ = svc.CreatePolicy(ctx, testTenantID, &datagovapp.CreatePolicyRequest{Name: "草稿策略", Type: "retention", Status: "draft"})
 
 	policies, _, err := svc.ListPolicies(ctx, testTenantID, datagovapp.ListPoliciesFilter{Status: "draft"})
 	if err != nil {
@@ -255,7 +255,7 @@ func TestListPolicies_WithPagination(t *testing.T) {
 
 	// 创建5条策略
 	for i := 0; i < 5; i++ {
-		svc.CreatePolicy(ctx, testTenantID, &datagovapp.CreatePolicyRequest{
+		_, _ = svc.CreatePolicy(ctx, testTenantID, &datagovapp.CreatePolicyRequest{
 			Name: "分页策略_" + string(rune('A'+i)),
 			Type: "retention",
 		})
@@ -500,9 +500,9 @@ func TestListAssets_WithTypeFilter(t *testing.T) {
 	svc, _ := setupTestService(t)
 	ctx := context.Background()
 
-	svc.CreateAsset(ctx, testTenantID, &datagovapp.CreateAssetRequest{Name: "数据集1", Type: "dataset"})
-	svc.CreateAsset(ctx, testTenantID, &datagovapp.CreateAssetRequest{Name: "模型1", Type: "model"})
-	svc.CreateAsset(ctx, testTenantID, &datagovapp.CreateAssetRequest{Name: "数据集2", Type: "dataset"})
+	_, _ = svc.CreateAsset(ctx, testTenantID, &datagovapp.CreateAssetRequest{Name: "数据集1", Type: "dataset"})
+	_, _ = svc.CreateAsset(ctx, testTenantID, &datagovapp.CreateAssetRequest{Name: "模型1", Type: "model"})
+	_, _ = svc.CreateAsset(ctx, testTenantID, &datagovapp.CreateAssetRequest{Name: "数据集2", Type: "dataset"})
 
 	assets, _, err := svc.ListAssets(ctx, testTenantID, datagovapp.ListAssetsFilter{Type: "dataset"})
 	if err != nil {
@@ -517,8 +517,8 @@ func TestListAssets_WithStatusFilter(t *testing.T) {
 	svc, _ := setupTestService(t)
 	ctx := context.Background()
 
-	svc.CreateAsset(ctx, testTenantID, &datagovapp.CreateAssetRequest{Name: "活跃资产", Type: "dataset", Status: "active"})
-	svc.CreateAsset(ctx, testTenantID, &datagovapp.CreateAssetRequest{Name: "归档资产", Type: "dataset", Status: "archived"})
+	_, _ = svc.CreateAsset(ctx, testTenantID, &datagovapp.CreateAssetRequest{Name: "活跃资产", Type: "dataset", Status: "active"})
+	_, _ = svc.CreateAsset(ctx, testTenantID, &datagovapp.CreateAssetRequest{Name: "归档资产", Type: "dataset", Status: "archived"})
 
 	assets, _, err := svc.ListAssets(ctx, testTenantID, datagovapp.ListAssetsFilter{Status: "archived"})
 	if err != nil {
@@ -534,7 +534,7 @@ func TestListAssets_WithPagination(t *testing.T) {
 	ctx := context.Background()
 
 	for i := 0; i < 5; i++ {
-		svc.CreateAsset(ctx, testTenantID, &datagovapp.CreateAssetRequest{
+		_, _ = svc.CreateAsset(ctx, testTenantID, &datagovapp.CreateAssetRequest{
 			Name: "分页资产_" + string(rune('A'+i)),
 			Type: "dataset",
 		})
@@ -778,9 +778,9 @@ func TestListRules_WithTypeFilter(t *testing.T) {
 	svc, _ := setupTestService(t)
 	ctx := context.Background()
 
-	svc.CreateRule(ctx, testTenantID, &datagovapp.CreateRuleRequest{Name: "非空规则", Type: "not_null"})
-	svc.CreateRule(ctx, testTenantID, &datagovapp.CreateRuleRequest{Name: "唯一规则", Type: "unique"})
-	svc.CreateRule(ctx, testTenantID, &datagovapp.CreateRuleRequest{Name: "非空规则2", Type: "not_null"})
+	_, _ = svc.CreateRule(ctx, testTenantID, &datagovapp.CreateRuleRequest{Name: "非空规则", Type: "not_null"})
+	_, _ = svc.CreateRule(ctx, testTenantID, &datagovapp.CreateRuleRequest{Name: "唯一规则", Type: "unique"})
+	_, _ = svc.CreateRule(ctx, testTenantID, &datagovapp.CreateRuleRequest{Name: "非空规则2", Type: "not_null"})
 
 	rules, _, err := svc.ListRules(ctx, testTenantID, datagovapp.ListRulesFilter{Type: "not_null"})
 	if err != nil {
@@ -795,8 +795,8 @@ func TestListRules_WithStatusFilter(t *testing.T) {
 	svc, _ := setupTestService(t)
 	ctx := context.Background()
 
-	svc.CreateRule(ctx, testTenantID, &datagovapp.CreateRuleRequest{Name: "活跃规则", Type: "not_null", Status: "active"})
-	svc.CreateRule(ctx, testTenantID, &datagovapp.CreateRuleRequest{Name: "停用规则", Type: "not_null", Status: "inactive"})
+	_, _ = svc.CreateRule(ctx, testTenantID, &datagovapp.CreateRuleRequest{Name: "活跃规则", Type: "not_null", Status: "active"})
+	_, _ = svc.CreateRule(ctx, testTenantID, &datagovapp.CreateRuleRequest{Name: "停用规则", Type: "not_null", Status: "inactive"})
 
 	rules, _, err := svc.ListRules(ctx, testTenantID, datagovapp.ListRulesFilter{Status: "inactive"})
 	if err != nil {
@@ -812,7 +812,7 @@ func TestListRules_WithPagination(t *testing.T) {
 	ctx := context.Background()
 
 	for i := 0; i < 5; i++ {
-		svc.CreateRule(ctx, testTenantID, &datagovapp.CreateRuleRequest{
+		_, _ = svc.CreateRule(ctx, testTenantID, &datagovapp.CreateRuleRequest{
 			Name: "分页规则_" + string(rune('A'+i)),
 			Type: "not_null",
 		})
@@ -1017,8 +1017,8 @@ func TestListChecks_WithStatusFilter(t *testing.T) {
 	})
 
 	// 执行多次检查
-	svc.RunQualityCheck(ctx, testTenantID, &datagovapp.RunQualityCheckRequest{RuleID: rule.ID, AssetID: asset.ID})
-	svc.RunQualityCheck(ctx, testTenantID, &datagovapp.RunQualityCheckRequest{RuleID: rule.ID, AssetID: asset.ID})
+	_, _ = svc.RunQualityCheck(ctx, testTenantID, &datagovapp.RunQualityCheckRequest{RuleID: rule.ID, AssetID: asset.ID})
+	_, _ = svc.RunQualityCheck(ctx, testTenantID, &datagovapp.RunQualityCheckRequest{RuleID: rule.ID, AssetID: asset.ID})
 
 	checks, _, err := svc.ListChecks(ctx, testTenantID, datagovapp.ListChecksFilter{Status: "passed"})
 	if err != nil {
@@ -1046,7 +1046,7 @@ func TestListChecks_WithPagination(t *testing.T) {
 	})
 
 	for i := 0; i < 5; i++ {
-		svc.RunQualityCheck(ctx, testTenantID, &datagovapp.RunQualityCheckRequest{RuleID: rule.ID, AssetID: asset.ID})
+		_, _ = svc.RunQualityCheck(ctx, testTenantID, &datagovapp.RunQualityCheckRequest{RuleID: rule.ID, AssetID: asset.ID})
 	}
 
 	checks, paginated, err := svc.ListChecks(ctx, testTenantID, datagovapp.ListChecksFilter{Page: 1, PageSize: 2})

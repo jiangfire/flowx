@@ -10,7 +10,7 @@ import (
 	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"github.com/xuri/excelize/v2"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -86,7 +86,7 @@ func TestExportTools_SpecificColumns(t *testing.T) {
 	if err != nil {
 		t.Fatalf("打开导出文件失败: %v", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	// 获取第一行（表头）
 	rows, err := f.GetRows("Sheet1")
@@ -117,7 +117,7 @@ func TestExportTools_EmptyData(t *testing.T) {
 	if err != nil {
 		t.Fatalf("打开导出文件失败: %v", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
@@ -136,9 +136,9 @@ func TestImportTools_Normal(t *testing.T) {
 
 	// 创建一个包含工具数据的 xlsx 文件
 	f := excelize.NewFile()
-	f.SetSheetRow("Sheet1", "A1", &[]string{"name", "type", "status", "endpoint", "category"})
-	f.SetSheetRow("Sheet1", "A2", &[]string{"Altium Designer", "eda", "active", "https://eda.example.com", "electronics"})
-	f.SetSheetRow("Sheet1", "A3", &[]string{"ANSYS Fluent", "cae", "active", "https://cae.example.com", "simulation"})
+	_ = f.SetSheetRow("Sheet1", "A1", &[]string{"name", "type", "status", "endpoint", "category"})
+	_ = f.SetSheetRow("Sheet1", "A2", &[]string{"Altium Designer", "eda", "active", "https://eda.example.com", "electronics"})
+	_ = f.SetSheetRow("Sheet1", "A3", &[]string{"ANSYS Fluent", "cae", "active", "https://cae.example.com", "simulation"})
 
 	buf, err := f.WriteToBuffer()
 	if err != nil {
@@ -181,9 +181,9 @@ func TestImportTools_MissingRequired(t *testing.T) {
 	svc, _ := setupExcelTest(t)
 
 	f := excelize.NewFile()
-	f.SetSheetRow("Sheet1", "A1", &[]string{"name", "type", "status"})
-	f.SetSheetRow("Sheet1", "A2", &[]string{"", "eda", "active"})           // 缺少 name
-	f.SetSheetRow("Sheet1", "A3", &[]string{"ValidTool", "eda", "active"})  // 正常行
+	_ = f.SetSheetRow("Sheet1", "A1", &[]string{"name", "type", "status"})
+	_ = f.SetSheetRow("Sheet1", "A2", &[]string{"", "eda", "active"})           // 缺少 name
+	_ = f.SetSheetRow("Sheet1", "A3", &[]string{"ValidTool", "eda", "active"})  // 正常行
 
 	buf, err := f.WriteToBuffer()
 	if err != nil {
@@ -232,9 +232,9 @@ func TestImportTools_DuplicateName(t *testing.T) {
 
 	// 导入包含同名工具的文件
 	f := excelize.NewFile()
-	f.SetSheetRow("Sheet1", "A1", &[]string{"name", "type", "status"})
-	f.SetSheetRow("Sheet1", "A2", &[]string{"Altium Designer", "eda", "active"}) // 重复
-	f.SetSheetRow("Sheet1", "A3", &[]string{"NewTool", "cae", "active"})         // 新增
+	_ = f.SetSheetRow("Sheet1", "A1", &[]string{"name", "type", "status"})
+	_ = f.SetSheetRow("Sheet1", "A2", &[]string{"Altium Designer", "eda", "active"}) // 重复
+	_ = f.SetSheetRow("Sheet1", "A3", &[]string{"NewTool", "cae", "active"})         // 新增
 
 	buf, err := f.WriteToBuffer()
 	if err != nil {

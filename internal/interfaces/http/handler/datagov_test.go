@@ -16,7 +16,7 @@ import (
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -144,7 +144,7 @@ func TestCreatePolicy_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	if resp["code"].(float64) != 0 {
 		t.Errorf("期望 code 为 0，实际为 %v", resp["code"])
 	}
@@ -189,7 +189,7 @@ func TestListPolicies_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["total"].(float64) != 0 {
 		t.Errorf("期望 total 为 0，实际为 %v", data["total"])
@@ -210,7 +210,7 @@ func TestGetPolicy_Success(t *testing.T) {
 	r.ServeHTTP(w1, req1)
 
 	var createResp map[string]any
-	json.Unmarshal(w1.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w1.Body.Bytes(), &createResp)
 	policyID := createResp["data"].(map[string]any)["id"].(string)
 
 	// 查询详情
@@ -224,7 +224,7 @@ func TestGetPolicy_Success(t *testing.T) {
 	}
 
 	var getResp map[string]any
-	json.Unmarshal(w2.Body.Bytes(), &getResp)
+	_ = json.Unmarshal(w2.Body.Bytes(), &getResp)
 	data := getResp["data"].(map[string]any)
 	if data["name"] != "TestPolicy" {
 		t.Errorf("期望 name 为 'TestPolicy'，实际为 '%v'", data["name"])
@@ -259,7 +259,7 @@ func TestUpdatePolicy_Success(t *testing.T) {
 	r.ServeHTTP(w1, req1)
 
 	var createResp map[string]any
-	json.Unmarshal(w1.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w1.Body.Bytes(), &createResp)
 	policyID := createResp["data"].(map[string]any)["id"].(string)
 
 	// 更新
@@ -276,7 +276,7 @@ func TestUpdatePolicy_Success(t *testing.T) {
 	}
 
 	var updateResp map[string]any
-	json.Unmarshal(w2.Body.Bytes(), &updateResp)
+	_ = json.Unmarshal(w2.Body.Bytes(), &updateResp)
 	data := updateResp["data"].(map[string]any)
 	if data["name"] != "NewName" {
 		t.Errorf("期望 name 为 'NewName'，实际为 '%v'", data["name"])
@@ -297,7 +297,7 @@ func TestDeletePolicy_Success(t *testing.T) {
 	r.ServeHTTP(w1, req1)
 
 	var createResp map[string]any
-	json.Unmarshal(w1.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w1.Body.Bytes(), &createResp)
 	policyID := createResp["data"].(map[string]any)["id"].(string)
 
 	// 删除
@@ -334,7 +334,7 @@ func TestCreateAsset_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["name"] != "EDA设计数据集" {
 		t.Errorf("期望 name 为 'EDA设计数据集'，实际为 '%v'", data["name"])
@@ -355,7 +355,7 @@ func TestListAssets_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["total"].(float64) != 0 {
 		t.Errorf("期望 total 为 0，实际为 %v", data["total"])
@@ -399,7 +399,7 @@ func TestCreateRule_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["name"] != "非空检查规则" {
 		t.Errorf("期望 name 为 '非空检查规则'，实际为 '%v'", data["name"])
@@ -420,7 +420,7 @@ func TestListRules_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["total"].(float64) != 0 {
 		t.Errorf("期望 total 为 0，实际为 %v", data["total"])
@@ -443,7 +443,7 @@ func TestListChecks_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["total"].(float64) != 0 {
 		t.Errorf("期望 total 为 0，实际为 %v", data["total"])
@@ -464,7 +464,7 @@ func TestRunQualityCheck_Success(t *testing.T) {
 	r.ServeHTTP(w1, req1)
 
 	var assetResp map[string]any
-	json.Unmarshal(w1.Body.Bytes(), &assetResp)
+	_ = json.Unmarshal(w1.Body.Bytes(), &assetResp)
 	assetID := assetResp["data"].(map[string]any)["id"].(string)
 
 	// 先创建规则
@@ -477,7 +477,7 @@ func TestRunQualityCheck_Success(t *testing.T) {
 	r.ServeHTTP(w2, req2)
 
 	var ruleResp map[string]any
-	json.Unmarshal(w2.Body.Bytes(), &ruleResp)
+	_ = json.Unmarshal(w2.Body.Bytes(), &ruleResp)
 	ruleID := ruleResp["data"].(map[string]any)["id"].(string)
 
 	// 执行质量检查
@@ -494,7 +494,7 @@ func TestRunQualityCheck_Success(t *testing.T) {
 	}
 
 	var checkResp map[string]any
-	json.Unmarshal(w3.Body.Bytes(), &checkResp)
+	_ = json.Unmarshal(w3.Body.Bytes(), &checkResp)
 	data := checkResp["data"].(map[string]any)
 	if data["status"] != "passed" {
 		t.Errorf("期望 status 为 'passed'，实际为 '%v'", data["status"])
@@ -538,16 +538,16 @@ func TestImportPolicies_Success(t *testing.T) {
 
 	// 创建测试 xlsx 文件
 	f := excelize.NewFile()
-	f.SetSheetRow("Sheet1", "A1", &[]string{"name", "type", "status"})
-	f.SetSheetRow("Sheet1", "A2", &[]string{"ImportedPolicy", "retention", "active"})
+	_ = f.SetSheetRow("Sheet1", "A1", &[]string{"name", "type", "status"})
+	_ = f.SetSheetRow("Sheet1", "A2", &[]string{"ImportedPolicy", "retention", "active"})
 	buf, _ := f.WriteToBuffer()
 
 	// 创建 multipart form
 	var requestBody bytes.Buffer
 	writer := multipart.NewWriter(&requestBody)
 	part, _ := writer.CreateFormFile("file", "policies.xlsx")
-	part.Write(buf.Bytes())
-	writer.Close()
+	_, _ = part.Write(buf.Bytes())
+	_ = writer.Close()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodPost, "/api/v1/data-policies/import", &requestBody)

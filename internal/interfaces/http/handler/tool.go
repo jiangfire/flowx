@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -322,27 +323,38 @@ func (h *ToolHandler) ExportTools(c *gin.Context) {
 // POST /api/v1/tools/import
 func (h *ToolHandler) ImportTools(c *gin.Context) {
 	tenantID := c.GetString("tenant_id")
+	userRole := c.GetString("user_role")
 
-	file, header, err := c.Request.FormFile("file")
+	file, _, err := c.Request.FormFile("file")
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "请上传文件")
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
-	data := make([]byte, header.Size)
-	if _, err := file.Read(data); err != nil {
+	data, err := io.ReadAll(file)
+	if err != nil {
 		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "读取文件失败")
 		return
 	}
 
-	results, err := h.excelService.ImportTools(c.Request.Context(), data, tenantID)
+	// 解析 Excel
+	tools, skipResults, err := h.excelService.ParseTools(c.Request.Context(), data, tenantID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "解析失败: "+err.Error())
+		return
+	}
+
+	// 批量导入（走完整治理链路：策略校验 + 资产注册 + 质量检查）
+	importResults, err := h.toolService.ImportTools(c.Request.Context(), tenantID, tools, userRole)
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "导入失败: "+err.Error())
 		return
 	}
 
-	response.Success(c, results)
+	// 合并解析跳过结果和导入结果
+	allResults := append(skipResults, importResults...)
+	response.Success(c, allResults)
 }
 
 // @Summary      查询导出任务状态

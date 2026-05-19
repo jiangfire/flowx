@@ -176,7 +176,7 @@ func TestExecute_NoMatchingAgent(t *testing.T) {
 // TestListAvailableTools 验证返回工具列表
 func TestListAvailableTools(t *testing.T) {
 	registry := mcp.NewToolRegistry()
-	registry.RegisterToolWithHandler(
+	_ = registry.RegisterToolWithHandler(
 		domainTool("test_tool", "custom", "测试工具"),
 		func(ctx context.Context, args map[string]any) (any, error) {
 			return "ok", nil

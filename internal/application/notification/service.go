@@ -285,16 +285,16 @@ func (s *NotificationService) MarkAsRead(ctx context.Context, tenantID string, i
 }
 
 // MarkAllAsRead 标记所有通知为已读
-func (s *NotificationService) MarkAllAsRead(ctx context.Context, receiverID string) error {
-	if err := s.notifRepo.MarkAllAsRead(ctx, receiverID); err != nil {
+func (s *NotificationService) MarkAllAsRead(ctx context.Context, tenantID, receiverID string) error {
+	if err := s.notifRepo.MarkAllAsRead(ctx, tenantID, receiverID); err != nil {
 		return fmt.Errorf("全部标记已读失败: %w", err)
 	}
 	return nil
 }
 
 // GetUnreadCount 获取未读通知数量
-func (s *NotificationService) GetUnreadCount(ctx context.Context, receiverID string) (int64, error) {
-	count, err := s.notifRepo.CountUnread(ctx, receiverID)
+func (s *NotificationService) GetUnreadCount(ctx context.Context, tenantID, receiverID string) (int64, error) {
+	count, err := s.notifRepo.CountUnread(ctx, tenantID, receiverID)
 	if err != nil {
 		return 0, fmt.Errorf("获取未读数量失败: %w", err)
 	}
@@ -346,13 +346,9 @@ func (s *NotificationService) GetTemplate(ctx context.Context, tenantID string, 
 
 // GetTemplateByCode 根据编码获取通知模板
 func (s *NotificationService) GetTemplateByCode(ctx context.Context, tenantID string, code string) (*notifdomain.NotificationTemplate, error) {
-	tpl, err := s.templateRepo.GetByCode(ctx, code)
+	tpl, err := s.templateRepo.GetByCode(ctx, tenantID, code)
 	if err != nil {
 		return nil, ErrTemplateNotFound
-	}
-
-	if tpl.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	return tpl, nil
@@ -551,7 +547,7 @@ func renderTemplate(tpl string, variables map[string]string) string {
 // SendNotification 通过模板发送通知
 func (s *NotificationService) SendNotification(ctx context.Context, tenantID string, req *SendNotificationRequest) (*notifdomain.Notification, error) {
 	// 查找模板
-	tpl, err := s.templateRepo.GetByCode(ctx, req.TemplateCode)
+	tpl, err := s.templateRepo.GetByCode(ctx, tenantID, req.TemplateCode)
 	if err != nil {
 		return nil, ErrTemplateNotFound
 	}
@@ -562,7 +558,7 @@ func (s *NotificationService) SendNotification(ctx context.Context, tenantID str
 	}
 
 	// 检查用户偏好（是否被免打扰）
-	pref, err := s.preferenceRepo.GetByUserAndType(ctx, req.ReceiverID, tpl.Type, tpl.Channel)
+	pref, err := s.preferenceRepo.GetByUserAndType(ctx, tenantID, req.ReceiverID, tpl.Type, tpl.Channel)
 	if err == nil {
 		// 偏好存在，检查是否被免打扰
 		if pref.MuteUntil != nil && pref.MuteUntil.After(time.Now()) {

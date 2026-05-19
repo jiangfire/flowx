@@ -7,7 +7,7 @@ import (
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/tool"
 	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 

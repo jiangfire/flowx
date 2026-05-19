@@ -40,7 +40,7 @@ func TestDataQualityAgent_HandledTypes(t *testing.T) {
 // TestToolOrchestrationAgent_Execute 验证 ToolOrchestrationAgent 调用工具返回结果
 func TestToolOrchestrationAgent_Execute(t *testing.T) {
 	registry := mcp.NewToolRegistry()
-	registry.RegisterToolWithHandler(
+	_ = registry.RegisterToolWithHandler(
 		domainTool("echo_tool", "custom", "回显工具"),
 		func(ctx context.Context, args map[string]any) (any, error) {
 			return map[string]any{"echoed": args["message"]}, nil

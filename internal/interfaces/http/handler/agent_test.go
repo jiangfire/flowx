@@ -17,7 +17,7 @@ import (
 	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -36,7 +36,7 @@ func setupAgentHandlerTest(t *testing.T) (*AgentHandler, *gin.Engine, string) {
 
 	// 创建工具注册器并注册测试工具
 	registry := mcpif.NewToolRegistry()
-	registry.RegisterToolWithHandler(
+	_ = registry.RegisterToolWithHandler(
 		&tool.Tool{Name: "echo", Type: "custom", Description: "回显工具", Status: "active"},
 		func(ctx context.Context, args map[string]any) (any, error) {
 			return map[string]any{"echoed": args["message"]}, nil
@@ -102,7 +102,7 @@ func TestGetAgentTools_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].([]any)
 	if len(data) < 1 {
 		t.Error("期望至少返回 1 个工具")
@@ -135,7 +135,7 @@ func TestCreateTask_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["status"] != "completed" {
 		t.Errorf("期望状态为 'completed'，实际为 '%v'", data["status"])
@@ -169,7 +169,7 @@ func TestCreateTask_RequireApproval(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["status"] != "pending_approval" {
 		t.Errorf("期望状态为 'pending_approval'，实际为 '%v'", data["status"])
@@ -199,7 +199,7 @@ func TestGetTask_Success(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	var createResp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w.Body.Bytes(), &createResp)
 	taskID := createResp["data"].(map[string]any)["task_id"].(string)
 
 	// 查询详情
@@ -212,7 +212,7 @@ func TestGetTask_Success(t *testing.T) {
 	}
 
 	var getResp map[string]any
-	json.Unmarshal(w2.Body.Bytes(), &getResp)
+	_ = json.Unmarshal(w2.Body.Bytes(), &getResp)
 	data := getResp["data"].(map[string]any)
 	if data["id"] != taskID {
 		t.Errorf("期望任务 ID 为 '%s'，实际为 '%v'", taskID, data["id"])
@@ -243,7 +243,7 @@ func TestApproveTask_Success(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	var createResp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w.Body.Bytes(), &createResp)
 	taskID := createResp["data"].(map[string]any)["task_id"].(string)
 
 	// 审批通过
@@ -257,7 +257,7 @@ func TestApproveTask_Success(t *testing.T) {
 	}
 
 	var approveResp map[string]any
-	json.Unmarshal(w2.Body.Bytes(), &approveResp)
+	_ = json.Unmarshal(w2.Body.Bytes(), &approveResp)
 	data := approveResp["data"].(map[string]any)
 	if data["status"] != "approved" {
 		t.Errorf("期望状态为 'approved'，实际为 '%v'", data["status"])
@@ -288,7 +288,7 @@ func TestRejectTask_Success(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	var createResp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &createResp)
+	_ = json.Unmarshal(w.Body.Bytes(), &createResp)
 	taskID := createResp["data"].(map[string]any)["task_id"].(string)
 
 	// 拒绝
@@ -302,7 +302,7 @@ func TestRejectTask_Success(t *testing.T) {
 	}
 
 	var rejectResp map[string]any
-	json.Unmarshal(w2.Body.Bytes(), &rejectResp)
+	_ = json.Unmarshal(w2.Body.Bytes(), &rejectResp)
 	data := rejectResp["data"].(map[string]any)
 	if data["status"] != "rejected" {
 		t.Errorf("期望状态为 'rejected'，实际为 '%v'", data["status"])

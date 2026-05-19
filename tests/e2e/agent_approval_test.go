@@ -12,7 +12,7 @@ import (
 	"git.neolidy.top/neo/flowx/internal/domain/approval"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
