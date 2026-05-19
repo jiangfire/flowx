@@ -7,7 +7,7 @@ import (
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/notification"
 	notifapp "git.neolidy.top/neo/flowx/internal/application/notification"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -365,13 +365,13 @@ func TestNotificationRepository_MarkAllAsRead(t *testing.T) {
 	// 已读通知不应被重复标记
 	createTestNotification(t, db, "tenant-001", "user-001", "reminder", "info", "pending", true)
 
-	err := repo.MarkAllAsRead(context.Background(), "user-001")
+	err := repo.MarkAllAsRead(context.Background(), "tenant-001", "user-001")
 	if err != nil {
 		t.Fatalf("批量标记已读失败: %v", err)
 	}
 
 	// 验证未读数量为 0
-	count, err := repo.CountUnread(context.Background(), "user-001")
+	count, err := repo.CountUnread(context.Background(), "tenant-001", "user-001")
 	if err != nil {
 		t.Fatalf("统计未读数量失败: %v", err)
 	}
@@ -409,7 +409,7 @@ func TestNotificationRepository_CountUnread(t *testing.T) {
 	// 其他用户的通知不应计入
 	createTestNotification(t, db, "tenant-001", "user-002", "system", "info", "pending", false)
 
-	count, err := repo.CountUnread(context.Background(), "user-001")
+	count, err := repo.CountUnread(context.Background(), "tenant-001", "user-001")
 	if err != nil {
 		t.Fatalf("统计未读数量失败: %v", err)
 	}
@@ -502,7 +502,7 @@ func TestNotificationTemplateRepository_GetByCode_Exists(t *testing.T) {
 
 	createTestNotificationTemplate(t, db, "tenant-001", "审批模板", "approval_notify", "approval", "in_app")
 
-	found, err := repo.GetByCode(context.Background(), "approval_notify")
+	found, err := repo.GetByCode(context.Background(), "tenant-001", "approval_notify")
 	if err != nil {
 		t.Fatalf("根据编码查询通知模板失败: %v", err)
 	}
@@ -516,7 +516,7 @@ func TestNotificationTemplateRepository_GetByCode_NotExists(t *testing.T) {
 	db := setupNotificationRepoTestDB(t)
 	repo := NewNotificationTemplateRepository(db)
 
-	_, err := repo.GetByCode(context.Background(), "non_existent_code")
+	_, err := repo.GetByCode(context.Background(), "tenant-001", "non_existent_code")
 	if err == nil {
 		t.Fatal("期望根据编码查询不存在的模板返回错误")
 	}
@@ -739,7 +739,7 @@ func TestNotificationPreferenceRepository_GetByUserAndType_Exists(t *testing.T) 
 
 	createTestNotificationPreference(t, db, "tenant-001", "user-001", "system", "in_app", true)
 
-	found, err := repo.GetByUserAndType(context.Background(), "user-001", "system", "in_app")
+	found, err := repo.GetByUserAndType(context.Background(), "tenant-001", "user-001", "system", "in_app")
 	if err != nil {
 		t.Fatalf("根据用户和类型查询通知偏好失败: %v", err)
 	}
@@ -759,7 +759,7 @@ func TestNotificationPreferenceRepository_GetByUserAndType_NotExists(t *testing.
 	db := setupNotificationRepoTestDB(t)
 	repo := NewNotificationPreferenceRepository(db)
 
-	_, err := repo.GetByUserAndType(context.Background(), "user-001", "system", "email")
+	_, err := repo.GetByUserAndType(context.Background(), "tenant-001", "user-001", "system", "email")
 	if err == nil {
 		t.Fatal("期望根据用户和类型查询不存在的偏好返回错误")
 	}

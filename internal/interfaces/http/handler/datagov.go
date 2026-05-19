@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -815,15 +816,15 @@ func (h *DataGovHandler) ExportPolicies(c *gin.Context) {
 func (h *DataGovHandler) ImportPolicies(c *gin.Context) {
 	tenantID := c.GetString("tenant_id")
 
-	file, header, err := c.Request.FormFile("file")
+	file, _, err := c.Request.FormFile("file")
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "请上传文件")
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
-	data := make([]byte, header.Size)
-	if _, err := file.Read(data); err != nil {
+	data, err := io.ReadAll(file)
+	if err != nil {
 		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "读取文件失败")
 		return
 	}
@@ -894,15 +895,15 @@ func (h *DataGovHandler) ExportAssets(c *gin.Context) {
 func (h *DataGovHandler) ImportAssets(c *gin.Context) {
 	tenantID := c.GetString("tenant_id")
 
-	file, header, err := c.Request.FormFile("file")
+	file, _, err := c.Request.FormFile("file")
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "请上传文件")
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
-	data := make([]byte, header.Size)
-	if _, err := file.Read(data); err != nil {
+	data, err := io.ReadAll(file)
+	if err != nil {
 		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "读取文件失败")
 		return
 	}
@@ -973,15 +974,15 @@ func (h *DataGovHandler) ExportRules(c *gin.Context) {
 func (h *DataGovHandler) ImportRules(c *gin.Context) {
 	tenantID := c.GetString("tenant_id")
 
-	file, header, err := c.Request.FormFile("file")
+	file, _, err := c.Request.FormFile("file")
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "请上传文件")
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
-	data := make([]byte, header.Size)
-	if _, err := file.Read(data); err != nil {
+	data, err := io.ReadAll(file)
+	if err != nil {
 		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "读取文件失败")
 		return
 	}

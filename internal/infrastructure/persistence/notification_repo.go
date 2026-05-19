@@ -111,10 +111,10 @@ func (r *notificationRepository) MarkAsRead(ctx context.Context, id string) erro
 }
 
 // MarkAllAsRead 标记接收者的所有通知为已读
-func (r *notificationRepository) MarkAllAsRead(ctx context.Context, receiverID string) error {
+func (r *notificationRepository) MarkAllAsRead(ctx context.Context, tenantID, receiverID string) error {
 	now := time.Now()
 	result := r.db.WithContext(ctx).Model(&notification.Notification{}).
-		Where("receiver_id = ? AND is_read = ?", receiverID, false).
+		Where("tenant_id = ? AND receiver_id = ? AND is_read = ?", tenantID, receiverID, false).
 		Updates(map[string]interface{}{
 			"is_read": true,
 			"read_at": now,
@@ -131,10 +131,10 @@ func (r *notificationRepository) Delete(ctx context.Context, id string) error {
 }
 
 // CountUnread 统计未读通知数量
-func (r *notificationRepository) CountUnread(ctx context.Context, receiverID string) (int64, error) {
+func (r *notificationRepository) CountUnread(ctx context.Context, tenantID, receiverID string) (int64, error) {
 	var count int64
 	if err := r.db.WithContext(ctx).Model(&notification.Notification{}).
-		Where("receiver_id = ? AND is_read = ?", receiverID, false).
+		Where("tenant_id = ? AND receiver_id = ? AND is_read = ?", tenantID, receiverID, false).
 		Count(&count).Error; err != nil {
 		return 0, fmt.Errorf("统计未读通知数量失败: %w", err)
 	}
@@ -174,9 +174,9 @@ func (r *notificationTemplateRepository) GetByID(ctx context.Context, id string)
 }
 
 // GetByCode 根据编码查询通知模板
-func (r *notificationTemplateRepository) GetByCode(ctx context.Context, code string) (*notification.NotificationTemplate, error) {
+func (r *notificationTemplateRepository) GetByCode(ctx context.Context, tenantID, code string) (*notification.NotificationTemplate, error) {
 	var tpl notification.NotificationTemplate
-	if err := r.db.WithContext(ctx).Where("code = ?", code).First(&tpl).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("tenant_id = ? AND code = ?", tenantID, code).First(&tpl).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("通知模板不存在: %s", code)
 		}
@@ -263,10 +263,10 @@ func (r *notificationPreferenceRepository) GetByID(ctx context.Context, id strin
 }
 
 // GetByUserAndType 根据用户ID、通知类型和渠道查询通知偏好
-func (r *notificationPreferenceRepository) GetByUserAndType(ctx context.Context, userID, typ, channel string) (*notification.NotificationPreference, error) {
+func (r *notificationPreferenceRepository) GetByUserAndType(ctx context.Context, tenantID, userID, typ, channel string) (*notification.NotificationPreference, error) {
 	var pref notification.NotificationPreference
 	if err := r.db.WithContext(ctx).
-		Where("user_id = ? AND type = ? AND channel = ?", userID, typ, channel).
+		Where("tenant_id = ? AND user_id = ? AND type = ? AND channel = ?", tenantID, userID, typ, channel).
 		First(&pref).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("通知偏好不存在: user_id=%s, type=%s, channel=%s", userID, typ, channel)

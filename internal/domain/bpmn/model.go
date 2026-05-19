@@ -28,6 +28,7 @@ type ProcessDefinition struct {
 	Name     string    `yaml:"name" json:"name"`
 	Version  int       `yaml:"version" json:"version"`
 	Status   string    `yaml:"status" json:"status"` // draft/active/archived
+	TenantID string    `yaml:"-" json:"tenant_id,omitempty"`
 	Elements []Element `yaml:"elements" json:"elements"`
 }
 

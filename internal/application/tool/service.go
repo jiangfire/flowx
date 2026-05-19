@@ -414,6 +414,7 @@ func (s *ToolService) ImportTools(ctx context.Context, tenantID string, tools []
 
 	var results []ImportResult
 	for _, tl := range tools {
+		tl.TenantID = tenantID
 		if err := s.toolRepo.Create(ctx, tl); err != nil {
 			results = append(results, ImportResult{
 				Status:  "error",
@@ -421,6 +422,46 @@ func (s *ToolService) ImportTools(ctx context.Context, tenantID string, tools []
 			})
 			continue
 		}
+
+		// 自动注册数据资产（与手工创建保持一致）
+		if s.assetRepo != nil {
+			asset := &domaingov.DataAsset{
+				BaseModel:      base.BaseModel{TenantID: tenantID},
+				Name:           tl.Name + " (工具元数据)",
+				Type:           "config",
+				Source:         "tool",
+				SourceID:       tl.ID,
+				Description:    tl.Description,
+				Classification: tl.Category,
+				Status:         "active",
+				Schema: base.JSON{
+					"tool_id":       tl.ID,
+					"tool_name":     tl.Name,
+					"tool_type":     tl.Type,
+					"tool_category": tl.Category,
+					"endpoint":      tl.Endpoint,
+					"connector_id":  tl.ConnectorID,
+				},
+			}
+			_ = s.assetRepo.Create(ctx, asset)
+		}
+
+		// 自动触发质量检查（与手工创建保持一致）
+		if s.ruleRepo != nil && s.checkRepo != nil {
+			rules, _, err := s.ruleRepo.List(ctx, datagovapp.DataQualityRuleFilter{
+				TenantID: tenantID,
+				Status:   "active",
+				PageSize: 1000,
+			})
+			if err == nil {
+				for _, rule := range rules {
+					if shouldRunRule(&rule, tl) {
+						runQualityCheck(ctx, s.checkRepo, &rule, tl.ID, tenantID)
+					}
+				}
+			}
+		}
+
 		results = append(results, ImportResult{
 			Status:  "success",
 			Message: "导入成功",

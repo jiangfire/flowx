@@ -13,7 +13,7 @@ import (
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -229,7 +229,7 @@ func TestProfile_Success(t *testing.T) {
 
 	// 从注册响应中获取 token
 	var regResp map[string]any
-	json.Unmarshal(w1.Body.Bytes(), &regResp)
+	_ = json.Unmarshal(w1.Body.Bytes(), &regResp)
 	token := regResp["data"].(map[string]any)["token"].(string)
 
 	// 创建 JWT 服务用于中间件

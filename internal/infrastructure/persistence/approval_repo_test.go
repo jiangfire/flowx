@@ -8,7 +8,7 @@ import (
 	"git.neolidy.top/neo/flowx/internal/domain/approval"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/pkg/tenant"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -86,7 +86,7 @@ func TestGetWorkflowByID(t *testing.T) {
 		Type:        "tool_deploy",
 		Definition:  base.JSON{"steps": []any{}},
 	}
-	repo.CreateWorkflow(ctx, w)
+	_ = repo.CreateWorkflow(ctx, w)
 
 	found, err := repo.GetWorkflowByID(ctx, w.ID)
 	if err != nil {
@@ -126,7 +126,7 @@ func TestListWorkflows(t *testing.T) {
 			Type:       "tool_deploy",
 			Definition: base.JSON{"steps": []any{}},
 		}
-		repo.CreateWorkflow(ctx, w)
+		_ = repo.CreateWorkflow(ctx, w)
 	}
 
 	workflows, total, err := repo.ListWorkflows(ctx, approvalapp.WorkflowFilter{TenantID: "tenant-001", Page: 1, PageSize: 10})
@@ -162,8 +162,8 @@ func TestListWorkflows_ByStatus(t *testing.T) {
 		Definition: base.JSON{"steps": []any{}},
 		Status:     "active",
 	}
-	repo.CreateWorkflow(ctx, w1)
-	repo.CreateWorkflow(ctx, w2)
+	_ = repo.CreateWorkflow(ctx, w1)
+	_ = repo.CreateWorkflow(ctx, w2)
 
 	workflows, total, err := repo.ListWorkflows(ctx, approvalapp.WorkflowFilter{TenantID: "tenant-001", Status: "draft", Page: 1, PageSize: 10})
 	if err != nil {
@@ -190,7 +190,7 @@ func TestUpdateWorkflow(t *testing.T) {
 		Definition: base.JSON{"steps": []any{}},
 		Status:     "draft",
 	}
-	repo.CreateWorkflow(ctx, w)
+	_ = repo.CreateWorkflow(ctx, w)
 
 	w.Name = "更新后名称"
 	w.Status = "active"
@@ -270,7 +270,7 @@ func TestGetInstanceByID(t *testing.T) {
 		Status:      "pending",
 		InitiatorID: "user-001",
 	}
-	repo.CreateInstance(ctx, inst)
+	_ = repo.CreateInstance(ctx, inst)
 
 	found, err := repo.GetInstanceByID(ctx, inst.ID)
 	if err != nil {
@@ -307,7 +307,7 @@ func TestListInstances(t *testing.T) {
 			Status:      "pending",
 			InitiatorID: "user-001",
 		}
-		repo.CreateInstance(ctx, inst)
+		_ = repo.CreateInstance(ctx, inst)
 	}
 
 	instances, total, err := repo.ListInstances(ctx, approvalapp.InstanceFilter{TenantID: "tenant-001", Page: 1, PageSize: 10})
@@ -342,8 +342,8 @@ func TestListInstances_ByStatus(t *testing.T) {
 		Status:      "approved",
 		InitiatorID: "user-001",
 	}
-	repo.CreateInstance(ctx, inst1)
-	repo.CreateInstance(ctx, inst2)
+	_ = repo.CreateInstance(ctx, inst1)
+	_ = repo.CreateInstance(ctx, inst2)
 
 	instances, total, err := repo.ListInstances(ctx, approvalapp.InstanceFilter{TenantID: "tenant-001", Status: "approving", Page: 1, PageSize: 10})
 	if err != nil {
@@ -370,7 +370,7 @@ func TestUpdateInstance(t *testing.T) {
 		Status:      "pending",
 		InitiatorID: "user-001",
 	}
-	repo.CreateInstance(ctx, inst)
+	_ = repo.CreateInstance(ctx, inst)
 
 	inst.Status = "approving"
 	inst.CurrentStep = 1
@@ -452,7 +452,7 @@ func TestListApprovalsByInstance(t *testing.T) {
 			ApproverID: "user-002",
 			Status:     "pending",
 		}
-		repo.CreateApproval(ctx, a)
+		_ = repo.CreateApproval(ctx, a)
 	}
 
 	approvals, err := repo.ListApprovalsByInstance(ctx, instID)
@@ -477,7 +477,7 @@ func TestGetPendingApproval(t *testing.T) {
 		ApproverID: "user-002",
 		Status:     "pending",
 	}
-	repo.CreateApproval(ctx, a)
+	_ = repo.CreateApproval(ctx, a)
 
 	found, err := repo.GetPendingApproval(ctx, "inst-001", 1)
 	if err != nil {
@@ -516,7 +516,7 @@ func TestUpdateApproval(t *testing.T) {
 		ApproverID: "user-002",
 		Status:     "pending",
 	}
-	repo.CreateApproval(ctx, a)
+	_ = repo.CreateApproval(ctx, a)
 
 	a.Status = "approved"
 	a.Comment = "同意"
@@ -556,7 +556,7 @@ func TestTenantIsolation_Workflow(t *testing.T) {
 		Type:       "tool_deploy",
 		Definition: base.JSON{"steps": []any{}},
 	}
-	repo.CreateWorkflow(ctx, wA)
+	_ = repo.CreateWorkflow(ctx, wA)
 
 	// 租户 B 创建工作流
 	wB := &approval.Workflow{
@@ -565,7 +565,7 @@ func TestTenantIsolation_Workflow(t *testing.T) {
 		Type:       "data_review",
 		Definition: base.JSON{"steps": []any{}},
 	}
-	repo.CreateWorkflow(ctx, wB)
+	_ = repo.CreateWorkflow(ctx, wB)
 
 	// 租户 A 只能看到自己的工作流
 	workflows, total, _ := repo.ListWorkflows(ctx, approvalapp.WorkflowFilter{TenantID: "tenant-A", Page: 1, PageSize: 10})
@@ -597,7 +597,7 @@ func TestTenantIsolation_Instance(t *testing.T) {
 		Status:      "pending",
 		InitiatorID: "user-001",
 	}
-	repo.CreateInstance(ctx, instA)
+	_ = repo.CreateInstance(ctx, instA)
 
 	instB := &approval.WorkflowInstance{
 		BaseModel:   base.BaseModel{TenantID: "tenant-B"},
@@ -606,7 +606,7 @@ func TestTenantIsolation_Instance(t *testing.T) {
 		Status:      "pending",
 		InitiatorID: "user-001",
 	}
-	repo.CreateInstance(ctx, instB)
+	_ = repo.CreateInstance(ctx, instB)
 
 	instances, total, _ := repo.ListInstances(ctx, approvalapp.InstanceFilter{TenantID: "tenant-A", Page: 1, PageSize: 10})
 	if total != 1 {

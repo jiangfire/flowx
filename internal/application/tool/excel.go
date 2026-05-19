@@ -113,7 +113,126 @@ func (s *ExcelService) ExportTools(ctx context.Context, tools []tool.Tool, colum
 	return buf, nil
 }
 
-// ImportTools 从 Excel 文件导入工具
+// ParseTools 从 Excel 文件解析工具列表（不写入数据库）
+func (s *ExcelService) ParseTools(ctx context.Context, file []byte, tenantID string) ([]*tool.Tool, []ImportResult, error) {
+	if len(file) == 0 {
+		return nil, nil, fmt.Errorf("文件内容为空")
+	}
+
+	f, err := excelize.OpenReader(bytes.NewReader(file))
+	if err != nil {
+		return nil, nil, fmt.Errorf("打开 Excel 文件失败: %w", err)
+	}
+	defer func() { _ = f.Close() }()
+
+	// 获取所有行
+	rows, err := f.GetRows("Sheet1")
+	if err != nil {
+		return nil, nil, fmt.Errorf("读取 Excel 内容失败: %w", err)
+	}
+
+	if len(rows) < 2 {
+		return nil, nil, fmt.Errorf("文件没有数据行")
+	}
+
+	// 解析表头，建立列索引映射
+	header := rows[0]
+	colIndex := make(map[string]int)
+	for i, h := range header {
+		colIndex[strings.ToLower(strings.TrimSpace(h))] = i
+	}
+
+	// 检查必填列
+	nameIdx, hasName := colIndex["name"]
+	_, hasType := colIndex["type"]
+	if !hasName || !hasType {
+		return nil, nil, fmt.Errorf("缺少必填列: name 或 type")
+	}
+
+	var results []ImportResult
+	var tools []*tool.Tool
+
+	// 获取现有工具名称集合（用于去重）
+	existingTools, _, err := s.toolRepo.List(ctx, ToolFilter{TenantID: tenantID, PageSize: 10000})
+	if err != nil {
+		return nil, nil, fmt.Errorf("查询现有工具失败: %w", err)
+	}
+	existingNames := make(map[string]bool)
+	for _, tl := range existingTools {
+		existingNames[tl.Name] = true
+	}
+
+	// 逐行解析
+	for rowIdx := 1; rowIdx < len(rows); rowIdx++ {
+		row := rows[rowIdx]
+		result := ImportResult{Row: rowIdx + 1} // Excel 行号从1开始
+
+		// 跳过空行
+		if len(row) == 0 {
+			result.Status = "skip"
+			result.Message = "空行"
+			results = append(results, result)
+			continue
+		}
+
+		// 获取 name 值
+		name := ""
+		if nameIdx < len(row) {
+			name = strings.TrimSpace(row[nameIdx])
+		}
+		if name == "" {
+			result.Status = "skip"
+			result.Message = "缺少工具名称"
+			results = append(results, result)
+			continue
+		}
+
+		// 检查重复
+		if existingNames[name] {
+			result.Status = "skip"
+			result.Message = fmt.Sprintf("工具名称 '%s' 已存在", name)
+			results = append(results, result)
+			continue
+		}
+
+		// 获取其他字段
+		typ := ""
+		if idx, ok := colIndex["type"]; ok && idx < len(row) {
+			typ = strings.TrimSpace(row[idx])
+		}
+		status := "active"
+		if idx, ok := colIndex["status"]; ok && idx < len(row) {
+			s := strings.TrimSpace(row[idx])
+			if s != "" {
+				status = s
+			}
+		}
+		endpoint := ""
+		if idx, ok := colIndex["endpoint"]; ok && idx < len(row) {
+			endpoint = strings.TrimSpace(row[idx])
+		}
+		category := ""
+		if idx, ok := colIndex["category"]; ok && idx < len(row) {
+			category = strings.TrimSpace(row[idx])
+		}
+
+		tl := &tool.Tool{
+			BaseModel: base.BaseModel{TenantID: tenantID},
+			Name:      name,
+			Type:      typ,
+			Status:    status,
+			Endpoint:  endpoint,
+			Category:  category,
+		}
+		tools = append(tools, tl)
+		existingNames[name] = true
+	}
+
+	return tools, results, nil
+}
+
+// ImportTools 从 Excel 文件导入工具（直接写库，绕过治理）
+// Deprecated: 请改用 Handler 层调用 ParseTools + ToolService.ImportTools
 func (s *ExcelService) ImportTools(ctx context.Context, file []byte, tenantID string) ([]ImportResult, error) {
 	if len(file) == 0 {
 		return nil, fmt.Errorf("文件内容为空")
@@ -123,7 +242,7 @@ func (s *ExcelService) ImportTools(ctx context.Context, file []byte, tenantID st
 	if err != nil {
 		return nil, fmt.Errorf("打开 Excel 文件失败: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	// 获取所有行
 	rows, err := f.GetRows("Sheet1")

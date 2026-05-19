@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"git.neolidy.top/neo/flowx/internal/domain/tenant"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -35,7 +35,7 @@ func TestGetByUsername_Success(t *testing.T) {
 		Role:         "user",
 		Status:       "active",
 	}
-	repo.Create(ctx, user)
+	_ = repo.Create(ctx, user)
 
 	found, err := repo.GetByUsername(ctx, "testuser")
 	if err != nil {
@@ -74,7 +74,7 @@ func TestUserGetByID_Success(t *testing.T) {
 		Role:         "user",
 		Status:       "active",
 	}
-	repo.Create(ctx, user)
+	_ = repo.Create(ctx, user)
 
 	found, err := repo.GetByID(ctx, user.ID)
 	if err != nil {

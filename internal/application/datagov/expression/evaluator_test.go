@@ -146,7 +146,7 @@ func TestEvaluate_NilContext(t *testing.T) {
 			t.Fatal("expected panic for nil context")
 		}
 	}()
-	Evaluate(nil, `tool.type == "eda"`)
+	_, _ = Evaluate(nil, `tool.type == "eda"`)
 }
 
 func TestEvaluate_EmptyExpression(t *testing.T) {

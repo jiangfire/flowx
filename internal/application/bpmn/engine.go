@@ -191,6 +191,46 @@ func (e *Engine) GetInstance(instanceID string) *bpmn.ProcessInstance {
 	return state.instance
 }
 
+// HasInstance checks if a process instance exists in memory.
+func (e *Engine) HasInstance(instanceID string) bool {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	_, ok := e.instances[instanceID]
+	return ok
+}
+
+// RestoreInstance rebuilds runtime state from persisted data.
+func (e *Engine) RestoreInstance(inst *bpmn.ProcessInstance, def *bpmn.ProcessDefinition, tasks []*bpmn.ProcessTask, histories []*bpmn.ExecutionHistory) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	if _, ok := e.instances[inst.ID]; ok {
+		return nil // already loaded
+	}
+
+	state := &instanceState{
+		instance:        inst,
+		definition:      def,
+		tasks:           make([]*taskInfo, 0, len(tasks)),
+		history:         make([]*bpmn.ExecutionHistory, 0, len(histories)),
+		joinReceived:    make(map[string]int),
+		inclusiveTokens: make(map[string]int),
+	}
+
+	for _, t := range tasks {
+		if t.Status == "pending" {
+			state.tasks = append(state.tasks, &taskInfo{task: t})
+			e.taskIndex[t.ID] = inst.ID
+		}
+	}
+
+	state.history = append(state.history, histories...)
+
+	e.instances[inst.ID] = state
+	return nil
+}
+
 // GetPendingTasks returns all pending tasks for a process instance.
 func (e *Engine) GetPendingTasks(instanceID string) []*bpmn.ProcessTask {
 	e.mu.RLock()
@@ -784,7 +824,7 @@ func (s *instanceState) addHistory(instanceID, elementID, elementType, action st
 	h := &bpmn.ExecutionHistory{
 		BaseModel: base.BaseModel{
 			ID:        base.GenerateUUID(),
-			TenantID:  "",
+			TenantID:  s.instance.TenantID,
 			CreatedAt: now,
 			UpdatedAt: now,
 		},

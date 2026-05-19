@@ -85,9 +85,9 @@ func TestToolRegistry_ListTools(t *testing.T) {
 	reg := NewToolRegistry()
 
 	// 注册多个工具
-	reg.RegisterTool(&tool.Tool{Name: "tool1", Type: "eda", Status: "active"})
-	reg.RegisterTool(&tool.Tool{Name: "tool2", Type: "cae", Status: "active"})
-	reg.RegisterConnector(&tool.Connector{Name: "conn1", Type: "plm", Status: "active"})
+	_ = reg.RegisterTool(&tool.Tool{Name: "tool1", Type: "eda", Status: "active"})
+	_ = reg.RegisterTool(&tool.Tool{Name: "tool2", Type: "cae", Status: "active"})
+	_ = reg.RegisterConnector(&tool.Connector{Name: "conn1", Type: "plm", Status: "active"})
 
 	tools := reg.ListTools()
 	if len(tools) != 3 {
@@ -99,7 +99,7 @@ func TestToolRegistry_ListTools(t *testing.T) {
 func TestToolRegistry_GetTool_Exists(t *testing.T) {
 	reg := NewToolRegistry()
 
-	reg.RegisterTool(&tool.Tool{
+	_ = reg.RegisterTool(&tool.Tool{
 		Name:        "my_tool",
 		Type:        "eda",
 		Description: "我的工具",
@@ -133,7 +133,7 @@ func TestToolRegistry_CallTool_Success(t *testing.T) {
 	reg := NewToolRegistry()
 
 	// 注册带自定义 handler 的工具
-	reg.RegisterTool(&tool.Tool{
+	_ = reg.RegisterTool(&tool.Tool{
 		Name:        "echo",
 		Type:        "custom",
 		Description: "回显工具",

@@ -3,7 +3,6 @@ package handler
 import (
 	"errors"
 	"net/http"
-	"strconv"
 
 	approvalapp "git.neolidy.top/neo/flowx/internal/application/approval"
 	"git.neolidy.top/neo/flowx/pkg/response"
@@ -601,17 +600,4 @@ func (h *ApprovalHandler) GetMyPendingApprovals(c *gin.Context) {
 	}
 
 	response.Success(c, instances)
-}
-
-// parseIntParam 辅助函数：解析路径参数中的整数
-func parseIntParam(c *gin.Context, name string, defaultValue int) int {
-	val := c.Param(name)
-	if val == "" {
-		return defaultValue
-	}
-	result, err := strconv.Atoi(val)
-	if err != nil {
-		return defaultValue
-	}
-	return result
 }

@@ -55,7 +55,12 @@ func (s *AgentService) CreateAndExecuteTask(ctx context.Context, tenantID, userI
 		agentTask.Steps = string(stepsJSON)
 	}
 
-	// 如果提供了 workflow_id，创建关联的工作流实例
+	// 先持久化任务，拿到稳定 ID
+	if err := s.repo.Create(ctx, agentTask); err != nil {
+		return nil, fmt.Errorf("创建任务失败: %w", err)
+	}
+
+	// 如果提供了 workflow_id，创建关联的工作流实例并回写双向关联
 	if task.WorkflowID != "" && s.approvalSvc != nil {
 		var ctxJSON base.JSON
 		if task.Context != nil {
@@ -69,15 +74,15 @@ func (s *AgentService) CreateAndExecuteTask(ctx context.Context, tenantID, userI
 		if err != nil {
 			return nil, fmt.Errorf("创建关联工作流实例失败: %w", err)
 		}
-		// 设置双向关联
+		// 设置双向关联（此时 agentTask.ID 已稳定）
 		agentTask.WorkflowInstanceID = inst.ID
 		inst.AgentTaskID = agentTask.ID
-		// 回写 agent_task_id 到工作流实例
-		_ = s.approvalSvc.UpdateInstance(ctx, inst)
-	}
-
-	if err := s.repo.Create(ctx, agentTask); err != nil {
-		return nil, fmt.Errorf("创建任务失败: %w", err)
+		if err := s.approvalSvc.UpdateInstance(ctx, inst); err != nil {
+			return nil, fmt.Errorf("回写工作流实例关联失败: %w", err)
+		}
+		if err := s.repo.Update(ctx, agentTask); err != nil {
+			return nil, fmt.Errorf("更新任务关联失败: %w", err)
+		}
 	}
 
 	// 执行任务
@@ -148,11 +153,13 @@ func (s *AgentService) ApproveTask(ctx context.Context, tenantID, userID, taskID
 
 	// 如果任务关联了工作流实例，调用审批服务推进工作流
 	if s.approvalSvc != nil && task.WorkflowInstanceID != "" {
-		_, _ = s.approvalSvc.Approve(ctx, tenantID, task.CreatedBy, &approvalapp.ApproveRequest{
+		_, err := s.approvalSvc.Approve(ctx, tenantID, userID, &approvalapp.ApproveRequest{
 			InstanceID: task.WorkflowInstanceID,
 			Comment:    comment,
 		})
-		// Ignore error — task approval succeeded, workflow advancement is best-effort
+		if err != nil {
+			return nil, fmt.Errorf("推进审批流程失败: %w", err)
+		}
 	}
 
 	return task, nil
@@ -181,11 +188,13 @@ func (s *AgentService) RejectTask(ctx context.Context, tenantID, userID, taskID,
 
 	// 如果任务关联了工作流实例，调用审批服务驳回工作流
 	if s.approvalSvc != nil && task.WorkflowInstanceID != "" {
-		_, _ = s.approvalSvc.Reject(ctx, tenantID, task.CreatedBy, &approvalapp.RejectRequest{
+		_, err := s.approvalSvc.Reject(ctx, tenantID, userID, &approvalapp.RejectRequest{
 			InstanceID: task.WorkflowInstanceID,
 			Comment:    comment,
 		})
-		// Ignore error — task rejection succeeded, workflow advancement is best-effort
+		if err != nil {
+			return nil, fmt.Errorf("推进审批流程失败: %w", err)
+		}
 	}
 
 	return task, nil

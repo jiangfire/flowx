@@ -6,7 +6,7 @@ import (
 
 	"git.neolidy.top/neo/flowx/internal/domain/agent"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -76,7 +76,7 @@ func TestGetByID_Success(t *testing.T) {
 		Description: "测试任务",
 		Status:      "running",
 	}
-	repo.Create(ctx, task)
+	_ = repo.Create(ctx, task)
 
 	found, err := repo.GetByID(ctx, task.ID)
 	if err != nil {
@@ -115,7 +115,7 @@ func TestList_All(t *testing.T) {
 			Description: "测试任务",
 			Status:      "completed",
 		}
-		repo.Create(ctx, task)
+		_ = repo.Create(ctx, task)
 	}
 
 	tasks, total, err := repo.List(ctx, "tenant-001", "", 1, 10)
@@ -139,9 +139,9 @@ func TestList_WithStatus(t *testing.T) {
 	task1 := &agent.AgentTask{BaseModel: base.BaseModel{TenantID: "tenant-001"}, Type: "tool_execute", Status: "completed"}
 	task2 := &agent.AgentTask{BaseModel: base.BaseModel{TenantID: "tenant-001"}, Type: "tool_execute", Status: "running"}
 	task3 := &agent.AgentTask{BaseModel: base.BaseModel{TenantID: "tenant-001"}, Type: "tool_execute", Status: "completed"}
-	repo.Create(ctx, task1)
-	repo.Create(ctx, task2)
-	repo.Create(ctx, task3)
+	_ = repo.Create(ctx, task1)
+	_ = repo.Create(ctx, task2)
+	_ = repo.Create(ctx, task3)
 
 	tasks, total, err := repo.List(ctx, "tenant-001", "completed", 1, 10)
 	if err != nil {
@@ -163,7 +163,7 @@ func TestList_WithPagination(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		task := &agent.AgentTask{BaseModel: base.BaseModel{TenantID: "tenant-001"}, Type: "tool_execute", Status: "completed"}
-		repo.Create(ctx, task)
+		_ = repo.Create(ctx, task)
 	}
 
 	tasks, total, err := repo.List(ctx, "tenant-001", "", 1, 2)
@@ -189,7 +189,7 @@ func TestUpdate_Success(t *testing.T) {
 		Description: "测试任务",
 		Status:      "running",
 	}
-	repo.Create(ctx, task)
+	_ = repo.Create(ctx, task)
 
 	task.Status = "completed"
 	task.Result = `{"output": "done"}`

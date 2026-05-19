@@ -41,7 +41,7 @@ func TestGenerateApprovalSuggestion_Success(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(respBytes)
+		_, _ = w.Write(respBytes)
 	}))
 	defer server.Close()
 
@@ -68,7 +68,7 @@ func TestGenerateApprovalSuggestion_APIError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error": {"message": "internal server error"}}`))
+		_, _ = w.Write([]byte(`{"error": {"message": "internal server error"}}`))
 	}))
 	defer server.Close()
 
@@ -91,7 +91,7 @@ func TestGenerateApprovalSuggestion_Timeout(t *testing.T) {
 		// 模拟延迟响应
 		time.Sleep(2 * time.Second)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"choices": [{"message": {"content": "延迟建议"}}]}`))
+		_, _ = w.Write([]byte(`{"choices": [{"message": {"content": "延迟建议"}}]}`))
 	}))
 	defer server.Close()
 
@@ -126,7 +126,7 @@ func TestGenerateApprovalSuggestion_EmptyContext(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(respBytes)
+		_, _ = w.Write(respBytes)
 	}))
 	defer server.Close()
 
@@ -164,10 +164,10 @@ func TestGenerateApprovalSuggestion_WithHistory(t *testing.T) {
 
 	var receivedBody map[string]any
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewDecoder(r.Body).Decode(&receivedBody)
+		_ = json.NewDecoder(r.Body).Decode(&receivedBody)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(respBytes)
+		_, _ = w.Write(respBytes)
 	}))
 	defer server.Close()
 
@@ -201,7 +201,7 @@ func TestGenerateApprovalSuggestion_InvalidJSON(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`invalid json`))
+		_, _ = w.Write([]byte(`invalid json`))
 	}))
 	defer server.Close()
 

@@ -102,7 +102,7 @@ func (s *llmService) GenerateApprovalSuggestion(ctx context.Context, req *Approv
 	if err != nil {
 		return "", fmt.Errorf("请求 LLM 服务失败: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)

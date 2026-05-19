@@ -10,7 +10,7 @@ import (
 	bpmnapp "git.neolidy.top/neo/flowx/internal/application/bpmn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -54,7 +54,7 @@ func TestCreateAndGetDefinition(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEmpty(t, def.ID)
 
-	got, err := repo.GetByID(ctx, def.ID)
+	got, err := repo.GetByID(ctx, "", def.ID)
 	require.NoError(t, err)
 	assert.Equal(t, def.Name, got.Name)
 	assert.Equal(t, def.Version, got.Version)
@@ -62,7 +62,7 @@ func TestCreateAndGetDefinition(t *testing.T) {
 	assert.Len(t, got.Elements, 5)
 
 	// 查询不存在的定义
-	_, err = repo.GetByID(ctx, "not-exist")
+	_, err = repo.GetByID(ctx, "", "not-exist")
 	assert.Error(t, err)
 }
 
@@ -121,7 +121,7 @@ func TestCreateAndGetProcessInstance(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEmpty(t, inst.ID)
 
-	got, err := repo.GetByID(ctx, inst.ID)
+	got, err := repo.GetByID(ctx, "tenant-001", inst.ID)
 	require.NoError(t, err)
 	assert.Equal(t, inst.DefinitionID, got.DefinitionID)
 	assert.Equal(t, inst.Status, got.Status)
@@ -180,7 +180,7 @@ func TestCreateAndGetProcessTask(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEmpty(t, task.ID)
 
-	got, err := repo.GetByID(ctx, task.ID)
+	got, err := repo.GetByID(ctx, "tenant-001", task.ID)
 	require.NoError(t, err)
 	assert.Equal(t, task.Name, got.Name)
 	assert.Equal(t, task.Assignee, got.Assignee)
@@ -230,7 +230,7 @@ func TestListPendingTasks(t *testing.T) {
 	assert.Equal(t, "审批", pending[0].Name)
 
 	// 按实例查询
-	tasks, err := repo.ListByInstance(ctx, "inst-001")
+	tasks, err := repo.ListByInstance(ctx, "tenant-001", "inst-001")
 	require.NoError(t, err)
 	assert.Len(t, tasks, 2)
 }
@@ -266,14 +266,14 @@ func TestCreateAndListHistory(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := repo.ListByInstance(ctx, "inst-001")
+	got, err := repo.ListByInstance(ctx, "tenant-001", "inst-001")
 	require.NoError(t, err)
 	assert.Len(t, got, 2)
 	assert.Equal(t, "enter", got[0].Action)
 	assert.Equal(t, "leave", got[1].Action)
 
 	// 查询不存在的实例
-	got, err = repo.ListByInstance(ctx, "not-exist")
+	got, err = repo.ListByInstance(ctx, "tenant-001", "not-exist")
 	require.NoError(t, err)
 	assert.Len(t, got, 0)
 }

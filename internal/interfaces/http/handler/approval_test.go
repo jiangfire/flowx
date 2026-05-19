@@ -14,7 +14,7 @@ import (
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -106,7 +106,7 @@ func createTestWorkflowAndInstance(t *testing.T, h *ApprovalHandler, r *gin.Engi
 	r.ServeHTTP(w, req)
 
 	var wfResp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &wfResp)
+	_ = json.Unmarshal(w.Body.Bytes(), &wfResp)
 	wfID := wfResp["data"].(map[string]any)["id"].(string)
 
 	// 激活工作流
@@ -125,7 +125,7 @@ func createTestWorkflowAndInstance(t *testing.T, h *ApprovalHandler, r *gin.Engi
 	r.ServeHTTP(w2, req2)
 
 	var instResp map[string]any
-	json.Unmarshal(w2.Body.Bytes(), &instResp)
+	_ = json.Unmarshal(w2.Body.Bytes(), &instResp)
 	return instResp["data"].(map[string]any)["id"].(string)
 }
 
@@ -153,7 +153,7 @@ func TestPostWorkflows_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	if resp["code"].(float64) != 0 {
 		t.Errorf("期望 code 为 0，实际为 %v", resp["code"])
 	}
@@ -182,7 +182,7 @@ func TestPostApprovals_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	var wfResp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &wfResp)
+	_ = json.Unmarshal(w.Body.Bytes(), &wfResp)
 	wfID := wfResp["data"].(map[string]any)["id"].(string)
 
 	// 激活工作流
@@ -230,7 +230,7 @@ func TestPostApprove_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["status"] != "approved" {
 		t.Errorf("期望审批状态为 'approved'，实际为 '%v'", data["status"])
@@ -261,7 +261,7 @@ func TestPostReject_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["status"] != "rejected" {
 		t.Errorf("期望审批状态为 'rejected'，实际为 '%v'", data["status"])
@@ -292,7 +292,7 @@ func TestPostForward_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]any)
 	if data["status"] != "forwarded" {
 		t.Errorf("期望审批状态为 'forwarded'，实际为 '%v'", data["status"])
@@ -355,7 +355,7 @@ func TestGetPendingApprovals_Success(t *testing.T) {
 	}
 
 	var resp map[string]any
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].([]any)
 	if len(data) != 1 {
 		t.Errorf("期望 approver-1 有 1 个待审批，实际为 %d", len(data))
