@@ -183,8 +183,8 @@ func TestApproveTask_WithWorkflow(t *testing.T) {
 	if mockApproval.instanceID != "workflow-inst-001" {
 		t.Errorf("期望审批实例 ID 为 'workflow-inst-001'，实际为 '%s'", mockApproval.instanceID)
 	}
-	if mockApproval.approverID != "user-001" {
-		t.Errorf("期望审批人为 'user-001'（任务创建者），实际为 '%s'", mockApproval.approverID)
+	if mockApproval.approverID != "approver-001" {
+		t.Errorf("期望审批人为 'approver-001'（当前审批用户），实际为 '%s'", mockApproval.approverID)
 	}
 	if mockApproval.comment != "同意部署" {
 		t.Errorf("期望审批意见为 '同意部署'，实际为 '%s'", mockApproval.comment)
@@ -236,8 +236,8 @@ func TestRejectTask_WithWorkflow(t *testing.T) {
 	if mockApproval.instanceID != "workflow-inst-002" {
 		t.Errorf("期望审批实例 ID 为 'workflow-inst-002'，实际为 '%s'", mockApproval.instanceID)
 	}
-	if mockApproval.approverID != "user-001" {
-		t.Errorf("期望审批人为 'user-001'（任务创建者），实际为 '%s'", mockApproval.approverID)
+	if mockApproval.approverID != "approver-001" {
+		t.Errorf("期望审批人为 'approver-001'（当前审批用户），实际为 '%s'", mockApproval.approverID)
 	}
 }
 

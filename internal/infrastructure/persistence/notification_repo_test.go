@@ -327,7 +327,7 @@ func TestNotificationRepository_MarkAsRead(t *testing.T) {
 
 	created := createTestNotification(t, db, "tenant-001", "user-001", "system", "info", "pending", false)
 
-	err := repo.MarkAsRead(context.Background(), created.ID)
+	err := repo.MarkAsRead(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("标记通知已读失败: %v", err)
 	}
@@ -349,7 +349,7 @@ func TestNotificationRepository_MarkAsRead_NotExists(t *testing.T) {
 	db := setupNotificationRepoTestDB(t)
 	repo := NewNotificationRepository(db)
 
-	err := repo.MarkAsRead(context.Background(), "non-existent-id")
+	err := repo.MarkAsRead(context.Background(), "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望标记不存在的通知返回错误")
 	}
@@ -387,7 +387,7 @@ func TestNotificationRepository_Delete(t *testing.T) {
 
 	created := createTestNotification(t, db, "tenant-001", "user-001", "system", "info", "pending", false)
 
-	err := repo.Delete(context.Background(), created.ID)
+	err := repo.Delete(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("删除通知失败: %v", err)
 	}
@@ -647,7 +647,7 @@ func TestNotificationTemplateRepository_Delete(t *testing.T) {
 
 	created := createTestNotificationTemplate(t, db, "tenant-001", "删除模板", "delete_tpl", "system", "in_app")
 
-	err := repo.Delete(context.Background(), created.ID)
+	err := repo.Delete(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("删除通知模板失败: %v", err)
 	}
@@ -894,7 +894,7 @@ func TestNotificationPreferenceRepository_Delete(t *testing.T) {
 
 	created := createTestNotificationPreference(t, db, "tenant-001", "user-001", "system", "in_app", true)
 
-	err := repo.Delete(context.Background(), created.ID)
+	err := repo.Delete(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("删除通知偏好失败: %v", err)
 	}

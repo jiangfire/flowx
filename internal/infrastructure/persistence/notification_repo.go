@@ -93,10 +93,10 @@ func (r *notificationRepository) Update(ctx context.Context, n *notification.Not
 }
 
 // MarkAsRead 标记通知为已读
-func (r *notificationRepository) MarkAsRead(ctx context.Context, id string) error {
+func (r *notificationRepository) MarkAsRead(ctx context.Context, tenantID, id string) error {
 	now := time.Now()
 	result := r.db.WithContext(ctx).Model(&notification.Notification{}).
-		Where("id = ?", id).
+		Where("id = ? AND tenant_id = ?", id, tenantID).
 		Updates(map[string]interface{}{
 			"is_read": true,
 			"read_at": now,
@@ -126,8 +126,8 @@ func (r *notificationRepository) MarkAllAsRead(ctx context.Context, tenantID, re
 }
 
 // Delete 软删除通知
-func (r *notificationRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&notification.Notification{}, "id = ?", id).Error
+func (r *notificationRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&notification.Notification{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }
 
 // CountUnread 统计未读通知数量
@@ -226,8 +226,8 @@ func (r *notificationTemplateRepository) Update(ctx context.Context, tpl *notifi
 }
 
 // Delete 软删除通知模板
-func (r *notificationTemplateRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&notification.NotificationTemplate{}, "id = ?", id).Error
+func (r *notificationTemplateRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&notification.NotificationTemplate{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }
 
 // ==================== NotificationPreferenceRepository ====================
@@ -320,6 +320,6 @@ func (r *notificationPreferenceRepository) Update(ctx context.Context, pref *not
 }
 
 // Delete 软删除通知偏好
-func (r *notificationPreferenceRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&notification.NotificationPreference{}, "id = ?", id).Error
+func (r *notificationPreferenceRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&notification.NotificationPreference{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }

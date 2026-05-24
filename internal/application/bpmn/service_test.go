@@ -43,6 +43,9 @@ func (r *mockDefRepo) List(_ context.Context, filter ProcessDefinitionFilter) ([
 	defer r.mu.RUnlock()
 	var result []*bpmn.ProcessDefinition
 	for _, def := range r.store {
+		if filter.TenantID != "" && def.TenantID != filter.TenantID {
+			continue
+		}
 		if filter.Status != "" && def.Status != filter.Status {
 			continue
 		}
@@ -103,6 +106,9 @@ func (r *mockInstRepo) List(_ context.Context, filter ProcessInstanceFilter) ([]
 	defer r.mu.RUnlock()
 	var result []*bpmn.ProcessInstance
 	for _, inst := range r.store {
+		if filter.TenantID != "" && inst.TenantID != filter.TenantID {
+			continue
+		}
 		if filter.Status != "" && inst.Status != filter.Status {
 			continue
 		}
@@ -406,8 +412,8 @@ func TestProcessService_ListDefinitions_Success(t *testing.T) {
 	svc, defRepo, _, _, _ := newTestService()
 
 	// 放入两个定义
-	defRepo.store["def-1"] = &bpmn.ProcessDefinition{ID: "def-1", Name: "流程1", Status: "active"}
-	defRepo.store["def-2"] = &bpmn.ProcessDefinition{ID: "def-2", Name: "流程2", Status: "draft"}
+	defRepo.store["def-1"] = &bpmn.ProcessDefinition{ID: "def-1", Name: "流程1", Status: "active", TenantID: "tenant1"}
+	defRepo.store["def-2"] = &bpmn.ProcessDefinition{ID: "def-2", Name: "流程2", Status: "draft", TenantID: "tenant1"}
 
 	list, total, err := svc.ListDefinitions(context.Background(), "tenant1", ProcessDefinitionFilter{})
 	if err != nil {
@@ -424,9 +430,9 @@ func TestProcessService_ListDefinitions_Success(t *testing.T) {
 func TestProcessService_ListDefinitions_WithFilter(t *testing.T) {
 	svc, defRepo, _, _, _ := newTestService()
 
-	defRepo.store["def-1"] = &bpmn.ProcessDefinition{ID: "def-1", Name: "流程1", Status: "active"}
-	defRepo.store["def-2"] = &bpmn.ProcessDefinition{ID: "def-2", Name: "流程2", Status: "draft"}
-	defRepo.store["def-3"] = &bpmn.ProcessDefinition{ID: "def-3", Name: "流程3", Status: "active"}
+	defRepo.store["def-1"] = &bpmn.ProcessDefinition{ID: "def-1", Name: "流程1", Status: "active", TenantID: "tenant1"}
+	defRepo.store["def-2"] = &bpmn.ProcessDefinition{ID: "def-2", Name: "流程2", Status: "draft", TenantID: "tenant1"}
+	defRepo.store["def-3"] = &bpmn.ProcessDefinition{ID: "def-3", Name: "流程3", Status: "active", TenantID: "tenant1"}
 
 	// 按状态过滤
 	list, total, err := svc.ListDefinitions(context.Background(), "tenant1", ProcessDefinitionFilter{Status: "active"})

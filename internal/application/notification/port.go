@@ -43,9 +43,9 @@ type NotificationRepository interface {
 	GetByID(ctx context.Context, id string) (*notifdomain.Notification, error)
 	List(ctx context.Context, filter NotificationFilter) ([]notifdomain.Notification, int64, error)
 	Update(ctx context.Context, n *notifdomain.Notification) error
-	MarkAsRead(ctx context.Context, id string) error
+	MarkAsRead(ctx context.Context, tenantID, id string) error
 	MarkAllAsRead(ctx context.Context, tenantID, receiverID string) error
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, tenantID, id string) error
 	CountUnread(ctx context.Context, tenantID, receiverID string) (int64, error)
 }
 
@@ -56,7 +56,7 @@ type NotificationTemplateRepository interface {
 	GetByCode(ctx context.Context, tenantID, code string) (*notifdomain.NotificationTemplate, error)
 	List(ctx context.Context, filter NotificationTemplateFilter) ([]notifdomain.NotificationTemplate, int64, error)
 	Update(ctx context.Context, tpl *notifdomain.NotificationTemplate) error
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, tenantID, id string) error
 }
 
 // NotificationPreferenceRepository 通知偏好仓储接口
@@ -66,5 +66,5 @@ type NotificationPreferenceRepository interface {
 	GetByUserAndType(ctx context.Context, tenantID, userID, typ, channel string) (*notifdomain.NotificationPreference, error)
 	List(ctx context.Context, filter NotificationPreferenceFilter) ([]notifdomain.NotificationPreference, int64, error)
 	Update(ctx context.Context, pref *notifdomain.NotificationPreference) error
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, tenantID, id string) error
 }

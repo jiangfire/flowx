@@ -351,7 +351,7 @@ func (r *dataQualityCheckRepository) Delete(ctx context.Context, id string) erro
 // GetByRuleAndAsset 根据规则ID和资产ID查询最新的数据质量检查
 func (r *dataQualityCheckRepository) GetByRuleAndAsset(ctx context.Context, ruleID, assetID string) (*datagov.DataQualityCheck, error) {
 	var check datagov.DataQualityCheck
-	if err := r.db.WithContext(ctx).Where("rule_id = ? AND asset_id = ?", ruleID, assetID).Order("created_at DESC").First(&check).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("rule_id = ? AND asset_id = ?", ruleID, assetID).Order("created_at DESC, id DESC").First(&check).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("数据质量检查不存在: rule_id=%s, asset_id=%s", ruleID, assetID)
 		}

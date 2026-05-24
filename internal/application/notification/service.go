@@ -259,7 +259,7 @@ func (s *NotificationService) DeleteNotification(ctx context.Context, tenantID s
 		return ErrTenantMismatch
 	}
 
-	if err := s.notifRepo.Delete(ctx, id); err != nil {
+	if err := s.notifRepo.Delete(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("删除通知失败: %w", err)
 	}
 
@@ -277,7 +277,7 @@ func (s *NotificationService) MarkAsRead(ctx context.Context, tenantID string, i
 		return ErrTenantMismatch
 	}
 
-	if err := s.notifRepo.MarkAsRead(ctx, id); err != nil {
+	if err := s.notifRepo.MarkAsRead(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("标记已读失败: %w", err)
 	}
 
@@ -422,7 +422,7 @@ func (s *NotificationService) DeleteTemplate(ctx context.Context, tenantID strin
 		return ErrTenantMismatch
 	}
 
-	if err := s.templateRepo.Delete(ctx, id); err != nil {
+	if err := s.templateRepo.Delete(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("删除通知模板失败: %w", err)
 	}
 
@@ -522,7 +522,7 @@ func (s *NotificationService) DeletePreference(ctx context.Context, tenantID str
 		return ErrTenantMismatch
 	}
 
-	if err := s.preferenceRepo.Delete(ctx, id); err != nil {
+	if err := s.preferenceRepo.Delete(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("删除通知偏好失败: %w", err)
 	}
 
