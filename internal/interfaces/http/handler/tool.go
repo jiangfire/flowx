@@ -160,10 +160,6 @@ func (h *ToolHandler) GetTool(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "工具不存在")
 			return
 		}
-		if errors.Is(err, toolapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该工具")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "查询工具失败")
 		return
 	}
@@ -205,10 +201,6 @@ func (h *ToolHandler) UpdateTool(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "工具不存在")
 			return
 		}
-		if errors.Is(err, toolapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该工具")
-			return
-		}
 		var policyErr *bizerrors.PolicyViolationError
 		if errors.As(err, &policyErr) {
 			c.JSON(policyErr.StatusCode(), response.APIResponse{
@@ -248,10 +240,6 @@ func (h *ToolHandler) DeleteTool(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, toolapp.ErrToolNotFound) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "工具不存在")
-			return
-		}
-		if errors.Is(err, toolapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该工具")
 			return
 		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "删除工具失败")
@@ -486,10 +474,6 @@ func (h *ToolHandler) GetConnector(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "连接器不存在")
 			return
 		}
-		if errors.Is(err, toolapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该连接器")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "查询连接器失败")
 		return
 	}
@@ -530,10 +514,6 @@ func (h *ToolHandler) UpdateConnector(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "连接器不存在")
 			return
 		}
-		if errors.Is(err, toolapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该连接器")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "更新连接器失败")
 		return
 	}
@@ -564,10 +544,6 @@ func (h *ToolHandler) DeleteConnector(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, toolapp.ErrConnectorNotFound) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "连接器不存在")
-			return
-		}
-		if errors.Is(err, toolapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该连接器")
 			return
 		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "删除连接器失败")

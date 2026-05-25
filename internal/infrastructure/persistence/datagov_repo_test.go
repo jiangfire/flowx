@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/datagov"
-	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
@@ -47,13 +47,13 @@ func createTestDataPolicy(t *testing.T, db *gorm.DB, tenantID, name, typ, status
 func createTestDataAsset(t *testing.T, db *gorm.DB, tenantID, name, typ, status, classification, source string) *datagov.DataAsset {
 	t.Helper()
 	asset := &datagov.DataAsset{
-		BaseModel:     base.BaseModel{TenantID: tenantID, ID: base.GenerateUUID()},
-		Name:          name,
-		Type:          typ,
-		Status:        status,
+		BaseModel:      base.BaseModel{TenantID: tenantID, ID: base.GenerateUUID()},
+		Name:           name,
+		Type:           typ,
+		Status:         status,
 		Classification: classification,
-		Source:        source,
-		Description:   "测试描述",
+		Source:         source,
+		Description:    "测试描述",
 	}
 	if err := db.Create(asset).Error; err != nil {
 		t.Fatalf("创建测试数据资产失败: %v", err)
@@ -131,7 +131,7 @@ func TestDataPolicyRepository_GetByID_Success(t *testing.T) {
 
 	created := createTestDataPolicy(t, db, "tenant-001", "测试策略", "retention", "active", "global")
 
-	found, err := repo.GetByID(context.Background(), created.ID)
+	found, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询数据策略失败: %v", err)
 	}
@@ -148,7 +148,7 @@ func TestDataPolicyRepository_GetByID_NotFound(t *testing.T) {
 	db := setupDatagovTestDB(t)
 	repo := NewDataPolicyRepository(db)
 
-	_, err := repo.GetByID(context.Background(), "non-existent-id")
+	_, err := repo.GetByID(context.Background(), "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望查询不存在的数据策略返回错误")
 	}
@@ -314,7 +314,7 @@ func TestDataPolicyRepository_Update(t *testing.T) {
 		t.Fatalf("更新数据策略失败: %v", err)
 	}
 
-	updated, err := repo.GetByID(context.Background(), created.ID)
+	updated, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询更新后的数据策略失败: %v", err)
 	}
@@ -333,12 +333,12 @@ func TestDataPolicyRepository_Delete(t *testing.T) {
 
 	created := createTestDataPolicy(t, db, "tenant-001", "待删除", "retention", "active", "global")
 
-	err := repo.Delete(context.Background(), created.ID)
+	err := repo.Delete(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("删除数据策略失败: %v", err)
 	}
 
-	_, err = repo.GetByID(context.Background(), created.ID)
+	_, err = repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err == nil {
 		t.Error("期望软删除后查询返回错误")
 	}
@@ -352,13 +352,13 @@ func TestDataAssetRepository_Create(t *testing.T) {
 	repo := NewDataAssetRepository(db)
 
 	asset := &datagov.DataAsset{
-		BaseModel:     base.BaseModel{TenantID: "tenant-001"},
-		Name:          "BOM数据表",
-		Type:          "table",
-		Status:        "active",
+		BaseModel:      base.BaseModel{TenantID: "tenant-001"},
+		Name:           "BOM数据表",
+		Type:           "table",
+		Status:         "active",
 		Classification: "confidential",
-		Source:        "ERP",
-		Description:   "物料清单数据表",
+		Source:         "ERP",
+		Description:    "物料清单数据表",
 	}
 
 	err := repo.Create(context.Background(), asset)
@@ -380,7 +380,7 @@ func TestDataAssetRepository_GetByID_Success(t *testing.T) {
 
 	created := createTestDataAsset(t, db, "tenant-001", "测试资产", "table", "active", "confidential", "ERP")
 
-	found, err := repo.GetByID(context.Background(), created.ID)
+	found, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询数据资产失败: %v", err)
 	}
@@ -397,7 +397,7 @@ func TestDataAssetRepository_GetByID_NotFound(t *testing.T) {
 	db := setupDatagovTestDB(t)
 	repo := NewDataAssetRepository(db)
 
-	_, err := repo.GetByID(context.Background(), "non-existent-id")
+	_, err := repo.GetByID(context.Background(), "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望查询不存在的数据资产返回错误")
 	}
@@ -586,7 +586,7 @@ func TestDataAssetRepository_Update(t *testing.T) {
 		t.Fatalf("更新数据资产失败: %v", err)
 	}
 
-	updated, err := repo.GetByID(context.Background(), created.ID)
+	updated, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询更新后的数据资产失败: %v", err)
 	}
@@ -605,12 +605,12 @@ func TestDataAssetRepository_Delete(t *testing.T) {
 
 	created := createTestDataAsset(t, db, "tenant-001", "待删除", "table", "active", "confidential", "ERP")
 
-	err := repo.Delete(context.Background(), created.ID)
+	err := repo.Delete(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("删除数据资产失败: %v", err)
 	}
 
-	_, err = repo.GetByID(context.Background(), created.ID)
+	_, err = repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err == nil {
 		t.Error("期望软删除后查询返回错误")
 	}
@@ -652,7 +652,7 @@ func TestDataQualityRuleRepository_GetByID_Success(t *testing.T) {
 
 	created := createTestDataQualityRule(t, db, "tenant-001", "测试规则", "completeness", "active", "high", "asset-001")
 
-	found, err := repo.GetByID(context.Background(), created.ID)
+	found, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询数据质量规则失败: %v", err)
 	}
@@ -669,7 +669,7 @@ func TestDataQualityRuleRepository_GetByID_NotFound(t *testing.T) {
 	db := setupDatagovTestDB(t)
 	repo := NewDataQualityRuleRepository(db)
 
-	_, err := repo.GetByID(context.Background(), "non-existent-id")
+	_, err := repo.GetByID(context.Background(), "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望查询不存在的数据质量规则返回错误")
 	}
@@ -858,7 +858,7 @@ func TestDataQualityRuleRepository_Update(t *testing.T) {
 		t.Fatalf("更新数据质量规则失败: %v", err)
 	}
 
-	updated, err := repo.GetByID(context.Background(), created.ID)
+	updated, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询更新后的数据质量规则失败: %v", err)
 	}
@@ -877,12 +877,12 @@ func TestDataQualityRuleRepository_Delete(t *testing.T) {
 
 	created := createTestDataQualityRule(t, db, "tenant-001", "待删除", "completeness", "active", "high", "asset-001")
 
-	err := repo.Delete(context.Background(), created.ID)
+	err := repo.Delete(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("删除数据质量规则失败: %v", err)
 	}
 
-	_, err = repo.GetByID(context.Background(), created.ID)
+	_, err = repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err == nil {
 		t.Error("期望软删除后查询返回错误")
 	}
@@ -923,7 +923,7 @@ func TestDataQualityCheckRepository_GetByID_Success(t *testing.T) {
 
 	created := createTestDataQualityCheck(t, db, "tenant-001", "rule-001", "asset-001", "passed", "manual")
 
-	found, err := repo.GetByID(context.Background(), created.ID)
+	found, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询数据质量检查失败: %v", err)
 	}
@@ -940,7 +940,7 @@ func TestDataQualityCheckRepository_GetByID_NotFound(t *testing.T) {
 	db := setupDatagovTestDB(t)
 	repo := NewDataQualityCheckRepository(db)
 
-	_, err := repo.GetByID(context.Background(), "non-existent-id")
+	_, err := repo.GetByID(context.Background(), "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望查询不存在的数据质量检查返回错误")
 	}
@@ -1106,7 +1106,7 @@ func TestDataQualityCheckRepository_Update(t *testing.T) {
 		t.Fatalf("更新数据质量检查失败: %v", err)
 	}
 
-	updated, err := repo.GetByID(context.Background(), created.ID)
+	updated, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询更新后的数据质量检查失败: %v", err)
 	}
@@ -1125,12 +1125,12 @@ func TestDataQualityCheckRepository_Delete(t *testing.T) {
 
 	created := createTestDataQualityCheck(t, db, "tenant-001", "rule-001", "asset-001", "passed", "manual")
 
-	err := repo.Delete(context.Background(), created.ID)
+	err := repo.Delete(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("删除数据质量检查失败: %v", err)
 	}
 
-	_, err = repo.GetByID(context.Background(), created.ID)
+	_, err = repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err == nil {
 		t.Error("期望软删除后查询返回错误")
 	}
@@ -1144,7 +1144,7 @@ func TestDataQualityCheckRepository_GetByRuleAndAsset_Success(t *testing.T) {
 	createTestDataQualityCheck(t, db, "tenant-001", "rule-001", "asset-001", "passed", "manual")
 	createTestDataQualityCheck(t, db, "tenant-001", "rule-001", "asset-001", "failed", "schedule")
 
-	found, err := repo.GetByRuleAndAsset(context.Background(), "rule-001", "asset-001")
+	found, err := repo.GetByRuleAndAsset(context.Background(), "tenant-001", "rule-001", "asset-001")
 	if err != nil {
 		t.Fatalf("查询数据质量检查失败: %v", err)
 	}
@@ -1167,7 +1167,7 @@ func TestDataQualityCheckRepository_GetByRuleAndAsset_NotFound(t *testing.T) {
 
 	createTestDataQualityCheck(t, db, "tenant-001", "rule-001", "asset-001", "passed", "manual")
 
-	_, err := repo.GetByRuleAndAsset(context.Background(), "rule-999", "asset-999")
+	_, err := repo.GetByRuleAndAsset(context.Background(), "tenant-001", "rule-999", "asset-999")
 	if err == nil {
 		t.Fatal("期望查询不存在的规则和资产组合返回错误")
 	}

@@ -5,17 +5,17 @@ import (
 	"context"
 	"testing"
 
+	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/datagov"
-	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	"github.com/xuri/excelize/v2"
 	"github.com/glebarez/sqlite"
+	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 )
 
 // setupTestExcelService 创建测试用 DataGovExcelService
-func setupTestExcelService(t *testing.T) (*datagovapp.DataGovExcelService, *gorm.DB) {
+func setupTestExcelService(t *testing.T) (*datagovapp.DataGovExcelService, *datagovapp.DataGovService, *gorm.DB) {
 	t.Helper()
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
@@ -35,9 +35,11 @@ func setupTestExcelService(t *testing.T) (*datagovapp.DataGovExcelService, *gorm
 	policyRepo := persistence.NewDataPolicyRepository(db)
 	assetRepo := persistence.NewDataAssetRepository(db)
 	ruleRepo := persistence.NewDataQualityRuleRepository(db)
+	checkRepo := persistence.NewDataQualityCheckRepository(db)
 
-	svc := datagovapp.NewDataGovExcelService(policyRepo, assetRepo, ruleRepo)
-	return svc, db
+	excelSvc := datagovapp.NewDataGovExcelService()
+	dataGovSvc := datagovapp.NewDataGovService(policyRepo, assetRepo, ruleRepo, checkRepo)
+	return excelSvc, dataGovSvc, db
 }
 
 // createTestExcelFile 创建测试用 Excel 文件
@@ -60,7 +62,7 @@ func createTestExcelFile(headers []string, rows [][]string) (*bytes.Buffer, erro
 // ==================== ExportPolicies Tests ====================
 
 func TestExportPolicies(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, _, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
 	policies := []datagov.DataPolicy{
@@ -117,7 +119,7 @@ func TestExportPolicies(t *testing.T) {
 }
 
 func TestExportPolicies_Empty(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, _, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
 	buf, err := svc.ExportPolicies(ctx, []datagov.DataPolicy{}, nil)
@@ -145,7 +147,7 @@ func TestExportPolicies_Empty(t *testing.T) {
 // ==================== ImportPolicies Tests ====================
 
 func TestImportPolicies_Success(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, dataGovSvc, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
 	buf, err := createTestExcelFile(
@@ -159,9 +161,9 @@ func TestImportPolicies_Success(t *testing.T) {
 		t.Fatalf("创建测试Excel文件失败: %v", err)
 	}
 
-	result, err := svc.ImportPolicies(ctx, buf.Bytes(), "tenant_import_001")
+	requests, result, err := svc.ParsePolicies(ctx, buf.Bytes(), "tenant_import_001")
 	if err != nil {
-		t.Fatalf("导入策略失败: %v", err)
+		t.Fatalf("解析策略失败: %v", err)
 	}
 	if result.Total != 2 {
 		t.Fatalf("期望总数2, got %d", result.Total)
@@ -172,27 +174,36 @@ func TestImportPolicies_Success(t *testing.T) {
 	if result.Failed != 0 {
 		t.Fatalf("期望失败0, got %d", result.Failed)
 	}
+
+	// 验证通过 Service 层导入
+	importResults, err := dataGovSvc.ImportPolicies(ctx, "tenant_import_001", requests)
+	if err != nil {
+		t.Fatalf("导入策略失败: %v", err)
+	}
+	if len(importResults) != 2 {
+		t.Fatalf("期望导入结果2, got %d", len(importResults))
+	}
 }
 
 func TestImportPolicies_Validation(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, _, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
 	buf, err := createTestExcelFile(
 		[]string{"name", "type", "description", "status"},
 		[][]string{
-			{"", "retention", "名称为空"},        // 名称为空
-			{"有效策略", "", "类型为空"},           // 类型为空
-			{"有效策略2", "quality", "有效描述"},   // 有效行
+			{"", "retention", "名称为空"},    // 名称为空
+			{"有效策略", "", "类型为空"},         // 类型为空
+			{"有效策略2", "quality", "有效描述"}, // 有效行
 		},
 	)
 	if err != nil {
 		t.Fatalf("创建测试Excel文件失败: %v", err)
 	}
 
-	result, err := svc.ImportPolicies(ctx, buf.Bytes(), "tenant_import_002")
+	requests, result, err := svc.ParsePolicies(ctx, buf.Bytes(), "tenant_import_002")
 	if err != nil {
-		t.Fatalf("导入策略失败: %v", err)
+		t.Fatalf("解析策略失败: %v", err)
 	}
 	if result.Total != 3 {
 		t.Fatalf("期望总数3, got %d", result.Total)
@@ -206,20 +217,23 @@ func TestImportPolicies_Validation(t *testing.T) {
 	if len(result.Errors) != 2 {
 		t.Fatalf("期望2条错误, got %d", len(result.Errors))
 	}
+	if len(requests) != 1 {
+		t.Fatalf("期望解析出1个请求, got %d", len(requests))
+	}
 }
 
 func TestImportPolicies_EmptyFile(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, _, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
-	_, err := svc.ImportPolicies(ctx, []byte{}, "tenant_import_003")
+	_, _, err := svc.ParsePolicies(ctx, []byte{}, "tenant_import_003")
 	if err == nil {
 		t.Fatal("空文件应返回错误")
 	}
 }
 
 func TestImportPolicies_OnlyHeader(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, _, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
 	buf, err := createTestExcelFile(
@@ -230,14 +244,14 @@ func TestImportPolicies_OnlyHeader(t *testing.T) {
 		t.Fatalf("创建测试Excel文件失败: %v", err)
 	}
 
-	_, err = svc.ImportPolicies(ctx, buf.Bytes(), "tenant_import_004")
+	_, _, err = svc.ParsePolicies(ctx, buf.Bytes(), "tenant_import_004")
 	if err == nil {
 		t.Fatal("只有表头应返回错误")
 	}
 }
 
 func TestImportPolicies_MissingRequiredColumns(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, _, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
 	buf, err := createTestExcelFile(
@@ -250,7 +264,7 @@ func TestImportPolicies_MissingRequiredColumns(t *testing.T) {
 		t.Fatalf("创建测试Excel文件失败: %v", err)
 	}
 
-	_, err = svc.ImportPolicies(ctx, buf.Bytes(), "tenant_import_005")
+	_, _, err = svc.ParsePolicies(ctx, buf.Bytes(), "tenant_import_005")
 	if err == nil {
 		t.Fatal("缺少必填列应返回错误")
 	}
@@ -259,7 +273,7 @@ func TestImportPolicies_MissingRequiredColumns(t *testing.T) {
 // ==================== ExportAssets Tests ====================
 
 func TestExportAssets(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, _, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
 	assets := []datagov.DataAsset{
@@ -318,7 +332,7 @@ func TestExportAssets(t *testing.T) {
 // ==================== ImportAssets Tests ====================
 
 func TestImportAssets_Success(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, dataGovSvc, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
 	buf, err := createTestExcelFile(
@@ -332,9 +346,9 @@ func TestImportAssets_Success(t *testing.T) {
 		t.Fatalf("创建测试Excel文件失败: %v", err)
 	}
 
-	result, err := svc.ImportAssets(ctx, buf.Bytes(), "tenant_import_001")
+	requests, result, err := svc.ParseAssets(ctx, buf.Bytes(), "tenant_import_001")
 	if err != nil {
-		t.Fatalf("导入资产失败: %v", err)
+		t.Fatalf("解析资产失败: %v", err)
 	}
 	if result.Total != 2 {
 		t.Fatalf("期望总数2, got %d", result.Total)
@@ -345,17 +359,26 @@ func TestImportAssets_Success(t *testing.T) {
 	if result.Failed != 0 {
 		t.Fatalf("期望失败0, got %d", result.Failed)
 	}
+
+	// 验证通过 Service 层导入
+	importResults, err := dataGovSvc.ImportAssets(ctx, "tenant_import_001", requests)
+	if err != nil {
+		t.Fatalf("导入资产失败: %v", err)
+	}
+	if len(importResults) != 2 {
+		t.Fatalf("期望导入结果2, got %d", len(importResults))
+	}
 }
 
 func TestImportAssets_Validation(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, _, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
 	buf, err := createTestExcelFile(
 		[]string{"name", "type", "source", "description", "status"},
 		[][]string{
-			{"", "dataset", "mysql", "名称为空"},    // 名称为空
-			{"有效资产", "", "s3", "类型为空"},       // 类型为空
+			{"", "dataset", "mysql", "名称为空"},   // 名称为空
+			{"有效资产", "", "s3", "类型为空"},         // 类型为空
 			{"有效资产2", "report", "api", "有效描述"}, // 有效行
 		},
 	)
@@ -363,9 +386,9 @@ func TestImportAssets_Validation(t *testing.T) {
 		t.Fatalf("创建测试Excel文件失败: %v", err)
 	}
 
-	result, err := svc.ImportAssets(ctx, buf.Bytes(), "tenant_import_002")
+	requests, result, err := svc.ParseAssets(ctx, buf.Bytes(), "tenant_import_002")
 	if err != nil {
-		t.Fatalf("导入资产失败: %v", err)
+		t.Fatalf("解析资产失败: %v", err)
 	}
 	if result.Total != 3 {
 		t.Fatalf("期望总数3, got %d", result.Total)
@@ -376,12 +399,15 @@ func TestImportAssets_Validation(t *testing.T) {
 	if result.Failed != 2 {
 		t.Fatalf("期望失败2, got %d", result.Failed)
 	}
+	if len(requests) != 1 {
+		t.Fatalf("期望解析出1个请求, got %d", len(requests))
+	}
 }
 
 // ==================== ExportRules Tests ====================
 
 func TestExportRules(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, _, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
 	rules := []datagov.DataQualityRule{
@@ -438,7 +464,7 @@ func TestExportRules(t *testing.T) {
 // ==================== ImportRules Tests ====================
 
 func TestImportRules_Success(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, dataGovSvc, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
 	buf, err := createTestExcelFile(
@@ -452,9 +478,9 @@ func TestImportRules_Success(t *testing.T) {
 		t.Fatalf("创建测试Excel文件失败: %v", err)
 	}
 
-	result, err := svc.ImportRules(ctx, buf.Bytes(), "tenant_import_001")
+	requests, result, err := svc.ParseRules(ctx, buf.Bytes(), "tenant_import_001")
 	if err != nil {
-		t.Fatalf("导入规则失败: %v", err)
+		t.Fatalf("解析规则失败: %v", err)
 	}
 	if result.Total != 2 {
 		t.Fatalf("期望总数2, got %d", result.Total)
@@ -465,27 +491,36 @@ func TestImportRules_Success(t *testing.T) {
 	if result.Failed != 0 {
 		t.Fatalf("期望失败0, got %d", result.Failed)
 	}
+
+	// 验证通过 Service 层导入
+	importResults, err := dataGovSvc.ImportRules(ctx, "tenant_import_001", requests)
+	if err != nil {
+		t.Fatalf("导入规则失败: %v", err)
+	}
+	if len(importResults) != 2 {
+		t.Fatalf("期望导入结果2, got %d", len(importResults))
+	}
 }
 
 func TestImportRules_Validation(t *testing.T) {
-	svc, _ := setupTestExcelService(t)
+	svc, _, _ := setupTestExcelService(t)
 	ctx := context.Background()
 
 	buf, err := createTestExcelFile(
 		[]string{"name", "type", "target_field", "description", "severity", "status"},
 		[][]string{
-			{"", "not_null", "email", "名称为空"},       // 名称为空
-			{"有效规则", "", "username", "类型为空"},     // 类型为空
-			{"有效规则2", "range", "age", "有效描述"},    // 有效行
+			{"", "not_null", "email", "名称为空"}, // 名称为空
+			{"有效规则", "", "username", "类型为空"},  // 类型为空
+			{"有效规则2", "range", "age", "有效描述"}, // 有效行
 		},
 	)
 	if err != nil {
 		t.Fatalf("创建测试Excel文件失败: %v", err)
 	}
 
-	result, err := svc.ImportRules(ctx, buf.Bytes(), "tenant_import_002")
+	requests, result, err := svc.ParseRules(ctx, buf.Bytes(), "tenant_import_002")
 	if err != nil {
-		t.Fatalf("导入规则失败: %v", err)
+		t.Fatalf("解析规则失败: %v", err)
 	}
 	if result.Total != 3 {
 		t.Fatalf("期望总数3, got %d", result.Total)
@@ -495,5 +530,8 @@ func TestImportRules_Validation(t *testing.T) {
 	}
 	if result.Failed != 2 {
 		t.Fatalf("期望失败2, got %d", result.Failed)
+	}
+	if len(requests) != 1 {
+		t.Fatalf("期望解析出1个请求, got %d", len(requests))
 	}
 }

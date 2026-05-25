@@ -19,55 +19,54 @@ var (
 	ErrConnectorNotFound = errors.New("连接器不存在")
 	ErrToolNameRequired  = errors.New("工具名称不能为空")
 	ErrToolTypeRequired  = errors.New("工具类型不能为空")
-	ErrTenantMismatch    = errors.New("租户不匹配")
 )
 
 // CreateToolRequest 创建工具请求
 type CreateToolRequest struct {
-	Name        string      `json:"name" binding:"required"`
-	Type        string      `json:"type" binding:"required"`
-	Description string      `json:"description"`
-	ConnectorID string      `json:"connector_id"`
-	Config      base.JSON   `json:"config"`
-	Status      string      `json:"status"`
-	Endpoint    string      `json:"endpoint"`
-	Icon        string      `json:"icon"`
-	Category    string      `json:"category"`
+	Name        string    `json:"name" binding:"required"`
+	Type        string    `json:"type" binding:"required"`
+	Description string    `json:"description"`
+	ConnectorID string    `json:"connector_id"`
+	Config      base.JSON `json:"config"`
+	Status      string    `json:"status"`
+	Endpoint    string    `json:"endpoint"`
+	Icon        string    `json:"icon"`
+	Category    string    `json:"category"`
 }
 
 // UpdateToolRequest 更新工具请求
 type UpdateToolRequest struct {
-	Name        *string     `json:"name"`
-	Type        *string     `json:"type"`
-	Description *string     `json:"description"`
-	ConnectorID *string     `json:"connector_id"`
-	Config      base.JSON   `json:"config"`
-	Status      *string     `json:"status"`
-	Endpoint    *string     `json:"endpoint"`
-	Icon        *string     `json:"icon"`
-	Category    *string     `json:"category"`
+	Name        *string   `json:"name"`
+	Type        *string   `json:"type"`
+	Description *string   `json:"description"`
+	ConnectorID *string   `json:"connector_id"`
+	Config      base.JSON `json:"config"`
+	Status      *string   `json:"status"`
+	Endpoint    *string   `json:"endpoint"`
+	Icon        *string   `json:"icon"`
+	Category    *string   `json:"category"`
 }
 
 // CreateConnectorRequest 创建连接器请求
 type CreateConnectorRequest struct {
-	Name       string      `json:"name" binding:"required"`
-	Type       string      `json:"type" binding:"required"`
-	Endpoint   string      `json:"endpoint" binding:"required"`
-	Config     base.JSON   `json:"config"`
-	Status     string      `json:"status"`
-	AuthType   string      `json:"auth_type"`
-	AuthConfig base.JSON   `json:"auth_config"`
+	Name       string    `json:"name" binding:"required"`
+	Type       string    `json:"type" binding:"required"`
+	Endpoint   string    `json:"endpoint" binding:"required"`
+	Config     base.JSON `json:"config"`
+	Status     string    `json:"status"`
+	AuthType   string    `json:"auth_type"`
+	AuthConfig base.JSON `json:"auth_config"`
 }
 
 // UpdateConnectorRequest 更新连接器请求
 type UpdateConnectorRequest struct {
-	Name       *string     `json:"name"`
-	Type       *string     `json:"type"`
-	Endpoint   *string     `json:"endpoint"`
-	Config     base.JSON   `json:"config"`
-	Status     *string     `json:"status"`
-	AuthType   *string     `json:"auth_type"`
-	AuthConfig base.JSON   `json:"auth_config"`
+	Name       *string   `json:"name"`
+	Type       *string   `json:"type"`
+	Endpoint   *string   `json:"endpoint"`
+	Config     base.JSON `json:"config"`
+	Status     *string   `json:"status"`
+	AuthType   *string   `json:"auth_type"`
+	AuthConfig base.JSON `json:"auth_config"`
 }
 
 // ListToolsFilter 工具列表过滤条件
@@ -227,14 +226,9 @@ func (s *ToolService) CreateTool(ctx context.Context, tenantID string, req *Crea
 
 // GetTool 获取工具详情
 func (s *ToolService) GetTool(ctx context.Context, tenantID string, id string) (*tool.Tool, error) {
-	tl, err := s.toolRepo.GetByID(ctx, id)
+	tl, err := s.toolRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrToolNotFound
-	}
-
-	// 多租户校验
-	if tl.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	return tl, nil
@@ -262,14 +256,9 @@ func (s *ToolService) ListTools(ctx context.Context, tenantID string, filter Lis
 // UpdateTool 更新工具
 func (s *ToolService) UpdateTool(ctx context.Context, tenantID string, id string, req *UpdateToolRequest, userRole string) (*tool.Tool, error) {
 	// 先查询并校验
-	existing, err := s.toolRepo.GetByID(ctx, id)
+	existing, err := s.toolRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrToolNotFound
-	}
-
-	// 多租户校验
-	if existing.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	// 更新非空字段
@@ -344,18 +333,10 @@ func (s *ToolService) UpdateTool(ctx context.Context, tenantID string, id string
 
 // DeleteTool 删除工具
 func (s *ToolService) DeleteTool(ctx context.Context, tenantID string, id string) error {
-	// 先查询并校验
-	existing, err := s.toolRepo.GetByID(ctx, id)
-	if err != nil {
-		return ErrToolNotFound
+	if _, err := s.toolRepo.GetByID(ctx, tenantID, id); err != nil {
+		return err
 	}
-
-	// 多租户校验
-	if existing.TenantID != tenantID {
-		return ErrTenantMismatch
-	}
-
-	if err := s.toolRepo.Delete(ctx, id); err != nil {
+	if err := s.toolRepo.Delete(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("删除工具失败: %w", err)
 	}
 
@@ -516,14 +497,9 @@ func (s *ToolService) ListConnectors(ctx context.Context, tenantID string, filte
 
 // GetConnector 获取连接器详情
 func (s *ToolService) GetConnector(ctx context.Context, tenantID string, id string) (*tool.Connector, error) {
-	conn, err := s.connectorRepo.GetByID(ctx, id)
+	conn, err := s.connectorRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrConnectorNotFound
-	}
-
-	// 多租户校验
-	if conn.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	return conn, nil
@@ -531,13 +507,9 @@ func (s *ToolService) GetConnector(ctx context.Context, tenantID string, id stri
 
 // UpdateConnector 更新连接器
 func (s *ToolService) UpdateConnector(ctx context.Context, tenantID string, id string, req *UpdateConnectorRequest) (*tool.Connector, error) {
-	existing, err := s.connectorRepo.GetByID(ctx, id)
+	existing, err := s.connectorRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrConnectorNotFound
-	}
-
-	if existing.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	if req.Name != nil {
@@ -571,16 +543,10 @@ func (s *ToolService) UpdateConnector(ctx context.Context, tenantID string, id s
 
 // DeleteConnector 删除连接器
 func (s *ToolService) DeleteConnector(ctx context.Context, tenantID string, id string) error {
-	existing, err := s.connectorRepo.GetByID(ctx, id)
-	if err != nil {
-		return ErrConnectorNotFound
+	if _, err := s.connectorRepo.GetByID(ctx, tenantID, id); err != nil {
+		return err
 	}
-
-	if existing.TenantID != tenantID {
-		return ErrTenantMismatch
-	}
-
-	if err := s.connectorRepo.Delete(ctx, id); err != nil {
+	if err := s.connectorRepo.Delete(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("删除连接器失败: %w", err)
 	}
 

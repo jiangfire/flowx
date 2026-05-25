@@ -11,7 +11,6 @@ import (
 	"git.neolidy.top/neo/flowx/internal/domain/approval"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/pkg/pagination"
-	"git.neolidy.top/neo/flowx/pkg/tenant"
 )
 
 // 定义审批服务错误
@@ -22,7 +21,6 @@ var (
 	ErrAlreadyApproved   = errors.New("该步骤已审批")
 	ErrInstanceCancelled = errors.New("实例已取消")
 	ErrInstanceFinished  = errors.New("实例已结束")
-	ErrTenantMismatch    = errors.New("租户不匹配")
 )
 
 // CreateWorkflowRequest 创建工作流请求
@@ -122,8 +120,7 @@ func (s *approvalService) CreateWorkflow(ctx context.Context, tenantID string, r
 
 // GetWorkflow 获取工作流详情
 func (s *approvalService) GetWorkflow(ctx context.Context, tenantID string, id string) (*approval.Workflow, error) {
-	tenantCtx := tenant.WithTenantID(ctx, tenantID)
-	w, err := s.repo.GetWorkflowByID(tenantCtx, id)
+	w, err := s.repo.GetWorkflowByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrWorkflowNotFound
 	}
@@ -154,7 +151,7 @@ func (s *approvalService) ActivateWorkflow(ctx context.Context, tenantID string,
 		}
 		return nil, errors.New("工作流已归档，无法激活")
 	}
-	if err := s.repo.UpdateWorkflowStatus(ctx, id, "active"); err != nil {
+	if err := s.repo.UpdateWorkflowStatus(ctx, tenantID, id, "active"); err != nil {
 		return nil, fmt.Errorf("激活工作流失败: %w", err)
 	}
 	w.Status = "active"
@@ -170,7 +167,7 @@ func (s *approvalService) ArchiveWorkflow(ctx context.Context, tenantID string, 
 	if w.Status == "archived" {
 		return nil, errors.New("工作流已归档")
 	}
-	if err := s.repo.UpdateWorkflowStatus(ctx, id, "archived"); err != nil {
+	if err := s.repo.UpdateWorkflowStatus(ctx, tenantID, id, "archived"); err != nil {
 		return nil, fmt.Errorf("归档工作流失败: %w", err)
 	}
 	w.Status = "archived"
@@ -182,8 +179,7 @@ func (s *approvalService) ArchiveWorkflow(ctx context.Context, tenantID string, 
 // StartApproval 发起审批
 func (s *approvalService) StartApproval(ctx context.Context, tenantID string, initiatorID string, req *StartApprovalRequest) (*approval.WorkflowInstance, error) {
 	// 获取工作流定义
-	tenantCtx := tenant.WithTenantID(ctx, tenantID)
-	w, err := s.repo.GetWorkflowByID(tenantCtx, req.WorkflowID)
+	w, err := s.repo.GetWorkflowByID(ctx, tenantID, req.WorkflowID)
 	if err != nil {
 		return nil, ErrWorkflowNotFound
 	}
@@ -241,8 +237,7 @@ func (s *approvalService) StartApproval(ctx context.Context, tenantID string, in
 
 // GetInstance 获取实例详情
 func (s *approvalService) GetInstance(ctx context.Context, tenantID string, id string) (*approval.WorkflowInstance, error) {
-	tenantCtx := tenant.WithTenantID(ctx, tenantID)
-	inst, err := s.repo.GetInstanceByID(tenantCtx, id)
+	inst, err := s.repo.GetInstanceByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrInstanceNotFound
 	}
@@ -263,8 +258,7 @@ func (s *approvalService) ListInstances(ctx context.Context, tenantID string, fi
 
 // CancelInstance 取消实例
 func (s *approvalService) CancelInstance(ctx context.Context, tenantID string, id string) error {
-	tenantCtx := tenant.WithTenantID(ctx, tenantID)
-	inst, err := s.repo.GetInstanceByID(tenantCtx, id)
+	inst, err := s.repo.GetInstanceByID(ctx, tenantID, id)
 	if err != nil {
 		return ErrInstanceNotFound
 	}
@@ -286,8 +280,7 @@ func (s *approvalService) UpdateInstance(ctx context.Context, inst *approval.Wor
 
 // Approve 审批通过
 func (s *approvalService) Approve(ctx context.Context, tenantID string, approverID string, req *ApproveRequest) (*approval.Approval, error) {
-	tenantCtx := tenant.WithTenantID(ctx, tenantID)
-	inst, err := s.repo.GetInstanceByID(tenantCtx, req.InstanceID)
+	inst, err := s.repo.GetInstanceByID(ctx, tenantID, req.InstanceID)
 	if err != nil {
 		return nil, ErrInstanceNotFound
 	}
@@ -318,8 +311,7 @@ func (s *approvalService) Approve(ctx context.Context, tenantID string, approver
 	}
 
 	// 获取工作流定义，检查是否还有下一步
-	tenantCtx2 := tenant.WithTenantID(ctx, tenantID)
-	w, err := s.repo.GetWorkflowByID(tenantCtx2, inst.WorkflowID)
+	w, err := s.repo.GetWorkflowByID(ctx, tenantID, inst.WorkflowID)
 	if err != nil {
 		return pendingApproval, nil // 审批已成功，工作流获取失败不影响
 	}
@@ -364,8 +356,7 @@ func (s *approvalService) Approve(ctx context.Context, tenantID string, approver
 
 // Reject 审批驳回
 func (s *approvalService) Reject(ctx context.Context, tenantID string, approverID string, req *RejectRequest) (*approval.Approval, error) {
-	tenantCtx := tenant.WithTenantID(ctx, tenantID)
-	inst, err := s.repo.GetInstanceByID(tenantCtx, req.InstanceID)
+	inst, err := s.repo.GetInstanceByID(ctx, tenantID, req.InstanceID)
 	if err != nil {
 		return nil, ErrInstanceNotFound
 	}
@@ -403,8 +394,7 @@ func (s *approvalService) Reject(ctx context.Context, tenantID string, approverI
 
 // Forward 转审
 func (s *approvalService) Forward(ctx context.Context, tenantID string, approverID string, req *ForwardRequest) (*approval.Approval, error) {
-	tenantCtx := tenant.WithTenantID(ctx, tenantID)
-	inst, err := s.repo.GetInstanceByID(tenantCtx, req.InstanceID)
+	inst, err := s.repo.GetInstanceByID(ctx, tenantID, req.InstanceID)
 	if err != nil {
 		return nil, ErrInstanceNotFound
 	}
@@ -455,21 +445,19 @@ func (s *approvalService) GetSuggestion(ctx context.Context, tenantID string, in
 		return "", errors.New("LLM 服务未配置")
 	}
 
-	tenantCtx := tenant.WithTenantID(ctx, tenantID)
-	inst, err := s.repo.GetInstanceByID(tenantCtx, instanceID)
+	inst, err := s.repo.GetInstanceByID(ctx, tenantID, instanceID)
 	if err != nil {
 		return "", ErrInstanceNotFound
 	}
 
 	// 获取工作流信息
-	tenantCtx2 := tenant.WithTenantID(ctx, tenantID)
-	w, err := s.repo.GetWorkflowByID(tenantCtx2, inst.WorkflowID)
+	w, err := s.repo.GetWorkflowByID(ctx, tenantID, inst.WorkflowID)
 	if err != nil {
 		return "", ErrWorkflowNotFound
 	}
 
 	// 获取审批历史
-	approvals, err := s.repo.ListApprovalsByInstance(ctx, instanceID)
+	approvals, err := s.repo.ListApprovalsByInstance(ctx, tenantID, instanceID)
 	if err != nil {
 		return "", fmt.Errorf("获取审批历史失败: %w", err)
 	}

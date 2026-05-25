@@ -27,32 +27,32 @@ type InstanceFilter struct {
 
 // ApprovalFilter 审批查询过滤条件
 type ApprovalFilter struct {
-	TenantID    string
-	InstanceID  string
-	ApproverID  string
-	Status      string
-	Page        int
-	PageSize    int
+	TenantID   string
+	InstanceID string
+	ApproverID string
+	Status     string
+	Page       int
+	PageSize   int
 }
 
 // ApprovalRepository 审批仓储接口
 type ApprovalRepository interface {
 	// Workflow
 	CreateWorkflow(ctx context.Context, w *approval.Workflow) error
-	GetWorkflowByID(ctx context.Context, id string) (*approval.Workflow, error)
+	GetWorkflowByID(ctx context.Context, tenantID, id string) (*approval.Workflow, error)
 	ListWorkflows(ctx context.Context, filter WorkflowFilter) ([]approval.Workflow, int64, error)
 	UpdateWorkflow(ctx context.Context, w *approval.Workflow) error
-	UpdateWorkflowStatus(ctx context.Context, id string, status string) error
+	UpdateWorkflowStatus(ctx context.Context, tenantID, id string, status string) error
 
 	// Instance
 	CreateInstance(ctx context.Context, inst *approval.WorkflowInstance) error
-	GetInstanceByID(ctx context.Context, id string) (*approval.WorkflowInstance, error)
+	GetInstanceByID(ctx context.Context, tenantID, id string) (*approval.WorkflowInstance, error)
 	ListInstances(ctx context.Context, filter InstanceFilter) ([]approval.WorkflowInstance, int64, error)
 	UpdateInstance(ctx context.Context, inst *approval.WorkflowInstance) error
 
 	// Approval
 	CreateApproval(ctx context.Context, a *approval.Approval) error
-	ListApprovalsByInstance(ctx context.Context, instanceID string) ([]approval.Approval, error)
+	ListApprovalsByInstance(ctx context.Context, tenantID, instanceID string) ([]approval.Approval, error)
 	GetPendingApproval(ctx context.Context, instanceID string, step int) (*approval.Approval, error)
 	UpdateApproval(ctx context.Context, a *approval.Approval) error
 

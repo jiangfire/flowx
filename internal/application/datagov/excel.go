@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/datagov"
 	"github.com/xuri/excelize/v2"
 )
@@ -27,23 +26,11 @@ type ImportError struct {
 }
 
 // DataGovExcelService 数据治理Excel导入导出服务
-type DataGovExcelService struct {
-	policyRepo DataPolicyRepository
-	assetRepo  DataAssetRepository
-	ruleRepo   DataQualityRuleRepository
-}
+type DataGovExcelService struct{}
 
 // NewDataGovExcelService 创建数据治理Excel服务实例
-func NewDataGovExcelService(
-	policyRepo DataPolicyRepository,
-	assetRepo DataAssetRepository,
-	ruleRepo DataQualityRuleRepository,
-) *DataGovExcelService {
-	return &DataGovExcelService{
-		policyRepo: policyRepo,
-		assetRepo:  assetRepo,
-		ruleRepo:   ruleRepo,
-	}
+func NewDataGovExcelService() *DataGovExcelService {
+	return &DataGovExcelService{}
 }
 
 // ==================== Policy Excel ====================
@@ -129,25 +116,25 @@ func (s *DataGovExcelService) ExportPolicies(ctx context.Context, policies []dat
 	return buf, nil
 }
 
-// ImportPolicies 从 Excel 文件导入数据策略
-func (s *DataGovExcelService) ImportPolicies(ctx context.Context, data []byte, tenantID string) (*ImportResult, error) {
+// ParsePolicies 从 Excel 文件解析数据策略请求
+func (s *DataGovExcelService) ParsePolicies(ctx context.Context, data []byte, tenantID string) ([]*CreatePolicyRequest, *ImportResult, error) {
 	if len(data) == 0 {
-		return nil, fmt.Errorf("文件内容为空")
+		return nil, nil, fmt.Errorf("文件内容为空")
 	}
 
 	f, err := excelize.OpenReader(bytes.NewReader(data))
 	if err != nil {
-		return nil, fmt.Errorf("打开 Excel 文件失败: %w", err)
+		return nil, nil, fmt.Errorf("打开 Excel 文件失败: %w", err)
 	}
 	defer func() { _ = f.Close() }()
 
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
-		return nil, fmt.Errorf("读取 Excel 内容失败: %w", err)
+		return nil, nil, fmt.Errorf("读取 Excel 内容失败: %w", err)
 	}
 
 	if len(rows) < 2 {
-		return nil, fmt.Errorf("文件没有数据行")
+		return nil, nil, fmt.Errorf("文件没有数据行")
 	}
 
 	// 解析表头
@@ -160,10 +147,11 @@ func (s *DataGovExcelService) ImportPolicies(ctx context.Context, data []byte, t
 	nameIdx, hasName := colIndex["name"]
 	_, hasType := colIndex["type"]
 	if !hasName || !hasType {
-		return nil, fmt.Errorf("缺少必填列: name 或 type")
+		return nil, nil, fmt.Errorf("缺少必填列: name 或 type")
 	}
 
 	result := &ImportResult{}
+	var requests []*CreatePolicyRequest
 
 	for rowIdx := 1; rowIdx < len(rows); rowIdx++ {
 		row := rows[rowIdx]
@@ -225,30 +213,18 @@ func (s *DataGovExcelService) ImportPolicies(ctx context.Context, data []byte, t
 			scope = strings.TrimSpace(row[idx])
 		}
 
-		policy := &datagov.DataPolicy{
-			BaseModel:   base.BaseModel{TenantID: tenantID},
+		req := &CreatePolicyRequest{
 			Name:        name,
 			Type:        typ,
 			Description: description,
 			Scope:       scope,
 			Status:      status,
-			Version:     1,
 		}
-
-		if err := s.policyRepo.Create(ctx, policy); err != nil {
-			result.Failed++
-			result.Errors = append(result.Errors, ImportError{
-				Row:   rowIdx + 1,
-				Field: "",
-				Error: fmt.Sprintf("创建失败: %v", err),
-			})
-			continue
-		}
-
+		requests = append(requests, req)
 		result.Success++
 	}
 
-	return result, nil
+	return requests, result, nil
 }
 
 // ==================== Asset Excel ====================
@@ -337,25 +313,25 @@ func (s *DataGovExcelService) ExportAssets(ctx context.Context, assets []datagov
 	return buf, nil
 }
 
-// ImportAssets 从 Excel 文件导入数据资产
-func (s *DataGovExcelService) ImportAssets(ctx context.Context, data []byte, tenantID string) (*ImportResult, error) {
+// ParseAssets 从 Excel 文件解析数据资产请求
+func (s *DataGovExcelService) ParseAssets(ctx context.Context, data []byte, tenantID string) ([]*CreateAssetRequest, *ImportResult, error) {
 	if len(data) == 0 {
-		return nil, fmt.Errorf("文件内容为空")
+		return nil, nil, fmt.Errorf("文件内容为空")
 	}
 
 	f, err := excelize.OpenReader(bytes.NewReader(data))
 	if err != nil {
-		return nil, fmt.Errorf("打开 Excel 文件失败: %w", err)
+		return nil, nil, fmt.Errorf("打开 Excel 文件失败: %w", err)
 	}
 	defer func() { _ = f.Close() }()
 
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
-		return nil, fmt.Errorf("读取 Excel 内容失败: %w", err)
+		return nil, nil, fmt.Errorf("读取 Excel 内容失败: %w", err)
 	}
 
 	if len(rows) < 2 {
-		return nil, fmt.Errorf("文件没有数据行")
+		return nil, nil, fmt.Errorf("文件没有数据行")
 	}
 
 	// 解析表头
@@ -368,10 +344,11 @@ func (s *DataGovExcelService) ImportAssets(ctx context.Context, data []byte, ten
 	nameIdx, hasName := colIndex["name"]
 	_, hasType := colIndex["type"]
 	if !hasName || !hasType {
-		return nil, fmt.Errorf("缺少必填列: name 或 type")
+		return nil, nil, fmt.Errorf("缺少必填列: name 或 type")
 	}
 
 	result := &ImportResult{}
+	var requests []*CreateAssetRequest
 
 	for rowIdx := 1; rowIdx < len(rows); rowIdx++ {
 		row := rows[rowIdx]
@@ -433,8 +410,7 @@ func (s *DataGovExcelService) ImportAssets(ctx context.Context, data []byte, ten
 			source = strings.TrimSpace(row[idx])
 		}
 
-		asset := &datagov.DataAsset{
-			BaseModel:      base.BaseModel{TenantID: tenantID},
+		req := &CreateAssetRequest{
 			Name:           name,
 			Type:           typ,
 			Source:         source,
@@ -442,21 +418,11 @@ func (s *DataGovExcelService) ImportAssets(ctx context.Context, data []byte, ten
 			Status:         status,
 			Classification: "internal",
 		}
-
-		if err := s.assetRepo.Create(ctx, asset); err != nil {
-			result.Failed++
-			result.Errors = append(result.Errors, ImportError{
-				Row:   rowIdx + 1,
-				Field: "",
-				Error: fmt.Sprintf("创建失败: %v", err),
-			})
-			continue
-		}
-
+		requests = append(requests, req)
 		result.Success++
 	}
 
-	return result, nil
+	return requests, result, nil
 }
 
 // ==================== Rule Excel ====================
@@ -542,25 +508,25 @@ func (s *DataGovExcelService) ExportRules(ctx context.Context, rules []datagov.D
 	return buf, nil
 }
 
-// ImportRules 从 Excel 文件导入数据质量规则
-func (s *DataGovExcelService) ImportRules(ctx context.Context, data []byte, tenantID string) (*ImportResult, error) {
+// ParseRules 从 Excel 文件解析数据质量规则请求
+func (s *DataGovExcelService) ParseRules(ctx context.Context, data []byte, tenantID string) ([]*CreateRuleRequest, *ImportResult, error) {
 	if len(data) == 0 {
-		return nil, fmt.Errorf("文件内容为空")
+		return nil, nil, fmt.Errorf("文件内容为空")
 	}
 
 	f, err := excelize.OpenReader(bytes.NewReader(data))
 	if err != nil {
-		return nil, fmt.Errorf("打开 Excel 文件失败: %w", err)
+		return nil, nil, fmt.Errorf("打开 Excel 文件失败: %w", err)
 	}
 	defer func() { _ = f.Close() }()
 
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
-		return nil, fmt.Errorf("读取 Excel 内容失败: %w", err)
+		return nil, nil, fmt.Errorf("读取 Excel 内容失败: %w", err)
 	}
 
 	if len(rows) < 2 {
-		return nil, fmt.Errorf("文件没有数据行")
+		return nil, nil, fmt.Errorf("文件没有数据行")
 	}
 
 	// 解析表头
@@ -573,10 +539,11 @@ func (s *DataGovExcelService) ImportRules(ctx context.Context, data []byte, tena
 	nameIdx, hasName := colIndex["name"]
 	_, hasType := colIndex["type"]
 	if !hasName || !hasType {
-		return nil, fmt.Errorf("缺少必填列: name 或 type")
+		return nil, nil, fmt.Errorf("缺少必填列: name 或 type")
 	}
 
 	result := &ImportResult{}
+	var requests []*CreateRuleRequest
 
 	for rowIdx := 1; rowIdx < len(rows); rowIdx++ {
 		row := rows[rowIdx]
@@ -651,8 +618,7 @@ func (s *DataGovExcelService) ImportRules(ctx context.Context, data []byte, tena
 			targetField = strings.TrimSpace(row[idx])
 		}
 
-		rule := &datagov.DataQualityRule{
-			BaseModel:   base.BaseModel{TenantID: tenantID},
+		req := &CreateRuleRequest{
 			Name:        name,
 			Type:        typ,
 			TargetAsset: targetAsset,
@@ -661,19 +627,9 @@ func (s *DataGovExcelService) ImportRules(ctx context.Context, data []byte, tena
 			Severity:    severity,
 			Status:      status,
 		}
-
-		if err := s.ruleRepo.Create(ctx, rule); err != nil {
-			result.Failed++
-			result.Errors = append(result.Errors, ImportError{
-				Row:   rowIdx + 1,
-				Field: "",
-				Error: fmt.Sprintf("创建失败: %v", err),
-			})
-			continue
-		}
-
+		requests = append(requests, req)
 		result.Success++
 	}
 
-	return result, nil
+	return requests, result, nil
 }

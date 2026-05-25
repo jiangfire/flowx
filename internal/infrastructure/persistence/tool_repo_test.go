@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/tool"
-	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
@@ -87,7 +87,7 @@ func TestToolRepository_GetByID_Exists(t *testing.T) {
 
 	created := createTestTool(t, db, "tenant-001", "TestTool", "eda", "active")
 
-	found, err := repo.GetByID(context.Background(), created.ID)
+	found, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询工具失败: %v", err)
 	}
@@ -104,7 +104,7 @@ func TestToolRepository_GetByID_NotExists(t *testing.T) {
 	db := setupToolRepoTestDB(t)
 	repo := NewToolRepository(db)
 
-	_, err := repo.GetByID(context.Background(), "non-existent-id")
+	_, err := repo.GetByID(context.Background(), "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望查询不存在的工具返回错误")
 	}
@@ -232,7 +232,7 @@ func TestToolRepository_Update(t *testing.T) {
 		t.Fatalf("更新工具失败: %v", err)
 	}
 
-	updated, err := repo.GetByID(context.Background(), created.ID)
+	updated, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询更新后的工具失败: %v", err)
 	}
@@ -251,13 +251,13 @@ func TestToolRepository_Delete(t *testing.T) {
 
 	created := createTestTool(t, db, "tenant-001", "ToDelete", "eda", "active")
 
-	err := repo.Delete(context.Background(), created.ID)
+	err := repo.Delete(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("删除工具失败: %v", err)
 	}
 
 	// 软删除后查询应返回错误
-	_, err = repo.GetByID(context.Background(), created.ID)
+	_, err = repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err == nil {
 		t.Error("期望软删除后查询返回错误")
 	}
@@ -328,7 +328,7 @@ func TestConnectorRepository_GetByID_Exists(t *testing.T) {
 
 	created := createTestConnector(t, db, "tenant-001", "Windchill", "plm", "https://plm.example.com")
 
-	found, err := repo.GetByID(context.Background(), created.ID)
+	found, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询连接器失败: %v", err)
 	}
@@ -345,7 +345,7 @@ func TestConnectorRepository_GetByID_NotExists(t *testing.T) {
 	db := setupToolRepoTestDB(t)
 	repo := NewConnectorRepository(db)
 
-	_, err := repo.GetByID(context.Background(), "non-existent-id")
+	_, err := repo.GetByID(context.Background(), "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望查询不存在的连接器返回错误")
 	}
@@ -384,7 +384,7 @@ func TestConnectorRepository_Update(t *testing.T) {
 		t.Fatalf("更新连接器失败: %v", err)
 	}
 
-	updated, err := repo.GetByID(context.Background(), created.ID)
+	updated, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询更新后的连接器失败: %v", err)
 	}
@@ -400,12 +400,12 @@ func TestConnectorRepository_Delete(t *testing.T) {
 
 	created := createTestConnector(t, db, "tenant-001", "ToDelete", "plm", "https://delete.example.com")
 
-	err := repo.Delete(context.Background(), created.ID)
+	err := repo.Delete(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("删除连接器失败: %v", err)
 	}
 
-	_, err = repo.GetByID(context.Background(), created.ID)
+	_, err = repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err == nil {
 		t.Error("期望软删除后查询返回错误")
 	}

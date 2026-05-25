@@ -7,7 +7,6 @@ import (
 	approvalapp "git.neolidy.top/neo/flowx/internal/application/approval"
 	"git.neolidy.top/neo/flowx/internal/domain/approval"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/pkg/tenant"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
@@ -59,10 +58,10 @@ func TestCreateWorkflow_GeneratesUUID(t *testing.T) {
 	ctx := context.Background()
 
 	w := &approval.Workflow{
-		BaseModel:   base.BaseModel{TenantID: "tenant-001"},
-		Name:        "工具部署审批",
-		Type:        "tool_deploy",
-		Definition:  base.JSON{"steps": []any{}},
+		BaseModel:  base.BaseModel{TenantID: "tenant-001"},
+		Name:       "工具部署审批",
+		Type:       "tool_deploy",
+		Definition: base.JSON{"steps": []any{}},
 	}
 
 	err := repo.CreateWorkflow(ctx, w)
@@ -81,14 +80,14 @@ func TestGetWorkflowByID(t *testing.T) {
 	ctx := context.Background()
 
 	w := &approval.Workflow{
-		BaseModel:   base.BaseModel{TenantID: "tenant-001"},
-		Name:        "工具部署审批",
-		Type:        "tool_deploy",
-		Definition:  base.JSON{"steps": []any{}},
+		BaseModel:  base.BaseModel{TenantID: "tenant-001"},
+		Name:       "工具部署审批",
+		Type:       "tool_deploy",
+		Definition: base.JSON{"steps": []any{}},
 	}
 	_ = repo.CreateWorkflow(ctx, w)
 
-	found, err := repo.GetWorkflowByID(ctx, w.ID)
+	found, err := repo.GetWorkflowByID(ctx, "tenant-001", w.ID)
 	if err != nil {
 		t.Fatalf("获取工作流失败: %v", err)
 	}
@@ -106,7 +105,7 @@ func TestGetWorkflowByID_NotFound(t *testing.T) {
 	repo := NewApprovalRepository(db)
 	ctx := context.Background()
 
-	_, err := repo.GetWorkflowByID(ctx, "non-existent-id")
+	_, err := repo.GetWorkflowByID(ctx, "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望返回错误，但返回 nil")
 	}
@@ -199,7 +198,7 @@ func TestUpdateWorkflow(t *testing.T) {
 		t.Fatalf("更新工作流失败: %v", err)
 	}
 
-	found, _ := repo.GetWorkflowByID(ctx, w.ID)
+	found, _ := repo.GetWorkflowByID(ctx, "tenant-001", w.ID)
 	if found.Name != "更新后名称" {
 		t.Errorf("期望 Name 为 '更新后名称'，实际为 '%s'", found.Name)
 	}
@@ -272,7 +271,7 @@ func TestGetInstanceByID(t *testing.T) {
 	}
 	_ = repo.CreateInstance(ctx, inst)
 
-	found, err := repo.GetInstanceByID(ctx, inst.ID)
+	found, err := repo.GetInstanceByID(ctx, "tenant-001", inst.ID)
 	if err != nil {
 		t.Fatalf("获取实例失败: %v", err)
 	}
@@ -287,7 +286,7 @@ func TestGetInstanceByID_NotFound(t *testing.T) {
 	repo := NewApprovalRepository(db)
 	ctx := context.Background()
 
-	_, err := repo.GetInstanceByID(ctx, "non-existent-id")
+	_, err := repo.GetInstanceByID(ctx, "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望返回错误，但返回 nil")
 	}
@@ -379,7 +378,7 @@ func TestUpdateInstance(t *testing.T) {
 		t.Fatalf("更新实例失败: %v", err)
 	}
 
-	found, _ := repo.GetInstanceByID(ctx, inst.ID)
+	found, _ := repo.GetInstanceByID(ctx, "tenant-001", inst.ID)
 	if found.Status != "approving" {
 		t.Errorf("期望 Status 为 'approving'，实际为 '%s'", found.Status)
 	}
@@ -397,12 +396,12 @@ func TestCreateApproval(t *testing.T) {
 	ctx := context.Background()
 
 	a := &approval.Approval{
-		BaseModel:   base.BaseModel{TenantID: "tenant-001"},
-		InstanceID:  "inst-001",
-		Step:        1,
-		ApproverID:  "user-002",
-		Status:      "pending",
-		Comment:     "请审核",
+		BaseModel:  base.BaseModel{TenantID: "tenant-001"},
+		InstanceID: "inst-001",
+		Step:       1,
+		ApproverID: "user-002",
+		Status:     "pending",
+		Comment:    "请审核",
 	}
 
 	err := repo.CreateApproval(ctx, a)
@@ -455,7 +454,7 @@ func TestListApprovalsByInstance(t *testing.T) {
 		_ = repo.CreateApproval(ctx, a)
 	}
 
-	approvals, err := repo.ListApprovalsByInstance(ctx, instID)
+	approvals, err := repo.ListApprovalsByInstance(ctx, "tenant-001", instID)
 	if err != nil {
 		t.Fatalf("列出审批记录失败: %v", err)
 	}
@@ -526,7 +525,7 @@ func TestUpdateApproval(t *testing.T) {
 	}
 
 	// 验证更新：通过 ListApprovalsByInstance 查询
-	approvals, err := repo.ListApprovalsByInstance(ctx, "inst-001")
+	approvals, err := repo.ListApprovalsByInstance(ctx, "tenant-001", "inst-001")
 	if err != nil {
 		t.Fatalf("查询审批记录失败: %v", err)
 	}
@@ -577,8 +576,7 @@ func TestTenantIsolation_Workflow(t *testing.T) {
 	}
 
 	// 租户 A 无法通过 ID 获取租户 B 的工作流
-	ctxA := tenant.WithTenantID(ctx, "tenant-A")
-	_, err := repo.GetWorkflowByID(ctxA, wB.ID)
+	_, err := repo.GetWorkflowByID(ctx, "tenant-A", wB.ID)
 	if err == nil {
 		t.Error("期望跨租户获取工作流返回错误")
 	}
@@ -616,8 +614,7 @@ func TestTenantIsolation_Instance(t *testing.T) {
 		t.Errorf("期望返回 '租户A实例'，实际返回 %d 条", len(instances))
 	}
 
-	ctxB := tenant.WithTenantID(ctx, "tenant-B")
-	_, err := repo.GetInstanceByID(ctxB, instA.ID)
+	_, err := repo.GetInstanceByID(ctx, "tenant-B", instA.ID)
 	if err == nil {
 		t.Error("期望跨租户获取实例返回错误")
 	}

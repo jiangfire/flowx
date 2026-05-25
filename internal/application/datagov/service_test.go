@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/datagov"
-	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
@@ -182,8 +182,8 @@ func TestGetPolicy_TenantMismatch(t *testing.T) {
 	}
 
 	_, err = svc.GetPolicy(ctx, otherTenantID, created.ID)
-	if err != datagovapp.ErrTenantMismatch {
-		t.Fatalf("期望错误 ErrTenantMismatch, got: %v", err)
+	if err != datagovapp.ErrPolicyNotFound {
+		t.Fatalf("期望错误 ErrPolicyNotFound, got: %v", err)
 	}
 }
 
@@ -465,8 +465,8 @@ func TestGetAsset_TenantMismatch(t *testing.T) {
 	}
 
 	_, err = svc.GetAsset(ctx, otherTenantID, created.ID)
-	if err != datagovapp.ErrTenantMismatch {
-		t.Fatalf("期望错误 ErrTenantMismatch, got: %v", err)
+	if err != datagovapp.ErrAssetNotFound {
+		t.Fatalf("期望错误 ErrAssetNotFound, got: %v", err)
 	}
 }
 
@@ -743,8 +743,8 @@ func TestGetRule_TenantMismatch(t *testing.T) {
 	}
 
 	_, err = svc.GetRule(ctx, otherTenantID, created.ID)
-	if err != datagovapp.ErrTenantMismatch {
-		t.Fatalf("期望错误 ErrTenantMismatch, got: %v", err)
+	if err != datagovapp.ErrQualityRuleNotFound {
+		t.Fatalf("期望错误 ErrQualityRuleNotFound, got: %v", err)
 	}
 }
 
@@ -962,8 +962,8 @@ func TestGetCheck_TenantMismatch(t *testing.T) {
 	})
 
 	_, err := svc.GetCheck(ctx, otherTenantID, check.ID)
-	if err != datagovapp.ErrTenantMismatch {
-		t.Fatalf("期望错误 ErrTenantMismatch, got: %v", err)
+	if err != datagovapp.ErrQualityCheckNotFound {
+		t.Fatalf("期望错误 ErrQualityCheckNotFound, got: %v", err)
 	}
 }
 
@@ -1224,7 +1224,7 @@ func TestRunQualityCheck_TenantMismatch(t *testing.T) {
 		RuleID:  rule.ID,
 		AssetID: asset.ID,
 	})
-	if err != datagovapp.ErrTenantMismatch {
-		t.Fatalf("期望错误 ErrTenantMismatch, got: %v", err)
+	if err != datagovapp.ErrAssetNotFound {
+		t.Fatalf("期望错误 ErrAssetNotFound, got: %v", err)
 	}
 }

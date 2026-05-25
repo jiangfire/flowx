@@ -5,13 +5,13 @@ import (
 	"errors"
 	"testing"
 
+	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
+	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	domaingov "git.neolidy.top/neo/flowx/internal/domain/datagov"
 	"git.neolidy.top/neo/flowx/internal/domain/tool"
-	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
-	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
-	bizerrors "git.neolidy.top/neo/flowx/pkg/errors"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
+	bizerrors "git.neolidy.top/neo/flowx/pkg/errors"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
@@ -24,7 +24,7 @@ type mockDataPolicyRepo struct {
 func (m *mockDataPolicyRepo) Create(ctx context.Context, policy *domaingov.DataPolicy) error {
 	return nil
 }
-func (m *mockDataPolicyRepo) GetByID(ctx context.Context, id string) (*domaingov.DataPolicy, error) {
+func (m *mockDataPolicyRepo) GetByID(ctx context.Context, tenantID, id string) (*domaingov.DataPolicy, error) {
 	return nil, nil
 }
 func (m *mockDataPolicyRepo) List(ctx context.Context, filter datagovapp.DataPolicyFilter) ([]domaingov.DataPolicy, int64, error) {
@@ -33,7 +33,7 @@ func (m *mockDataPolicyRepo) List(ctx context.Context, filter datagovapp.DataPol
 func (m *mockDataPolicyRepo) Update(ctx context.Context, policy *domaingov.DataPolicy) error {
 	return nil
 }
-func (m *mockDataPolicyRepo) Delete(ctx context.Context, id string) error {
+func (m *mockDataPolicyRepo) Delete(ctx context.Context, tenantID, id string) error {
 	return nil
 }
 
@@ -579,7 +579,7 @@ func isPolicyViolationError(err error, target **bizerrors.PolicyViolationError) 
 
 // mockDataAssetRepo 模拟数据资产仓储
 type mockDataAssetRepo struct {
-	assets []domaingov.DataAsset
+	assets       []domaingov.DataAsset
 	createCalled bool
 	createdAsset *domaingov.DataAsset
 	updateCalled bool
@@ -593,7 +593,7 @@ func (m *mockDataAssetRepo) Create(ctx context.Context, asset *domaingov.DataAss
 	m.assets = append(m.assets, *asset)
 	return nil
 }
-func (m *mockDataAssetRepo) GetByID(ctx context.Context, id string) (*domaingov.DataAsset, error) {
+func (m *mockDataAssetRepo) GetByID(ctx context.Context, tenantID, id string) (*domaingov.DataAsset, error) {
 	for i := range m.assets {
 		if m.assets[i].ID == id {
 			return &m.assets[i], nil
@@ -616,7 +616,7 @@ func (m *mockDataAssetRepo) Update(ctx context.Context, asset *domaingov.DataAss
 	}
 	return nil
 }
-func (m *mockDataAssetRepo) Delete(ctx context.Context, id string) error {
+func (m *mockDataAssetRepo) Delete(ctx context.Context, tenantID, id string) error {
 	return nil
 }
 
@@ -629,7 +629,7 @@ func (m *mockDataQualityRuleRepo) Create(ctx context.Context, rule *domaingov.Da
 	m.rules = append(m.rules, *rule)
 	return nil
 }
-func (m *mockDataQualityRuleRepo) GetByID(ctx context.Context, id string) (*domaingov.DataQualityRule, error) {
+func (m *mockDataQualityRuleRepo) GetByID(ctx context.Context, tenantID, id string) (*domaingov.DataQualityRule, error) {
 	for i := range m.rules {
 		if m.rules[i].ID == id {
 			return &m.rules[i], nil
@@ -643,7 +643,7 @@ func (m *mockDataQualityRuleRepo) List(ctx context.Context, filter datagovapp.Da
 func (m *mockDataQualityRuleRepo) Update(ctx context.Context, rule *domaingov.DataQualityRule) error {
 	return nil
 }
-func (m *mockDataQualityRuleRepo) Delete(ctx context.Context, id string) error {
+func (m *mockDataQualityRuleRepo) Delete(ctx context.Context, tenantID, id string) error {
 	return nil
 }
 
@@ -660,7 +660,7 @@ func (m *mockDataQualityCheckRepo) Create(ctx context.Context, check *domaingov.
 	m.checks = append(m.checks, *check)
 	return nil
 }
-func (m *mockDataQualityCheckRepo) GetByID(ctx context.Context, id string) (*domaingov.DataQualityCheck, error) {
+func (m *mockDataQualityCheckRepo) GetByID(ctx context.Context, tenantID, id string) (*domaingov.DataQualityCheck, error) {
 	return nil, nil
 }
 func (m *mockDataQualityCheckRepo) List(ctx context.Context, filter datagovapp.DataQualityCheckFilter) ([]domaingov.DataQualityCheck, int64, error) {
@@ -669,10 +669,10 @@ func (m *mockDataQualityCheckRepo) List(ctx context.Context, filter datagovapp.D
 func (m *mockDataQualityCheckRepo) Update(ctx context.Context, check *domaingov.DataQualityCheck) error {
 	return nil
 }
-func (m *mockDataQualityCheckRepo) Delete(ctx context.Context, id string) error {
+func (m *mockDataQualityCheckRepo) Delete(ctx context.Context, tenantID, id string) error {
 	return nil
 }
-func (m *mockDataQualityCheckRepo) GetByRuleAndAsset(ctx context.Context, ruleID, assetID string) (*domaingov.DataQualityCheck, error) {
+func (m *mockDataQualityCheckRepo) GetByRuleAndAsset(ctx context.Context, tenantID, ruleID, assetID string) (*domaingov.DataQualityCheck, error) {
 	return nil, nil
 }
 
@@ -820,12 +820,12 @@ func TestCreateTool_TriggersQualityCheck(t *testing.T) {
 	// 预设一个匹配 tool_type=eda 的质量规则
 	ruleRepo.rules = []domaingov.DataQualityRule{
 		{
-			BaseModel:   base.BaseModel{ID: "rule-1", TenantID: "tenant-001"},
-			Name:        "EDA工具检查",
-			Type:        "completeness",
-			Config:      base.JSON{"tool_type": "eda"},
-			Severity:    "warning",
-			Status:      "active",
+			BaseModel: base.BaseModel{ID: "rule-1", TenantID: "tenant-001"},
+			Name:      "EDA工具检查",
+			Type:      "completeness",
+			Config:    base.JSON{"tool_type": "eda"},
+			Severity:  "warning",
+			Status:    "active",
 		},
 	}
 
@@ -860,12 +860,12 @@ func TestCreateTool_NoMatchingRule(t *testing.T) {
 	// 预设一个匹配 tool_type=cae 的规则，但创建的是 eda 工具
 	ruleRepo.rules = []domaingov.DataQualityRule{
 		{
-			BaseModel:   base.BaseModel{ID: "rule-1", TenantID: "tenant-001"},
-			Name:        "CAE工具检查",
-			Type:        "completeness",
-			Config:      base.JSON{"tool_type": "cae"},
-			Severity:    "warning",
-			Status:      "active",
+			BaseModel: base.BaseModel{ID: "rule-1", TenantID: "tenant-001"},
+			Name:      "CAE工具检查",
+			Type:      "completeness",
+			Config:    base.JSON{"tool_type": "cae"},
+			Severity:  "warning",
+			Status:    "active",
 		},
 	}
 
@@ -1055,8 +1055,8 @@ func TestGetConnector_CrossTenant(t *testing.T) {
 	if err == nil {
 		t.Fatal("期望跨租户查询返回错误")
 	}
-	if !errors.Is(err, toolapp.ErrTenantMismatch) {
-		t.Errorf("期望 ErrTenantMismatch，实际为 %v", err)
+	if !errors.Is(err, toolapp.ErrConnectorNotFound) {
+		t.Errorf("期望 ErrConnectorNotFound，实际为 %v", err)
 	}
 }
 
@@ -1095,8 +1095,8 @@ func TestDeleteConnector_CrossTenant(t *testing.T) {
 	if err == nil {
 		t.Fatal("期望跨租户删除返回错误")
 	}
-	if !errors.Is(err, toolapp.ErrTenantMismatch) {
-		t.Errorf("期望 ErrTenantMismatch，实际为 %v", err)
+	if !errors.Is(err, toolapp.ErrConnectorNotFound) {
+		t.Errorf("期望 ErrConnectorNotFound，实际为 %v", err)
 	}
 
 	// 确认连接器未被删除
@@ -1135,8 +1135,8 @@ func TestUpdateConnector_CrossTenant(t *testing.T) {
 	if err == nil {
 		t.Fatal("期望跨租户更新返回错误")
 	}
-	if !errors.Is(err, toolapp.ErrTenantMismatch) {
-		t.Errorf("期望 ErrTenantMismatch，实际为 %v", err)
+	if !errors.Is(err, toolapp.ErrConnectorNotFound) {
+		t.Errorf("期望 ErrConnectorNotFound，实际为 %v", err)
 	}
 
 	// 确认连接器未被修改
@@ -1228,12 +1228,12 @@ func TestShouldRunRule_ByCategory(t *testing.T) {
 	// 预设一个按 tool_category 匹配的质量规则
 	ruleRepo.rules = []domaingov.DataQualityRule{
 		{
-			BaseModel:   base.BaseModel{ID: "rule-category", TenantID: "tenant-001"},
-			Name:        "PCB设计工具检查",
-			Type:        "completeness",
-			Config:      base.JSON{"tool_category": "pcb-design"},
-			Severity:    "warning",
-			Status:      "active",
+			BaseModel: base.BaseModel{ID: "rule-category", TenantID: "tenant-001"},
+			Name:      "PCB设计工具检查",
+			Type:      "completeness",
+			Config:    base.JSON{"tool_category": "pcb-design"},
+			Severity:  "warning",
+			Status:    "active",
 		},
 	}
 

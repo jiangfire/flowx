@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/tool"
-	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"gorm.io/gorm"
 )
 
@@ -31,11 +31,11 @@ func (r *toolRepository) Create(ctx context.Context, tl *tool.Tool) error {
 }
 
 // GetByID 根据 ID 查询工具
-func (r *toolRepository) GetByID(ctx context.Context, id string) (*tool.Tool, error) {
+func (r *toolRepository) GetByID(ctx context.Context, tenantID, id string) (*tool.Tool, error) {
 	var tl tool.Tool
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&tl).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&tl).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("工具不存在: %s", id)
+			return nil, toolapp.ErrToolNotFound
 		}
 		return nil, fmt.Errorf("查询工具失败: %w", err)
 	}
@@ -99,8 +99,8 @@ func (r *toolRepository) Update(ctx context.Context, tl *tool.Tool) error {
 }
 
 // Delete 软删除工具
-func (r *toolRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&tool.Tool{}, "id = ?", id).Error
+func (r *toolRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&tool.Tool{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }
 
 // ==================== ConnectorRepository ====================
@@ -124,11 +124,11 @@ func (r *connectorRepository) Create(ctx context.Context, conn *tool.Connector) 
 }
 
 // GetByID 根据 ID 查询连接器
-func (r *connectorRepository) GetByID(ctx context.Context, id string) (*tool.Connector, error) {
+func (r *connectorRepository) GetByID(ctx context.Context, tenantID, id string) (*tool.Connector, error) {
 	var conn tool.Connector
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&conn).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&conn).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("连接器不存在: %s", id)
+			return nil, toolapp.ErrConnectorNotFound
 		}
 		return nil, fmt.Errorf("查询连接器失败: %w", err)
 	}
@@ -187,6 +187,6 @@ func (r *connectorRepository) Update(ctx context.Context, conn *tool.Connector) 
 }
 
 // Delete 软删除连接器
-func (r *connectorRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&tool.Connector{}, "id = ?", id).Error
+func (r *connectorRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&tool.Connector{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }
