@@ -4,17 +4,17 @@ import (
 	"time"
 
 	agentapp "git.neolidy.top/neo/flowx/internal/application/agent"
+	aiapp "git.neolidy.top/neo/flowx/internal/application/ai"
 	"git.neolidy.top/neo/flowx/internal/application/approval"
 	"git.neolidy.top/neo/flowx/internal/application/auth"
 	bpmnapp "git.neolidy.top/neo/flowx/internal/application/bpmn"
 	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
 	notificationapp "git.neolidy.top/neo/flowx/internal/application/notification"
 	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
-	aiapp "git.neolidy.top/neo/flowx/internal/application/ai"
 	"git.neolidy.top/neo/flowx/internal/config"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/handler"
+	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 	"gorm.io/gorm"
 )
 
@@ -73,7 +73,7 @@ func (c *Container) initDataGovServices(db *gorm.DB) {
 	dataRuleRepo := persistence.NewDataQualityRuleRepository(db)
 	dataCheckRepo := persistence.NewDataQualityCheckRepository(db)
 	dataGovService := datagovapp.NewDataGovService(dataPolicyRepo, dataAssetRepo, dataRuleRepo, dataCheckRepo)
-	dataGovExcelService := datagovapp.NewDataGovExcelService(dataPolicyRepo, dataAssetRepo, dataRuleRepo)
+	dataGovExcelService := datagovapp.NewDataGovExcelService()
 	c.DataGovHandler = handler.NewDataGovHandler(dataGovService, dataGovExcelService)
 }
 

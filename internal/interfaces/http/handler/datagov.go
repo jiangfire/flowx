@@ -136,10 +136,6 @@ func (h *DataGovHandler) GetPolicy(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "数据策略不存在")
 			return
 		}
-		if errors.Is(err, datagovapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该数据策略")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "查询数据策略失败")
 		return
 	}
@@ -180,10 +176,6 @@ func (h *DataGovHandler) UpdatePolicy(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "数据策略不存在")
 			return
 		}
-		if errors.Is(err, datagovapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该数据策略")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "更新数据策略失败")
 		return
 	}
@@ -214,10 +206,6 @@ func (h *DataGovHandler) DeletePolicy(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, datagovapp.ErrPolicyNotFound) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "数据策略不存在")
-			return
-		}
-		if errors.Is(err, datagovapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该数据策略")
 			return
 		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "删除数据策略失败")
@@ -340,10 +328,6 @@ func (h *DataGovHandler) GetAsset(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "数据资产不存在")
 			return
 		}
-		if errors.Is(err, datagovapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该数据资产")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "查询数据资产失败")
 		return
 	}
@@ -384,10 +368,6 @@ func (h *DataGovHandler) UpdateAsset(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "数据资产不存在")
 			return
 		}
-		if errors.Is(err, datagovapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该数据资产")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "更新数据资产失败")
 		return
 	}
@@ -418,10 +398,6 @@ func (h *DataGovHandler) DeleteAsset(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, datagovapp.ErrAssetNotFound) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "数据资产不存在")
-			return
-		}
-		if errors.Is(err, datagovapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该数据资产")
 			return
 		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "删除数据资产失败")
@@ -544,10 +520,6 @@ func (h *DataGovHandler) GetRule(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "数据质量规则不存在")
 			return
 		}
-		if errors.Is(err, datagovapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该数据质量规则")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "查询数据质量规则失败")
 		return
 	}
@@ -588,10 +560,6 @@ func (h *DataGovHandler) UpdateRule(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "数据质量规则不存在")
 			return
 		}
-		if errors.Is(err, datagovapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该数据质量规则")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "更新数据质量规则失败")
 		return
 	}
@@ -622,10 +590,6 @@ func (h *DataGovHandler) DeleteRule(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, datagovapp.ErrQualityRuleNotFound) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "数据质量规则不存在")
-			return
-		}
-		if errors.Is(err, datagovapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该数据质量规则")
 			return
 		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "删除数据质量规则失败")
@@ -705,10 +669,6 @@ func (h *DataGovHandler) GetCheck(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "数据质量检查不存在")
 			return
 		}
-		if errors.Is(err, datagovapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该数据质量检查")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "查询数据质量检查失败")
 		return
 	}
@@ -744,10 +704,6 @@ func (h *DataGovHandler) RunQualityCheck(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, datagovapp.ErrQualityRuleNotFound) || errors.Is(err, datagovapp.ErrAssetNotFound) {
 			response.Error(c, http.StatusBadRequest, "BAD_REQUEST", err.Error())
-			return
-		}
-		if errors.Is(err, datagovapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权执行该操作")
 			return
 		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "执行数据质量检查失败")
@@ -829,13 +785,22 @@ func (h *DataGovHandler) ImportPolicies(c *gin.Context) {
 		return
 	}
 
-	results, err := h.excelService.ImportPolicies(c.Request.Context(), data, tenantID)
+	requests, parseResult, err := h.excelService.ParsePolicies(c.Request.Context(), data, tenantID)
 	if err != nil {
-		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "导入失败: "+err.Error())
+		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "解析失败: "+err.Error())
 		return
 	}
 
-	response.Success(c, results)
+	results, err := h.service.ImportPolicies(c.Request.Context(), tenantID, requests)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "导入失败: "+err.Error())
+		return
+	}
+
+	response.Success(c, gin.H{
+		"parse":   parseResult,
+		"results": results,
+	})
 }
 
 // @Summary      导出数据资产
@@ -908,13 +873,22 @@ func (h *DataGovHandler) ImportAssets(c *gin.Context) {
 		return
 	}
 
-	results, err := h.excelService.ImportAssets(c.Request.Context(), data, tenantID)
+	requests, parseResult, err := h.excelService.ParseAssets(c.Request.Context(), data, tenantID)
 	if err != nil {
-		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "导入失败: "+err.Error())
+		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "解析失败: "+err.Error())
 		return
 	}
 
-	response.Success(c, results)
+	results, err := h.service.ImportAssets(c.Request.Context(), tenantID, requests)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "导入失败: "+err.Error())
+		return
+	}
+
+	response.Success(c, gin.H{
+		"parse":   parseResult,
+		"results": results,
+	})
 }
 
 // @Summary      导出数据质量规则
@@ -987,11 +961,20 @@ func (h *DataGovHandler) ImportRules(c *gin.Context) {
 		return
 	}
 
-	results, err := h.excelService.ImportRules(c.Request.Context(), data, tenantID)
+	requests, parseResult, err := h.excelService.ParseRules(c.Request.Context(), data, tenantID)
 	if err != nil {
-		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "导入失败: "+err.Error())
+		response.Error(c, http.StatusBadRequest, "BAD_REQUEST", "解析失败: "+err.Error())
 		return
 	}
 
-	response.Success(c, results)
+	results, err := h.service.ImportRules(c.Request.Context(), tenantID, requests)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "导入失败: "+err.Error())
+		return
+	}
+
+	response.Success(c, gin.H{
+		"parse":   parseResult,
+		"results": results,
+	})
 }

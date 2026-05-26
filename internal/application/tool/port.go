@@ -30,17 +30,17 @@ type ConnectorFilter struct {
 // ToolRepository 工具仓储接口
 type ToolRepository interface {
 	Create(ctx context.Context, tool *domaintool.Tool) error
-	GetByID(ctx context.Context, id string) (*domaintool.Tool, error)
+	GetByID(ctx context.Context, tenantID, id string) (*domaintool.Tool, error)
 	List(ctx context.Context, filter ToolFilter) ([]domaintool.Tool, int64, error)
 	Update(ctx context.Context, tool *domaintool.Tool) error
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, tenantID, id string) error
 }
 
 // ConnectorRepository 连接器仓储接口
 type ConnectorRepository interface {
 	Create(ctx context.Context, connector *domaintool.Connector) error
-	GetByID(ctx context.Context, id string) (*domaintool.Connector, error)
+	GetByID(ctx context.Context, tenantID, id string) (*domaintool.Connector, error)
 	List(ctx context.Context, filter ConnectorFilter) ([]domaintool.Connector, int64, error)
 	Update(ctx context.Context, connector *domaintool.Connector) error
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, tenantID, id string) error
 }

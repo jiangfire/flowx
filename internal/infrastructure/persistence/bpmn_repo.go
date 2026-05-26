@@ -33,6 +33,7 @@ func (po *processDefinitionPO) toDomain() (*bpmn.ProcessDefinition, error) {
 	def.Name = po.Name
 	def.Version = po.Version
 	def.Status = po.Status
+	def.TenantID = po.TenantID
 	return def, nil
 }
 

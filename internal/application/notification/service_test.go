@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	notifapp "git.neolidy.top/neo/flowx/internal/application/notification"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/notification"
-	notifapp "git.neolidy.top/neo/flowx/internal/application/notification"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
@@ -845,26 +845,26 @@ func TestNotificationCrossTenantOperation(t *testing.T) {
 
 	// 租户 B 尝试查询
 	_, err := svc.GetNotification(context.Background(), "tenant-b", n.ID)
-	if err != notifapp.ErrTenantMismatch {
-		t.Fatalf("期望跨租户查询返回 notifapp.ErrTenantMismatch，实际为 %v", err)
+	if err != notifapp.ErrNotificationNotFound {
+		t.Fatalf("期望跨租户查询返回 notifapp.ErrNotificationNotFound，实际为 %v", err)
 	}
 
 	// 租户 B 尝试更新
 	_, err = svc.UpdateNotification(context.Background(), "tenant-b", n.ID, &notifapp.UpdateNotificationRequest{Title: strPtr("Hacked")})
-	if err != notifapp.ErrTenantMismatch {
-		t.Fatalf("期望跨租户更新返回 notifapp.ErrTenantMismatch，实际为 %v", err)
+	if err != notifapp.ErrNotificationNotFound {
+		t.Fatalf("期望跨租户更新返回 notifapp.ErrNotificationNotFound，实际为 %v", err)
 	}
 
 	// 租户 B 尝试删除
 	err = svc.DeleteNotification(context.Background(), "tenant-b", n.ID)
-	if err != notifapp.ErrTenantMismatch {
-		t.Fatalf("期望跨租户删除返回 notifapp.ErrTenantMismatch，实际为 %v", err)
+	if err != notifapp.ErrNotificationNotFound {
+		t.Fatalf("期望跨租户删除返回 notifapp.ErrNotificationNotFound，实际为 %v", err)
 	}
 
 	// 租户 B 尝试标记已读
 	err = svc.MarkAsRead(context.Background(), "tenant-b", n.ID)
-	if err != notifapp.ErrTenantMismatch {
-		t.Fatalf("期望跨租户标记已读返回 notifapp.ErrTenantMismatch，实际为 %v", err)
+	if err != notifapp.ErrNotificationNotFound {
+		t.Fatalf("期望跨租户标记已读返回 notifapp.ErrNotificationNotFound，实际为 %v", err)
 	}
 }
 
@@ -887,8 +887,8 @@ func TestTemplateCrossTenantOperation(t *testing.T) {
 	}
 
 	_, err := svc.GetTemplate(context.Background(), "tenant-b", tpl.ID)
-	if err != notifapp.ErrTenantMismatch {
-		t.Fatalf("期望跨租户查询返回 notifapp.ErrTenantMismatch，实际为 %v", err)
+	if err != notifapp.ErrTemplateNotFound {
+		t.Fatalf("期望跨租户查询返回 notifapp.ErrTemplateNotFound，实际为 %v", err)
 	}
 }
 
@@ -908,7 +908,7 @@ func TestPreferenceCrossTenantOperation(t *testing.T) {
 	}
 
 	_, err := svc.GetPreference(context.Background(), "tenant-b", pref.ID)
-	if err != notifapp.ErrTenantMismatch {
-		t.Fatalf("期望跨租户查询返回 notifapp.ErrTenantMismatch，实际为 %v", err)
+	if err != notifapp.ErrPreferenceNotFound {
+		t.Fatalf("期望跨租户查询返回 notifapp.ErrPreferenceNotFound，实际为 %v", err)
 	}
 }

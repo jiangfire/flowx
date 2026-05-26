@@ -17,7 +17,6 @@ var (
 	ErrAssetNotFound        = errors.New("数据资产不存在")
 	ErrQualityRuleNotFound  = errors.New("数据质量规则不存在")
 	ErrQualityCheckNotFound = errors.New("数据质量检查不存在")
-	ErrTenantMismatch       = errors.New("租户不匹配")
 	ErrPolicyNameRequired   = errors.New("策略名称不能为空")
 	ErrPolicyTypeRequired   = errors.New("策略类型不能为空")
 	ErrAssetNameRequired    = errors.New("资产名称不能为空")
@@ -30,26 +29,26 @@ var (
 
 // CreatePolicyRequest 创建数据策略请求
 type CreatePolicyRequest struct {
-	Name        string     `json:"name" binding:"required"`
-	Type        string     `json:"type" binding:"required"`
-	Description string     `json:"description"`
-	Scope       string     `json:"scope"`
-	ScopeValue  string     `json:"scope_value"`
-	Rules       base.JSON  `json:"rules"`
-	Priority    int        `json:"priority"`
-	Status      string     `json:"status"`
+	Name        string    `json:"name" binding:"required"`
+	Type        string    `json:"type" binding:"required"`
+	Description string    `json:"description"`
+	Scope       string    `json:"scope"`
+	ScopeValue  string    `json:"scope_value"`
+	Rules       base.JSON `json:"rules"`
+	Priority    int       `json:"priority"`
+	Status      string    `json:"status"`
 }
 
 // UpdatePolicyRequest 更新数据策略请求
 type UpdatePolicyRequest struct {
-	Name        *string     `json:"name"`
-	Type        *string     `json:"type"`
-	Description *string     `json:"description"`
-	Scope       *string     `json:"scope"`
-	ScopeValue  *string     `json:"scope_value"`
-	Rules       *base.JSON  `json:"rules"`
-	Priority    *int        `json:"priority"`
-	Status      *string     `json:"status"`
+	Name        *string    `json:"name"`
+	Type        *string    `json:"type"`
+	Description *string    `json:"description"`
+	Scope       *string    `json:"scope"`
+	ScopeValue  *string    `json:"scope_value"`
+	Rules       *base.JSON `json:"rules"`
+	Priority    *int       `json:"priority"`
+	Status      *string    `json:"status"`
 }
 
 // ListPoliciesFilter 数据策略列表过滤条件
@@ -64,38 +63,38 @@ type ListPoliciesFilter struct {
 
 // CreateAssetRequest 创建数据资产请求
 type CreateAssetRequest struct {
-	Name           string     `json:"name" binding:"required"`
-	Type           string     `json:"type" binding:"required"`
-	Source         string     `json:"source"`
-	SourceID       string     `json:"source_id"`
-	Description    string     `json:"description"`
-	Format         string     `json:"format"`
-	Schema         base.JSON  `json:"schema"`
-	Size           int64      `json:"size"`
-	RecordCount    int64      `json:"record_count"`
-	Location       string     `json:"location"`
-	Tags           base.JSON  `json:"tags"`
-	Classification string     `json:"classification"`
-	OwnerID        string     `json:"owner_id"`
-	Status         string     `json:"status"`
+	Name           string    `json:"name" binding:"required"`
+	Type           string    `json:"type" binding:"required"`
+	Source         string    `json:"source"`
+	SourceID       string    `json:"source_id"`
+	Description    string    `json:"description"`
+	Format         string    `json:"format"`
+	Schema         base.JSON `json:"schema"`
+	Size           int64     `json:"size"`
+	RecordCount    int64     `json:"record_count"`
+	Location       string    `json:"location"`
+	Tags           base.JSON `json:"tags"`
+	Classification string    `json:"classification"`
+	OwnerID        string    `json:"owner_id"`
+	Status         string    `json:"status"`
 }
 
 // UpdateAssetRequest 更新数据资产请求
 type UpdateAssetRequest struct {
-	Name           *string     `json:"name"`
-	Type           *string     `json:"type"`
-	Source         *string     `json:"source"`
-	SourceID       *string     `json:"source_id"`
-	Description    *string     `json:"description"`
-	Format         *string     `json:"format"`
-	Schema         *base.JSON  `json:"schema"`
-	Size           *int64      `json:"size"`
-	RecordCount    *int64      `json:"record_count"`
-	Location       *string     `json:"location"`
-	Tags           *base.JSON  `json:"tags"`
-	Classification *string     `json:"classification"`
-	OwnerID        *string     `json:"owner_id"`
-	Status         *string     `json:"status"`
+	Name           *string    `json:"name"`
+	Type           *string    `json:"type"`
+	Source         *string    `json:"source"`
+	SourceID       *string    `json:"source_id"`
+	Description    *string    `json:"description"`
+	Format         *string    `json:"format"`
+	Schema         *base.JSON `json:"schema"`
+	Size           *int64     `json:"size"`
+	RecordCount    *int64     `json:"record_count"`
+	Location       *string    `json:"location"`
+	Tags           *base.JSON `json:"tags"`
+	Classification *string    `json:"classification"`
+	OwnerID        *string    `json:"owner_id"`
+	Status         *string    `json:"status"`
 }
 
 // ListAssetsFilter 数据资产列表过滤条件
@@ -111,26 +110,26 @@ type ListAssetsFilter struct {
 
 // CreateRuleRequest 创建数据质量规则请求
 type CreateRuleRequest struct {
-	Name        string     `json:"name" binding:"required"`
-	Type        string     `json:"type" binding:"required"`
-	TargetAsset string     `json:"target_asset"`
-	TargetField string     `json:"target_field"`
-	Description string     `json:"description"`
-	Config      base.JSON  `json:"config"`
-	Severity    string     `json:"severity"`
-	Status      string     `json:"status"`
+	Name        string    `json:"name" binding:"required"`
+	Type        string    `json:"type" binding:"required"`
+	TargetAsset string    `json:"target_asset"`
+	TargetField string    `json:"target_field"`
+	Description string    `json:"description"`
+	Config      base.JSON `json:"config"`
+	Severity    string    `json:"severity"`
+	Status      string    `json:"status"`
 }
 
 // UpdateRuleRequest 更新数据质量规则请求
 type UpdateRuleRequest struct {
-	Name        *string     `json:"name"`
-	Type        *string     `json:"type"`
-	TargetAsset *string     `json:"target_asset"`
-	TargetField *string     `json:"target_field"`
-	Description *string     `json:"description"`
-	Config      *base.JSON  `json:"config"`
-	Severity    *string     `json:"severity"`
-	Status      *string     `json:"status"`
+	Name        *string    `json:"name"`
+	Type        *string    `json:"type"`
+	TargetAsset *string    `json:"target_asset"`
+	TargetField *string    `json:"target_field"`
+	Description *string    `json:"description"`
+	Config      *base.JSON `json:"config"`
+	Severity    *string    `json:"severity"`
+	Status      *string    `json:"status"`
 }
 
 // ListRulesFilter 数据质量规则列表过滤条件
@@ -223,13 +222,9 @@ func (s *DataGovService) CreatePolicy(ctx context.Context, tenantID string, req 
 
 // GetPolicy 获取数据策略详情
 func (s *DataGovService) GetPolicy(ctx context.Context, tenantID string, id string) (*datagov.DataPolicy, error) {
-	policy, err := s.policyRepo.GetByID(ctx, id)
+	policy, err := s.policyRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrPolicyNotFound
-	}
-
-	if policy.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	return policy, nil
@@ -256,13 +251,9 @@ func (s *DataGovService) ListPolicies(ctx context.Context, tenantID string, filt
 
 // UpdatePolicy 更新数据策略
 func (s *DataGovService) UpdatePolicy(ctx context.Context, tenantID string, id string, req *UpdatePolicyRequest) (*datagov.DataPolicy, error) {
-	existing, err := s.policyRepo.GetByID(ctx, id)
+	existing, err := s.policyRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrPolicyNotFound
-	}
-
-	if existing.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	if req.Name != nil {
@@ -300,16 +291,10 @@ func (s *DataGovService) UpdatePolicy(ctx context.Context, tenantID string, id s
 
 // DeletePolicy 删除数据策略
 func (s *DataGovService) DeletePolicy(ctx context.Context, tenantID string, id string) error {
-	existing, err := s.policyRepo.GetByID(ctx, id)
-	if err != nil {
-		return ErrPolicyNotFound
+	if _, err := s.policyRepo.GetByID(ctx, tenantID, id); err != nil {
+		return err
 	}
-
-	if existing.TenantID != tenantID {
-		return ErrTenantMismatch
-	}
-
-	if err := s.policyRepo.Delete(ctx, id); err != nil {
+	if err := s.policyRepo.Delete(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("删除数据策略失败: %w", err)
 	}
 
@@ -364,13 +349,9 @@ func (s *DataGovService) CreateAsset(ctx context.Context, tenantID string, req *
 
 // GetAsset 获取数据资产详情
 func (s *DataGovService) GetAsset(ctx context.Context, tenantID string, id string) (*datagov.DataAsset, error) {
-	asset, err := s.assetRepo.GetByID(ctx, id)
+	asset, err := s.assetRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrAssetNotFound
-	}
-
-	if asset.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	return asset, nil
@@ -398,13 +379,9 @@ func (s *DataGovService) ListAssets(ctx context.Context, tenantID string, filter
 
 // UpdateAsset 更新数据资产
 func (s *DataGovService) UpdateAsset(ctx context.Context, tenantID string, id string, req *UpdateAssetRequest) (*datagov.DataAsset, error) {
-	existing, err := s.assetRepo.GetByID(ctx, id)
+	existing, err := s.assetRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrAssetNotFound
-	}
-
-	if existing.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	if req.Name != nil {
@@ -459,16 +436,10 @@ func (s *DataGovService) UpdateAsset(ctx context.Context, tenantID string, id st
 
 // DeleteAsset 删除数据资产
 func (s *DataGovService) DeleteAsset(ctx context.Context, tenantID string, id string) error {
-	existing, err := s.assetRepo.GetByID(ctx, id)
-	if err != nil {
-		return ErrAssetNotFound
+	if _, err := s.assetRepo.GetByID(ctx, tenantID, id); err != nil {
+		return err
 	}
-
-	if existing.TenantID != tenantID {
-		return ErrTenantMismatch
-	}
-
-	if err := s.assetRepo.Delete(ctx, id); err != nil {
+	if err := s.assetRepo.Delete(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("删除数据资产失败: %w", err)
 	}
 
@@ -517,13 +488,9 @@ func (s *DataGovService) CreateRule(ctx context.Context, tenantID string, req *C
 
 // GetRule 获取数据质量规则详情
 func (s *DataGovService) GetRule(ctx context.Context, tenantID string, id string) (*datagov.DataQualityRule, error) {
-	rule, err := s.ruleRepo.GetByID(ctx, id)
+	rule, err := s.ruleRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrQualityRuleNotFound
-	}
-
-	if rule.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	return rule, nil
@@ -551,13 +518,9 @@ func (s *DataGovService) ListRules(ctx context.Context, tenantID string, filter 
 
 // UpdateRule 更新数据质量规则
 func (s *DataGovService) UpdateRule(ctx context.Context, tenantID string, id string, req *UpdateRuleRequest) (*datagov.DataQualityRule, error) {
-	existing, err := s.ruleRepo.GetByID(ctx, id)
+	existing, err := s.ruleRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrQualityRuleNotFound
-	}
-
-	if existing.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	if req.Name != nil {
@@ -594,16 +557,10 @@ func (s *DataGovService) UpdateRule(ctx context.Context, tenantID string, id str
 
 // DeleteRule 删除数据质量规则
 func (s *DataGovService) DeleteRule(ctx context.Context, tenantID string, id string) error {
-	existing, err := s.ruleRepo.GetByID(ctx, id)
-	if err != nil {
-		return ErrQualityRuleNotFound
+	if _, err := s.ruleRepo.GetByID(ctx, tenantID, id); err != nil {
+		return err
 	}
-
-	if existing.TenantID != tenantID {
-		return ErrTenantMismatch
-	}
-
-	if err := s.ruleRepo.Delete(ctx, id); err != nil {
+	if err := s.ruleRepo.Delete(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("删除数据质量规则失败: %w", err)
 	}
 
@@ -614,13 +571,9 @@ func (s *DataGovService) DeleteRule(ctx context.Context, tenantID string, id str
 
 // GetCheck 获取数据质量检查详情
 func (s *DataGovService) GetCheck(ctx context.Context, tenantID string, id string) (*datagov.DataQualityCheck, error) {
-	check, err := s.checkRepo.GetByID(ctx, id)
+	check, err := s.checkRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrQualityCheckNotFound
-	}
-
-	if check.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	return check, nil
@@ -647,16 +600,10 @@ func (s *DataGovService) ListChecks(ctx context.Context, tenantID string, filter
 
 // DeleteCheck 删除数据质量检查
 func (s *DataGovService) DeleteCheck(ctx context.Context, tenantID string, id string) error {
-	existing, err := s.checkRepo.GetByID(ctx, id)
-	if err != nil {
-		return ErrQualityCheckNotFound
+	if _, err := s.checkRepo.GetByID(ctx, tenantID, id); err != nil {
+		return err
 	}
-
-	if existing.TenantID != tenantID {
-		return ErrTenantMismatch
-	}
-
-	if err := s.checkRepo.Delete(ctx, id); err != nil {
+	if err := s.checkRepo.Delete(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("删除数据质量检查失败: %w", err)
 	}
 
@@ -666,21 +613,15 @@ func (s *DataGovService) DeleteCheck(ctx context.Context, tenantID string, id st
 // RunQualityCheck 执行数据质量检查
 func (s *DataGovService) RunQualityCheck(ctx context.Context, tenantID string, req *RunQualityCheckRequest) (*datagov.DataQualityCheck, error) {
 	// 校验规则存在
-	rule, err := s.ruleRepo.GetByID(ctx, req.RuleID)
+	rule, err := s.ruleRepo.GetByID(ctx, tenantID, req.RuleID)
 	if err != nil {
 		return nil, ErrQualityRuleNotFound
 	}
-	if rule.TenantID != tenantID {
-		return nil, ErrTenantMismatch
-	}
 
 	// 校验资产存在
-	asset, err := s.assetRepo.GetByID(ctx, req.AssetID)
+	asset, err := s.assetRepo.GetByID(ctx, tenantID, req.AssetID)
 	if err != nil {
 		return nil, ErrAssetNotFound
-	}
-	if asset.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	// 创建检查记录
@@ -714,4 +655,73 @@ func (s *DataGovService) RunQualityCheck(ctx context.Context, tenantID string, r
 	}
 
 	return check, nil
+}
+
+// ==================== 批量导入 ====================
+
+// ImportResultItem 单个导入结果
+type ImportResultItem struct {
+	Status  string `json:"status"`
+	Message string `json:"message,omitempty"`
+	ID      string `json:"id,omitempty"`
+}
+
+// ImportPolicies 批量导入数据策略
+func (s *DataGovService) ImportPolicies(ctx context.Context, tenantID string, requests []*CreatePolicyRequest) ([]ImportResultItem, error) {
+	var results []ImportResultItem
+	for _, req := range requests {
+		policy, err := s.CreatePolicy(ctx, tenantID, req)
+		if err != nil {
+			results = append(results, ImportResultItem{
+				Status:  "error",
+				Message: err.Error(),
+			})
+			continue
+		}
+		results = append(results, ImportResultItem{
+			Status: "success",
+			ID:     policy.ID,
+		})
+	}
+	return results, nil
+}
+
+// ImportAssets 批量导入数据资产
+func (s *DataGovService) ImportAssets(ctx context.Context, tenantID string, requests []*CreateAssetRequest) ([]ImportResultItem, error) {
+	var results []ImportResultItem
+	for _, req := range requests {
+		asset, err := s.CreateAsset(ctx, tenantID, req)
+		if err != nil {
+			results = append(results, ImportResultItem{
+				Status:  "error",
+				Message: err.Error(),
+			})
+			continue
+		}
+		results = append(results, ImportResultItem{
+			Status: "success",
+			ID:     asset.ID,
+		})
+	}
+	return results, nil
+}
+
+// ImportRules 批量导入数据质量规则
+func (s *DataGovService) ImportRules(ctx context.Context, tenantID string, requests []*CreateRuleRequest) ([]ImportResultItem, error) {
+	var results []ImportResultItem
+	for _, req := range requests {
+		rule, err := s.CreateRule(ctx, tenantID, req)
+		if err != nil {
+			results = append(results, ImportResultItem{
+				Status:  "error",
+				Message: err.Error(),
+			})
+			continue
+		}
+		results = append(results, ImportResultItem{
+			Status: "success",
+			ID:     rule.ID,
+		})
+	}
+	return results, nil
 }

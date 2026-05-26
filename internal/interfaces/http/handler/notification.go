@@ -138,10 +138,6 @@ func (h *NotificationHandler) GetNotification(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "通知不存在")
 			return
 		}
-		if errors.Is(err, notificationapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该通知")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "查询通知失败")
 		return
 	}
@@ -182,10 +178,6 @@ func (h *NotificationHandler) UpdateNotification(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "通知不存在")
 			return
 		}
-		if errors.Is(err, notificationapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该通知")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "更新通知失败")
 		return
 	}
@@ -218,10 +210,6 @@ func (h *NotificationHandler) DeleteNotification(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "通知不存在")
 			return
 		}
-		if errors.Is(err, notificationapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该通知")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "删除通知失败")
 		return
 	}
@@ -252,10 +240,6 @@ func (h *NotificationHandler) MarkAsRead(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, notificationapp.ErrNotificationNotFound) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "通知不存在")
-			return
-		}
-		if errors.Is(err, notificationapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该通知")
 			return
 		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "标记已读失败")
@@ -346,10 +330,6 @@ func (h *NotificationHandler) SendNotification(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, notificationapp.ErrTemplateNotFound) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "通知模板不存在")
-			return
-		}
-		if errors.Is(err, notificationapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该模板")
 			return
 		}
 		if errors.Is(err, notificationapp.ErrUserMuted) {
@@ -474,10 +454,6 @@ func (h *NotificationHandler) GetTemplate(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "通知模板不存在")
 			return
 		}
-		if errors.Is(err, notificationapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该模板")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "查询通知模板失败")
 		return
 	}
@@ -518,10 +494,6 @@ func (h *NotificationHandler) UpdateTemplate(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "通知模板不存在")
 			return
 		}
-		if errors.Is(err, notificationapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该模板")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "更新通知模板失败")
 		return
 	}
@@ -552,10 +524,6 @@ func (h *NotificationHandler) DeleteTemplate(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, notificationapp.ErrTemplateNotFound) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "通知模板不存在")
-			return
-		}
-		if errors.Is(err, notificationapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该模板")
 			return
 		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "删除通知模板失败")
@@ -678,10 +646,6 @@ func (h *NotificationHandler) UpdatePreference(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "通知偏好不存在")
 			return
 		}
-		if errors.Is(err, notificationapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该偏好")
-			return
-		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "更新通知偏好失败")
 		return
 	}
@@ -712,10 +676,6 @@ func (h *NotificationHandler) DeletePreference(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, notificationapp.ErrPreferenceNotFound) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "通知偏好不存在")
-			return
-		}
-		if errors.Is(err, notificationapp.ErrTenantMismatch) {
-			response.Error(c, http.StatusForbidden, "FORBIDDEN", "无权访问该偏好")
 			return
 		}
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "删除通知偏好失败")

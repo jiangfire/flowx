@@ -17,7 +17,6 @@ var (
 	ErrNotificationNotFound      = errors.New("通知不存在")
 	ErrTemplateNotFound          = errors.New("通知模板不存在")
 	ErrPreferenceNotFound        = errors.New("通知偏好不存在")
-	ErrTenantMismatch            = errors.New("租户不匹配")
 	ErrNotificationTitleRequired = errors.New("通知标题不能为空")
 	ErrNotificationTypeRequired  = errors.New("通知类型不能为空")
 	ErrTemplateCodeRequired      = errors.New("模板编码不能为空")
@@ -28,15 +27,15 @@ var (
 
 // CreateNotificationRequest 创建通知请求
 type CreateNotificationRequest struct {
-	Title      string     `json:"title" binding:"required"`
-	Content    string     `json:"content"`
-	Type       string     `json:"type" binding:"required"`
-	Category   string     `json:"category"`
-	Channel    string     `json:"channel"`
-	ReceiverID string     `json:"receiver_id" binding:"required"`
-	RefType    string     `json:"ref_type"`
-	RefID      string     `json:"ref_id"`
-	Extra      base.JSON  `json:"extra"`
+	Title      string    `json:"title" binding:"required"`
+	Content    string    `json:"content"`
+	Type       string    `json:"type" binding:"required"`
+	Category   string    `json:"category"`
+	Channel    string    `json:"channel"`
+	ReceiverID string    `json:"receiver_id" binding:"required"`
+	RefType    string    `json:"ref_type"`
+	RefID      string    `json:"ref_id"`
+	Extra      base.JSON `json:"extra"`
 }
 
 // UpdateNotificationRequest 更新通知请求
@@ -75,13 +74,13 @@ type CreateTemplateRequest struct {
 
 // UpdateTemplateRequest 更新模板请求
 type UpdateTemplateRequest struct {
-	Name        *string    `json:"name"`
-	Channel     *string    `json:"channel"`
-	TitleTpl    *string    `json:"title_tpl"`
-	ContentTpl  *string    `json:"content_tpl"`
-	Variables   base.JSON  `json:"variables"`
-	Description *string    `json:"description"`
-	Status      *string    `json:"status"`
+	Name        *string   `json:"name"`
+	Channel     *string   `json:"channel"`
+	TitleTpl    *string   `json:"title_tpl"`
+	ContentTpl  *string   `json:"content_tpl"`
+	Variables   base.JSON `json:"variables"`
+	Description *string   `json:"description"`
+	Status      *string   `json:"status"`
 }
 
 // CreatePreferenceRequest 创建偏好请求
@@ -173,13 +172,9 @@ func (s *NotificationService) CreateNotification(ctx context.Context, tenantID s
 
 // GetNotification 获取通知详情
 func (s *NotificationService) GetNotification(ctx context.Context, tenantID string, id string) (*notifdomain.Notification, error) {
-	n, err := s.notifRepo.GetByID(ctx, id)
+	n, err := s.notifRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrNotificationNotFound
-	}
-
-	if n.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	return n, nil
@@ -207,13 +202,9 @@ func (s *NotificationService) ListNotifications(ctx context.Context, tenantID st
 
 // UpdateNotification 更新通知
 func (s *NotificationService) UpdateNotification(ctx context.Context, tenantID string, id string, req *UpdateNotificationRequest) (*notifdomain.Notification, error) {
-	existing, err := s.notifRepo.GetByID(ctx, id)
+	existing, err := s.notifRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrNotificationNotFound
-	}
-
-	if existing.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	if req.Title != nil {
@@ -250,16 +241,10 @@ func (s *NotificationService) UpdateNotification(ctx context.Context, tenantID s
 
 // DeleteNotification 删除通知
 func (s *NotificationService) DeleteNotification(ctx context.Context, tenantID string, id string) error {
-	existing, err := s.notifRepo.GetByID(ctx, id)
-	if err != nil {
-		return ErrNotificationNotFound
+	if _, err := s.notifRepo.GetByID(ctx, tenantID, id); err != nil {
+		return err
 	}
-
-	if existing.TenantID != tenantID {
-		return ErrTenantMismatch
-	}
-
-	if err := s.notifRepo.Delete(ctx, id); err != nil {
+	if err := s.notifRepo.Delete(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("删除通知失败: %w", err)
 	}
 
@@ -268,16 +253,10 @@ func (s *NotificationService) DeleteNotification(ctx context.Context, tenantID s
 
 // MarkAsRead 标记通知为已读
 func (s *NotificationService) MarkAsRead(ctx context.Context, tenantID string, id string) error {
-	existing, err := s.notifRepo.GetByID(ctx, id)
-	if err != nil {
-		return ErrNotificationNotFound
+	if _, err := s.notifRepo.GetByID(ctx, tenantID, id); err != nil {
+		return err
 	}
-
-	if existing.TenantID != tenantID {
-		return ErrTenantMismatch
-	}
-
-	if err := s.notifRepo.MarkAsRead(ctx, id); err != nil {
+	if err := s.notifRepo.MarkAsRead(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("标记已读失败: %w", err)
 	}
 
@@ -332,13 +311,9 @@ func (s *NotificationService) CreateTemplate(ctx context.Context, tenantID strin
 
 // GetTemplate 获取通知模板详情
 func (s *NotificationService) GetTemplate(ctx context.Context, tenantID string, id string) (*notifdomain.NotificationTemplate, error) {
-	tpl, err := s.templateRepo.GetByID(ctx, id)
+	tpl, err := s.templateRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrTemplateNotFound
-	}
-
-	if tpl.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	return tpl, nil
@@ -373,13 +348,9 @@ func (s *NotificationService) ListTemplates(ctx context.Context, tenantID string
 
 // UpdateTemplate 更新通知模板
 func (s *NotificationService) UpdateTemplate(ctx context.Context, tenantID string, id string, req *UpdateTemplateRequest) (*notifdomain.NotificationTemplate, error) {
-	existing, err := s.templateRepo.GetByID(ctx, id)
+	existing, err := s.templateRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrTemplateNotFound
-	}
-
-	if existing.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	if req.Name != nil {
@@ -413,16 +384,7 @@ func (s *NotificationService) UpdateTemplate(ctx context.Context, tenantID strin
 
 // DeleteTemplate 删除通知模板
 func (s *NotificationService) DeleteTemplate(ctx context.Context, tenantID string, id string) error {
-	existing, err := s.templateRepo.GetByID(ctx, id)
-	if err != nil {
-		return ErrTemplateNotFound
-	}
-
-	if existing.TenantID != tenantID {
-		return ErrTenantMismatch
-	}
-
-	if err := s.templateRepo.Delete(ctx, id); err != nil {
+	if err := s.templateRepo.Delete(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("删除通知模板失败: %w", err)
 	}
 
@@ -456,13 +418,9 @@ func (s *NotificationService) CreatePreference(ctx context.Context, tenantID str
 
 // GetPreference 获取通知偏好详情
 func (s *NotificationService) GetPreference(ctx context.Context, tenantID string, id string) (*notifdomain.NotificationPreference, error) {
-	pref, err := s.preferenceRepo.GetByID(ctx, id)
+	pref, err := s.preferenceRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrPreferenceNotFound
-	}
-
-	if pref.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	return pref, nil
@@ -488,13 +446,9 @@ func (s *NotificationService) ListPreferences(ctx context.Context, tenantID stri
 
 // UpdatePreference 更新通知偏好
 func (s *NotificationService) UpdatePreference(ctx context.Context, tenantID string, id string, req *UpdatePreferenceRequest) (*notifdomain.NotificationPreference, error) {
-	existing, err := s.preferenceRepo.GetByID(ctx, id)
+	existing, err := s.preferenceRepo.GetByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, ErrPreferenceNotFound
-	}
-
-	if existing.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	if req.Enabled != nil {
@@ -513,16 +467,7 @@ func (s *NotificationService) UpdatePreference(ctx context.Context, tenantID str
 
 // DeletePreference 删除通知偏好
 func (s *NotificationService) DeletePreference(ctx context.Context, tenantID string, id string) error {
-	existing, err := s.preferenceRepo.GetByID(ctx, id)
-	if err != nil {
-		return ErrPreferenceNotFound
-	}
-
-	if existing.TenantID != tenantID {
-		return ErrTenantMismatch
-	}
-
-	if err := s.preferenceRepo.Delete(ctx, id); err != nil {
+	if err := s.preferenceRepo.Delete(ctx, tenantID, id); err != nil {
 		return fmt.Errorf("删除通知偏好失败: %w", err)
 	}
 
@@ -550,11 +495,6 @@ func (s *NotificationService) SendNotification(ctx context.Context, tenantID str
 	tpl, err := s.templateRepo.GetByCode(ctx, tenantID, req.TemplateCode)
 	if err != nil {
 		return nil, ErrTemplateNotFound
-	}
-
-	// 多租户校验
-	if tpl.TenantID != tenantID {
-		return nil, ErrTenantMismatch
 	}
 
 	// 检查用户偏好（是否被免打扰）

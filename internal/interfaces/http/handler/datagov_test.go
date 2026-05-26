@@ -15,8 +15,8 @@ import (
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
-	"github.com/xuri/excelize/v2"
 	"github.com/glebarez/sqlite"
+	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 )
 
@@ -40,7 +40,7 @@ func setupDatagovHandlerTest(t *testing.T) (*DataGovHandler, *gin.Engine, auth.J
 	checkRepo := persistence.NewDataQualityCheckRepository(db)
 
 	service := datagovapp.NewDataGovService(policyRepo, assetRepo, ruleRepo, checkRepo)
-	excelService := datagovapp.NewDataGovExcelService(policyRepo, assetRepo, ruleRepo)
+	excelService := datagovapp.NewDataGovExcelService()
 	handler := NewDataGovHandler(service, excelService)
 
 	// 创建 JWT 服务

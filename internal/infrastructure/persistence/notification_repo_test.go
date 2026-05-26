@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	notifapp "git.neolidy.top/neo/flowx/internal/application/notification"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/notification"
-	notifapp "git.neolidy.top/neo/flowx/internal/application/notification"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
@@ -119,7 +119,7 @@ func TestNotificationRepository_GetByID_Exists(t *testing.T) {
 
 	created := createTestNotification(t, db, "tenant-001", "user-001", "system", "info", "pending", false)
 
-	found, err := repo.GetByID(context.Background(), created.ID)
+	found, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询通知失败: %v", err)
 	}
@@ -136,7 +136,7 @@ func TestNotificationRepository_GetByID_NotExists(t *testing.T) {
 	db := setupNotificationRepoTestDB(t)
 	repo := NewNotificationRepository(db)
 
-	_, err := repo.GetByID(context.Background(), "non-existent-id")
+	_, err := repo.GetByID(context.Background(), "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望查询不存在的通知返回错误")
 	}
@@ -308,7 +308,7 @@ func TestNotificationRepository_Update(t *testing.T) {
 		t.Fatalf("更新通知失败: %v", err)
 	}
 
-	updated, err := repo.GetByID(context.Background(), created.ID)
+	updated, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询更新后的通知失败: %v", err)
 	}
@@ -327,12 +327,12 @@ func TestNotificationRepository_MarkAsRead(t *testing.T) {
 
 	created := createTestNotification(t, db, "tenant-001", "user-001", "system", "info", "pending", false)
 
-	err := repo.MarkAsRead(context.Background(), created.ID)
+	err := repo.MarkAsRead(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("标记通知已读失败: %v", err)
 	}
 
-	updated, err := repo.GetByID(context.Background(), created.ID)
+	updated, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询更新后的通知失败: %v", err)
 	}
@@ -349,7 +349,7 @@ func TestNotificationRepository_MarkAsRead_NotExists(t *testing.T) {
 	db := setupNotificationRepoTestDB(t)
 	repo := NewNotificationRepository(db)
 
-	err := repo.MarkAsRead(context.Background(), "non-existent-id")
+	err := repo.MarkAsRead(context.Background(), "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望标记不存在的通知返回错误")
 	}
@@ -387,12 +387,12 @@ func TestNotificationRepository_Delete(t *testing.T) {
 
 	created := createTestNotification(t, db, "tenant-001", "user-001", "system", "info", "pending", false)
 
-	err := repo.Delete(context.Background(), created.ID)
+	err := repo.Delete(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("删除通知失败: %v", err)
 	}
 
-	_, err = repo.GetByID(context.Background(), created.ID)
+	_, err = repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err == nil {
 		t.Error("期望软删除后查询返回错误")
 	}
@@ -472,7 +472,7 @@ func TestNotificationTemplateRepository_GetByID_Exists(t *testing.T) {
 
 	created := createTestNotificationTemplate(t, db, "tenant-001", "审批模板", "approval_notify", "approval", "in_app")
 
-	found, err := repo.GetByID(context.Background(), created.ID)
+	found, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询通知模板失败: %v", err)
 	}
@@ -489,7 +489,7 @@ func TestNotificationTemplateRepository_GetByID_NotExists(t *testing.T) {
 	db := setupNotificationRepoTestDB(t)
 	repo := NewNotificationTemplateRepository(db)
 
-	_, err := repo.GetByID(context.Background(), "non-existent-id")
+	_, err := repo.GetByID(context.Background(), "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望查询不存在的通知模板返回错误")
 	}
@@ -628,7 +628,7 @@ func TestNotificationTemplateRepository_Update(t *testing.T) {
 		t.Fatalf("更新通知模板失败: %v", err)
 	}
 
-	updated, err := repo.GetByID(context.Background(), created.ID)
+	updated, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询更新后的模板失败: %v", err)
 	}
@@ -647,12 +647,12 @@ func TestNotificationTemplateRepository_Delete(t *testing.T) {
 
 	created := createTestNotificationTemplate(t, db, "tenant-001", "删除模板", "delete_tpl", "system", "in_app")
 
-	err := repo.Delete(context.Background(), created.ID)
+	err := repo.Delete(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("删除通知模板失败: %v", err)
 	}
 
-	_, err = repo.GetByID(context.Background(), created.ID)
+	_, err = repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err == nil {
 		t.Error("期望软删除后查询返回错误")
 	}
@@ -709,7 +709,7 @@ func TestNotificationPreferenceRepository_GetByID_Exists(t *testing.T) {
 
 	created := createTestNotificationPreference(t, db, "tenant-001", "user-001", "system", "in_app", true)
 
-	found, err := repo.GetByID(context.Background(), created.ID)
+	found, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询通知偏好失败: %v", err)
 	}
@@ -726,7 +726,7 @@ func TestNotificationPreferenceRepository_GetByID_NotExists(t *testing.T) {
 	db := setupNotificationRepoTestDB(t)
 	repo := NewNotificationPreferenceRepository(db)
 
-	_, err := repo.GetByID(context.Background(), "non-existent-id")
+	_, err := repo.GetByID(context.Background(), "tenant-001", "non-existent-id")
 	if err == nil {
 		t.Fatal("期望查询不存在的通知偏好返回错误")
 	}
@@ -878,7 +878,7 @@ func TestNotificationPreferenceRepository_Update(t *testing.T) {
 		t.Fatalf("更新通知偏好失败: %v", err)
 	}
 
-	updated, err := repo.GetByID(context.Background(), created.ID)
+	updated, err := repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("查询更新后的偏好失败: %v", err)
 	}
@@ -894,12 +894,12 @@ func TestNotificationPreferenceRepository_Delete(t *testing.T) {
 
 	created := createTestNotificationPreference(t, db, "tenant-001", "user-001", "system", "in_app", true)
 
-	err := repo.Delete(context.Background(), created.ID)
+	err := repo.Delete(context.Background(), "tenant-001", created.ID)
 	if err != nil {
 		t.Fatalf("删除通知偏好失败: %v", err)
 	}
 
-	_, err = repo.GetByID(context.Background(), created.ID)
+	_, err = repo.GetByID(context.Background(), "tenant-001", created.ID)
 	if err == nil {
 		t.Error("期望软删除后查询返回错误")
 	}

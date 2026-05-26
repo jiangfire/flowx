@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	notifapp "git.neolidy.top/neo/flowx/internal/application/notification"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/notification"
-	notifapp "git.neolidy.top/neo/flowx/internal/application/notification"
 	"gorm.io/gorm"
 )
 
@@ -32,11 +32,11 @@ func (r *notificationRepository) Create(ctx context.Context, n *notification.Not
 }
 
 // GetByID 根据 ID 查询通知
-func (r *notificationRepository) GetByID(ctx context.Context, id string) (*notification.Notification, error) {
+func (r *notificationRepository) GetByID(ctx context.Context, tenantID, id string) (*notification.Notification, error) {
 	var n notification.Notification
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&n).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&n).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("通知不存在: %s", id)
+			return nil, notifapp.ErrNotificationNotFound
 		}
 		return nil, fmt.Errorf("查询通知失败: %w", err)
 	}
@@ -93,10 +93,10 @@ func (r *notificationRepository) Update(ctx context.Context, n *notification.Not
 }
 
 // MarkAsRead 标记通知为已读
-func (r *notificationRepository) MarkAsRead(ctx context.Context, id string) error {
+func (r *notificationRepository) MarkAsRead(ctx context.Context, tenantID, id string) error {
 	now := time.Now()
 	result := r.db.WithContext(ctx).Model(&notification.Notification{}).
-		Where("id = ?", id).
+		Where("id = ? AND tenant_id = ?", id, tenantID).
 		Updates(map[string]interface{}{
 			"is_read": true,
 			"read_at": now,
@@ -126,8 +126,8 @@ func (r *notificationRepository) MarkAllAsRead(ctx context.Context, tenantID, re
 }
 
 // Delete 软删除通知
-func (r *notificationRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&notification.Notification{}, "id = ?", id).Error
+func (r *notificationRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&notification.Notification{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }
 
 // CountUnread 统计未读通知数量
@@ -162,11 +162,11 @@ func (r *notificationTemplateRepository) Create(ctx context.Context, tpl *notifi
 }
 
 // GetByID 根据 ID 查询通知模板
-func (r *notificationTemplateRepository) GetByID(ctx context.Context, id string) (*notification.NotificationTemplate, error) {
+func (r *notificationTemplateRepository) GetByID(ctx context.Context, tenantID, id string) (*notification.NotificationTemplate, error) {
 	var tpl notification.NotificationTemplate
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&tpl).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&tpl).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("通知模板不存在: %s", id)
+			return nil, notifapp.ErrTemplateNotFound
 		}
 		return nil, fmt.Errorf("查询通知模板失败: %w", err)
 	}
@@ -226,8 +226,8 @@ func (r *notificationTemplateRepository) Update(ctx context.Context, tpl *notifi
 }
 
 // Delete 软删除通知模板
-func (r *notificationTemplateRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&notification.NotificationTemplate{}, "id = ?", id).Error
+func (r *notificationTemplateRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&notification.NotificationTemplate{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }
 
 // ==================== NotificationPreferenceRepository ====================
@@ -251,11 +251,11 @@ func (r *notificationPreferenceRepository) Create(ctx context.Context, pref *not
 }
 
 // GetByID 根据 ID 查询通知偏好
-func (r *notificationPreferenceRepository) GetByID(ctx context.Context, id string) (*notification.NotificationPreference, error) {
+func (r *notificationPreferenceRepository) GetByID(ctx context.Context, tenantID, id string) (*notification.NotificationPreference, error) {
 	var pref notification.NotificationPreference
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&pref).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&pref).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("通知偏好不存在: %s", id)
+			return nil, notifapp.ErrPreferenceNotFound
 		}
 		return nil, fmt.Errorf("查询通知偏好失败: %w", err)
 	}
@@ -320,6 +320,6 @@ func (r *notificationPreferenceRepository) Update(ctx context.Context, pref *not
 }
 
 // Delete 软删除通知偏好
-func (r *notificationPreferenceRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&notification.NotificationPreference{}, "id = ?", id).Error
+func (r *notificationPreferenceRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&notification.NotificationPreference{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }

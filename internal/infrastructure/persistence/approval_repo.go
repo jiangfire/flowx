@@ -8,7 +8,6 @@ import (
 	"git.neolidy.top/neo/flowx/internal/domain/approval"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/pkg/pagination"
-	"git.neolidy.top/neo/flowx/pkg/tenant"
 	"gorm.io/gorm"
 )
 
@@ -33,15 +32,13 @@ func (r *approvalRepository) CreateWorkflow(ctx context.Context, w *approval.Wor
 }
 
 // GetWorkflowByID 按 ID 获取工作流（多租户隔离）
-func (r *approvalRepository) GetWorkflowByID(ctx context.Context, id string) (*approval.Workflow, error) {
+func (r *approvalRepository) GetWorkflowByID(ctx context.Context, tenantID, id string) (*approval.Workflow, error) {
 	var w approval.Workflow
-	tenantID := tenant.TenantIDFromContext(ctx)
-	q := r.db.WithContext(ctx).Where("id = ?", id)
-	if tenantID != "" {
-		q = q.Where("tenant_id = ?", tenantID)
-	}
-	if err := q.First(&w).Error; err != nil {
-		return nil, fmt.Errorf("工作流不存在: %w", err)
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&w).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, approvalapp.ErrWorkflowNotFound
+		}
+		return nil, fmt.Errorf("查询工作流失败: %w", err)
 	}
 	return &w, nil
 }
@@ -78,8 +75,8 @@ func (r *approvalRepository) UpdateWorkflow(ctx context.Context, w *approval.Wor
 }
 
 // UpdateWorkflowStatus 更新工作流状态
-func (r *approvalRepository) UpdateWorkflowStatus(ctx context.Context, id string, status string) error {
-	return r.db.WithContext(ctx).Model(&approval.Workflow{}).Where("id = ?", id).Update("status", status).Error
+func (r *approvalRepository) UpdateWorkflowStatus(ctx context.Context, tenantID, id string, status string) error {
+	return r.db.WithContext(ctx).Model(&approval.Workflow{}).Where("id = ? AND tenant_id = ?", id, tenantID).Update("status", status).Error
 }
 
 // ===================== Instance =====================
@@ -93,15 +90,13 @@ func (r *approvalRepository) CreateInstance(ctx context.Context, inst *approval.
 }
 
 // GetInstanceByID 按 ID 获取实例（多租户隔离）
-func (r *approvalRepository) GetInstanceByID(ctx context.Context, id string) (*approval.WorkflowInstance, error) {
+func (r *approvalRepository) GetInstanceByID(ctx context.Context, tenantID, id string) (*approval.WorkflowInstance, error) {
 	var inst approval.WorkflowInstance
-	tenantID := tenant.TenantIDFromContext(ctx)
-	q := r.db.WithContext(ctx).Where("id = ?", id)
-	if tenantID != "" {
-		q = q.Where("tenant_id = ?", tenantID)
-	}
-	if err := q.First(&inst).Error; err != nil {
-		return nil, fmt.Errorf("工作流实例不存在: %w", err)
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&inst).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, approvalapp.ErrInstanceNotFound
+		}
+		return nil, fmt.Errorf("查询工作流实例失败: %w", err)
 	}
 	return &inst, nil
 }
@@ -151,9 +146,9 @@ func (r *approvalRepository) CreateApproval(ctx context.Context, a *approval.App
 }
 
 // ListApprovalsByInstance 按实例列出审批记录
-func (r *approvalRepository) ListApprovalsByInstance(ctx context.Context, instanceID string) ([]approval.Approval, error) {
+func (r *approvalRepository) ListApprovalsByInstance(ctx context.Context, tenantID, instanceID string) ([]approval.Approval, error) {
 	var approvals []approval.Approval
-	if err := r.db.WithContext(ctx).Where("instance_id = ?", instanceID).Order("step ASC").Find(&approvals).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("tenant_id = ? AND instance_id = ?", tenantID, instanceID).Order("step ASC").Find(&approvals).Error; err != nil {
 		return nil, fmt.Errorf("查询审批记录失败: %w", err)
 	}
 	return approvals, nil

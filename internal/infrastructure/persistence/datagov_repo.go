@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/datagov"
-	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
 	"gorm.io/gorm"
 )
 
@@ -31,11 +31,11 @@ func (r *dataPolicyRepository) Create(ctx context.Context, policy *datagov.DataP
 }
 
 // GetByID 根据 ID 查询数据策略
-func (r *dataPolicyRepository) GetByID(ctx context.Context, id string) (*datagov.DataPolicy, error) {
+func (r *dataPolicyRepository) GetByID(ctx context.Context, tenantID, id string) (*datagov.DataPolicy, error) {
 	var policy datagov.DataPolicy
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&policy).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&policy).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("数据策略不存在: %s", id)
+			return nil, datagovapp.ErrPolicyNotFound
 		}
 		return nil, fmt.Errorf("查询数据策略失败: %w", err)
 	}
@@ -89,8 +89,8 @@ func (r *dataPolicyRepository) Update(ctx context.Context, policy *datagov.DataP
 }
 
 // Delete 软删除数据策略
-func (r *dataPolicyRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&datagov.DataPolicy{}, "id = ?", id).Error
+func (r *dataPolicyRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&datagov.DataPolicy{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }
 
 // ==================== DataAssetRepository ====================
@@ -114,11 +114,11 @@ func (r *dataAssetRepository) Create(ctx context.Context, asset *datagov.DataAss
 }
 
 // GetByID 根据 ID 查询数据资产
-func (r *dataAssetRepository) GetByID(ctx context.Context, id string) (*datagov.DataAsset, error) {
+func (r *dataAssetRepository) GetByID(ctx context.Context, tenantID, id string) (*datagov.DataAsset, error) {
 	var asset datagov.DataAsset
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&asset).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&asset).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("数据资产不存在: %s", id)
+			return nil, datagovapp.ErrAssetNotFound
 		}
 		return nil, fmt.Errorf("查询数据资产失败: %w", err)
 	}
@@ -175,8 +175,8 @@ func (r *dataAssetRepository) Update(ctx context.Context, asset *datagov.DataAss
 }
 
 // Delete 软删除数据资产
-func (r *dataAssetRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&datagov.DataAsset{}, "id = ?", id).Error
+func (r *dataAssetRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&datagov.DataAsset{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }
 
 // ==================== DataQualityRuleRepository ====================
@@ -200,11 +200,11 @@ func (r *dataQualityRuleRepository) Create(ctx context.Context, rule *datagov.Da
 }
 
 // GetByID 根据 ID 查询数据质量规则
-func (r *dataQualityRuleRepository) GetByID(ctx context.Context, id string) (*datagov.DataQualityRule, error) {
+func (r *dataQualityRuleRepository) GetByID(ctx context.Context, tenantID, id string) (*datagov.DataQualityRule, error) {
 	var rule datagov.DataQualityRule
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&rule).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&rule).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("数据质量规则不存在: %s", id)
+			return nil, datagovapp.ErrQualityRuleNotFound
 		}
 		return nil, fmt.Errorf("查询数据质量规则失败: %w", err)
 	}
@@ -261,8 +261,8 @@ func (r *dataQualityRuleRepository) Update(ctx context.Context, rule *datagov.Da
 }
 
 // Delete 软删除数据质量规则
-func (r *dataQualityRuleRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&datagov.DataQualityRule{}, "id = ?", id).Error
+func (r *dataQualityRuleRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&datagov.DataQualityRule{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }
 
 // ==================== DataQualityCheckRepository ====================
@@ -286,11 +286,11 @@ func (r *dataQualityCheckRepository) Create(ctx context.Context, check *datagov.
 }
 
 // GetByID 根据 ID 查询数据质量检查
-func (r *dataQualityCheckRepository) GetByID(ctx context.Context, id string) (*datagov.DataQualityCheck, error) {
+func (r *dataQualityCheckRepository) GetByID(ctx context.Context, tenantID, id string) (*datagov.DataQualityCheck, error) {
 	var check datagov.DataQualityCheck
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&check).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&check).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("数据质量检查不存在: %s", id)
+			return nil, datagovapp.ErrQualityCheckNotFound
 		}
 		return nil, fmt.Errorf("查询数据质量检查失败: %w", err)
 	}
@@ -344,14 +344,14 @@ func (r *dataQualityCheckRepository) Update(ctx context.Context, check *datagov.
 }
 
 // Delete 软删除数据质量检查
-func (r *dataQualityCheckRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&datagov.DataQualityCheck{}, "id = ?", id).Error
+func (r *dataQualityCheckRepository) Delete(ctx context.Context, tenantID, id string) error {
+	return r.db.WithContext(ctx).Delete(&datagov.DataQualityCheck{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }
 
 // GetByRuleAndAsset 根据规则ID和资产ID查询最新的数据质量检查
-func (r *dataQualityCheckRepository) GetByRuleAndAsset(ctx context.Context, ruleID, assetID string) (*datagov.DataQualityCheck, error) {
+func (r *dataQualityCheckRepository) GetByRuleAndAsset(ctx context.Context, tenantID, ruleID, assetID string) (*datagov.DataQualityCheck, error) {
 	var check datagov.DataQualityCheck
-	if err := r.db.WithContext(ctx).Where("rule_id = ? AND asset_id = ?", ruleID, assetID).Order("created_at DESC").First(&check).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("tenant_id = ? AND rule_id = ? AND asset_id = ?", tenantID, ruleID, assetID).Order("updated_at DESC, id DESC").First(&check).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("数据质量检查不存在: rule_id=%s, asset_id=%s", ruleID, assetID)
 		}
