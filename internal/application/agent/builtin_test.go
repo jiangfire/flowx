@@ -19,7 +19,7 @@ func TestToolOrchestrationAgent_HandledTypes(t *testing.T) {
 
 // TestApprovalAgent_HandledTypes 验证 ApprovalAgent 正确声明任务类型
 func TestApprovalAgent_HandledTypes(t *testing.T) {
-	agent := NewApprovalAgent()
+	agent := NewApprovalAgent(nil)
 
 	types := agent.HandledTypes()
 	if len(types) != 1 || types[0] != "approval_review" {
@@ -29,7 +29,7 @@ func TestApprovalAgent_HandledTypes(t *testing.T) {
 
 // TestDataQualityAgent_HandledTypes 验证 DataQualityAgent 正确声明任务类型
 func TestDataQualityAgent_HandledTypes(t *testing.T) {
-	agent := NewDataQualityAgent()
+	agent := NewDataQualityAgent(nil)
 
 	types := agent.HandledTypes()
 	if len(types) != 1 || types[0] != "data_check" {
@@ -99,7 +99,7 @@ func TestToolOrchestrationAgent_Execute_ToolNotFound(t *testing.T) {
 func TestApprovalAgent_Execute(t *testing.T) {
 	registry := mcp.NewToolRegistry()
 
-	agent := NewApprovalAgent()
+	agent := NewApprovalAgent(nil)
 
 	task := &Task{
 		ID:          "task-approval-001",
@@ -125,7 +125,7 @@ func TestApprovalAgent_Execute(t *testing.T) {
 func TestDataQualityAgent_Execute(t *testing.T) {
 	registry := mcp.NewToolRegistry()
 
-	agent := NewDataQualityAgent()
+	agent := NewDataQualityAgent(nil)
 
 	task := &Task{
 		ID:          "task-dq-001",
@@ -151,8 +151,8 @@ func TestDataQualityAgent_Execute(t *testing.T) {
 func TestBuiltinAgents_NameAndDescription(t *testing.T) {
 	agents := []Agent{
 		NewToolOrchestrationAgent(),
-		NewApprovalAgent(),
-		NewDataQualityAgent(),
+		NewApprovalAgent(nil),
+		NewDataQualityAgent(nil),
 	}
 
 	expectedNames := []string{"tool_orchestration", "approval", "data_quality"}

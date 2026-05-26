@@ -9,6 +9,8 @@ import (
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/datagov"
 	"git.neolidy.top/neo/flowx/pkg/pagination"
+	"git.neolidy.top/neo/flowx/pkg/transaction"
+	"gorm.io/gorm"
 )
 
 // 预定义错误
@@ -167,6 +169,7 @@ type DataGovService struct {
 	assetRepo  DataAssetRepository
 	ruleRepo   DataQualityRuleRepository
 	checkRepo  DataQualityCheckRepository
+	db         *gorm.DB
 }
 
 // NewDataGovService 创建数据治理服务实例
@@ -175,12 +178,14 @@ func NewDataGovService(
 	assetRepo DataAssetRepository,
 	ruleRepo DataQualityRuleRepository,
 	checkRepo DataQualityCheckRepository,
+	db *gorm.DB,
 ) *DataGovService {
 	return &DataGovService{
 		policyRepo: policyRepo,
 		assetRepo:  assetRepo,
 		ruleRepo:   ruleRepo,
 		checkRepo:  checkRepo,
+		db:         db,
 	}
 }
 
@@ -669,59 +674,68 @@ type ImportResultItem struct {
 // ImportPolicies 批量导入数据策略
 func (s *DataGovService) ImportPolicies(ctx context.Context, tenantID string, requests []*CreatePolicyRequest) ([]ImportResultItem, error) {
 	var results []ImportResultItem
-	for _, req := range requests {
-		policy, err := s.CreatePolicy(ctx, tenantID, req)
-		if err != nil {
+	err := transaction.WithTransaction(ctx, s.db, func(txCtx context.Context) error {
+		for _, req := range requests {
+			policy, err := s.CreatePolicy(txCtx, tenantID, req)
+			if err != nil {
+				results = append(results, ImportResultItem{
+					Status:  "error",
+					Message: err.Error(),
+				})
+				continue
+			}
 			results = append(results, ImportResultItem{
-				Status:  "error",
-				Message: err.Error(),
+				Status: "success",
+				ID:     policy.ID,
 			})
-			continue
 		}
-		results = append(results, ImportResultItem{
-			Status: "success",
-			ID:     policy.ID,
-		})
-	}
-	return results, nil
+		return nil
+	})
+	return results, err
 }
 
 // ImportAssets 批量导入数据资产
 func (s *DataGovService) ImportAssets(ctx context.Context, tenantID string, requests []*CreateAssetRequest) ([]ImportResultItem, error) {
 	var results []ImportResultItem
-	for _, req := range requests {
-		asset, err := s.CreateAsset(ctx, tenantID, req)
-		if err != nil {
+	err := transaction.WithTransaction(ctx, s.db, func(txCtx context.Context) error {
+		for _, req := range requests {
+			asset, err := s.CreateAsset(txCtx, tenantID, req)
+			if err != nil {
+				results = append(results, ImportResultItem{
+					Status:  "error",
+					Message: err.Error(),
+				})
+				continue
+			}
 			results = append(results, ImportResultItem{
-				Status:  "error",
-				Message: err.Error(),
+				Status: "success",
+				ID:     asset.ID,
 			})
-			continue
 		}
-		results = append(results, ImportResultItem{
-			Status: "success",
-			ID:     asset.ID,
-		})
-	}
-	return results, nil
+		return nil
+	})
+	return results, err
 }
 
 // ImportRules 批量导入数据质量规则
 func (s *DataGovService) ImportRules(ctx context.Context, tenantID string, requests []*CreateRuleRequest) ([]ImportResultItem, error) {
 	var results []ImportResultItem
-	for _, req := range requests {
-		rule, err := s.CreateRule(ctx, tenantID, req)
-		if err != nil {
+	err := transaction.WithTransaction(ctx, s.db, func(txCtx context.Context) error {
+		for _, req := range requests {
+			rule, err := s.CreateRule(txCtx, tenantID, req)
+			if err != nil {
+				results = append(results, ImportResultItem{
+					Status:  "error",
+					Message: err.Error(),
+				})
+				continue
+			}
 			results = append(results, ImportResultItem{
-				Status:  "error",
-				Message: err.Error(),
+				Status: "success",
+				ID:     rule.ID,
 			})
-			continue
 		}
-		results = append(results, ImportResultItem{
-			Status: "success",
-			ID:     rule.ID,
-		})
-	}
-	return results, nil
+		return nil
+	})
+	return results, err
 }

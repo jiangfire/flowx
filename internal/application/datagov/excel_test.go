@@ -3,6 +3,8 @@ package datagov_test
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"sync/atomic"
 	"testing"
 
 	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
@@ -14,10 +16,13 @@ import (
 	"gorm.io/gorm"
 )
 
+var excelTestDBCounter int64
+
 // setupTestExcelService 创建测试用 DataGovExcelService
 func setupTestExcelService(t *testing.T) (*datagovapp.DataGovExcelService, *datagovapp.DataGovService, *gorm.DB) {
 	t.Helper()
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	dbName := fmt.Sprintf("file:mem_%d?mode=memory&cache=shared", atomic.AddInt64(&excelTestDBCounter, 1))
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("无法创建测试数据库: %v", err)
 	}
@@ -38,7 +43,7 @@ func setupTestExcelService(t *testing.T) (*datagovapp.DataGovExcelService, *data
 	checkRepo := persistence.NewDataQualityCheckRepository(db)
 
 	excelSvc := datagovapp.NewDataGovExcelService()
-	dataGovSvc := datagovapp.NewDataGovService(policyRepo, assetRepo, ruleRepo, checkRepo)
+	dataGovSvc := datagovapp.NewDataGovService(policyRepo, assetRepo, ruleRepo, checkRepo, db)
 	return excelSvc, dataGovSvc, db
 }
 

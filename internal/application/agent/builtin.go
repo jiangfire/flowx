@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	aiapp "git.neolidy.top/neo/flowx/internal/application/ai"
+	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
 	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 )
 
@@ -18,8 +20,10 @@ func NewToolOrchestrationAgent() Agent {
 	return &toolOrchestrationAgent{}
 }
 
-func (a *toolOrchestrationAgent) Name() string        { return "tool_orchestration" }
-func (a *toolOrchestrationAgent) Description() string  { return "工具编排 Agent，负责调用指定工具执行操作" }
+func (a *toolOrchestrationAgent) Name() string { return "tool_orchestration" }
+func (a *toolOrchestrationAgent) Description() string {
+	return "工具编排 Agent，负责调用指定工具执行操作"
+}
 func (a *toolOrchestrationAgent) HandledTypes() []string { return []string{"tool_execute"} }
 
 func (a *toolOrchestrationAgent) Execute(ctx context.Context, task *Task, tools mcpif.ToolCaller) (*StepResult, error) {
@@ -58,29 +62,47 @@ func (a *toolOrchestrationAgent) Execute(ctx context.Context, task *Task, tools 
 // ==================== ApprovalAgent ====================
 
 // approvalAgent 审批 Agent，分析审批上下文并给出建议
-type approvalAgent struct{}
-
-// NewApprovalAgent 创建审批 Agent
-func NewApprovalAgent() Agent {
-	return &approvalAgent{}
+type approvalAgent struct {
+	llmSvc aiapp.LLMService
 }
 
-func (a *approvalAgent) Name() string        { return "approval" }
-func (a *approvalAgent) Description() string  { return "审批 Agent，分析审批上下文并给出建议" }
+// NewApprovalAgent 创建审批 Agent
+func NewApprovalAgent(llmSvc aiapp.LLMService) Agent {
+	return &approvalAgent{llmSvc: llmSvc}
+}
+
+func (a *approvalAgent) Name() string { return "approval" }
+func (a *approvalAgent) Description() string {
+	return "审批 Agent，分析审批上下文并给出建议"
+}
 func (a *approvalAgent) HandledTypes() []string { return []string{"approval_review"} }
 
 func (a *approvalAgent) Execute(ctx context.Context, task *Task, tools mcpif.ToolCaller) (*StepResult, error) {
-	// 审批 Agent 返回 pending_approval，需要 HITL（Human-in-the-Loop）
-	// TODO: 接入真实 LLM 分析，根据审批上下文生成个性化建议
+	suggestion := "建议审批通过，工具配置符合安全规范"
+	riskLevel := "low"
+
+	if a.llmSvc != nil {
+		llmSuggestion, err := a.llmSvc.GenerateApprovalSuggestion(ctx, &aiapp.ApprovalSuggestionRequest{
+			InstanceTitle: task.Description,
+			WorkflowType:  "agent_task",
+			StepName:      "approval_review",
+			Context:       task.Context,
+		})
+		if err == nil && llmSuggestion != "" {
+			suggestion = llmSuggestion
+			riskLevel = "medium"
+		}
+	}
+
 	return &StepResult{
 		AgentName: a.Name(),
 		Status:    "pending_approval",
 		Output: map[string]any{
-			"suggestion":    "建议审批通过，工具配置符合安全规范",
-			"risk_level":    "low",
-			"requester":     task.Context["requester"],
-			"reason":        task.Context["reason"],
-			"reviewed_at":   time.Now().Format(time.RFC3339),
+			"suggestion":     suggestion,
+			"risk_level":     riskLevel,
+			"requester":      task.Context["requester"],
+			"reason":         task.Context["reason"],
+			"reviewed_at":    time.Now().Format(time.RFC3339),
 			"requires_human": true,
 		},
 	}, nil
@@ -89,35 +111,72 @@ func (a *approvalAgent) Execute(ctx context.Context, task *Task, tools mcpif.Too
 // ==================== DataQualityAgent ====================
 
 // dataQualityAgent 数据质量 Agent，检查数据质量并生成报告
-type dataQualityAgent struct{}
-
-// NewDataQualityAgent 创建数据质量 Agent
-func NewDataQualityAgent() Agent {
-	return &dataQualityAgent{}
+type dataQualityAgent struct {
+	dataGovSvc *datagovapp.DataGovService
 }
 
-func (a *dataQualityAgent) Name() string        { return "data_quality" }
-func (a *dataQualityAgent) Description() string  { return "数据质量 Agent，检查数据质量并生成报告" }
+// NewDataQualityAgent 创建数据质量 Agent
+func NewDataQualityAgent(dataGovSvc *datagovapp.DataGovService) Agent {
+	return &dataQualityAgent{dataGovSvc: dataGovSvc}
+}
+
+func (a *dataQualityAgent) Name() string { return "data_quality" }
+func (a *dataQualityAgent) Description() string {
+	return "数据质量 Agent，检查数据质量并生成报告"
+}
 func (a *dataQualityAgent) HandledTypes() []string { return []string{"data_check"} }
 
 func (a *dataQualityAgent) Execute(ctx context.Context, task *Task, tools mcpif.ToolCaller) (*StepResult, error) {
-	// 获取检查类型
 	checkType, _ := task.Context["check_type"].(string)
 	target, _ := task.Context["target"].(string)
 
-	// 获取可用工具列表作为检查范围
-	availableTools := tools.ListTools()
+	var qualityScore float64 = 100.0
+	var issues []any
+	var totalItems int
 
-	// TODO: 接入真实数据质量检查引擎，基于 DataQualityRule 执行实际校验
-	// 生成数据质量报告
+	if a.dataGovSvc != nil && task.TenantID != "" {
+		rules, _, err := a.dataGovSvc.ListRules(ctx, task.TenantID, datagovapp.ListRulesFilter{
+			Type:     checkType,
+			Status:   "active",
+			PageSize: 1000,
+		})
+		if err == nil {
+			totalItems = len(rules)
+			if target != "" {
+				checks, _, err := a.dataGovSvc.ListChecks(ctx, task.TenantID, datagovapp.ListChecksFilter{
+					AssetID:  target,
+					PageSize: 1000,
+				})
+				if err == nil && len(checks) > 0 {
+					var totalPassRate float64
+					for _, c := range checks {
+						totalPassRate += c.PassRate
+						if c.Status == "failed" {
+							issues = append(issues, map[string]any{
+								"rule_id":   c.RuleID,
+								"asset_id":  c.AssetID,
+								"pass_rate": c.PassRate,
+							})
+						}
+					}
+					qualityScore = totalPassRate / float64(len(checks))
+				}
+			}
+		}
+	}
+
+	if totalItems == 0 {
+		totalItems = len(tools.ListTools())
+	}
+
 	report := map[string]any{
 		"check_type":    checkType,
 		"target":        target,
 		"checked_at":    time.Now().Format(time.RFC3339),
-		"total_items":   len(availableTools),
-		"quality_score": 95.5,
-		"issues":        []any{},
-		"summary":       fmt.Sprintf("已检查 %d 个 %s 项，数据质量良好", len(availableTools), target),
+		"total_items":   totalItems,
+		"quality_score": qualityScore,
+		"issues":        issues,
+		"summary":       fmt.Sprintf("已检查 %d 个 %s 项，数据质量评分 %.1f", totalItems, target, qualityScore),
 	}
 
 	return &StepResult{

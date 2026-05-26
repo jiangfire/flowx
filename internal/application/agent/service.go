@@ -8,9 +8,9 @@ import (
 	"log/slog"
 
 	approvalapp "git.neolidy.top/neo/flowx/internal/application/approval"
-	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 	domainagent "git.neolidy.top/neo/flowx/internal/domain/agent"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
+	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 	"git.neolidy.top/neo/flowx/pkg/pagination"
 )
 
@@ -22,8 +22,8 @@ var (
 
 // AgentService Agent 应用服务
 type AgentService struct {
-	engine     AgentEngine
-	repo       AgentTaskRepository
+	engine      AgentEngine
+	repo        AgentTaskRepository
 	approvalSvc approvalapp.ApprovalService // can be nil
 }
 
@@ -60,14 +60,39 @@ func (s *AgentService) CreateAndExecuteTask(ctx context.Context, tenantID, userI
 		return nil, fmt.Errorf("创建任务失败: %w", err)
 	}
 
-	// 如果提供了 workflow_id，创建关联的工作流实例并回写双向关联
-	if task.WorkflowID != "" && s.approvalSvc != nil {
+	// 如果 require_approval=true，确保有关联工作流
+	if task.RequireApproval && s.approvalSvc != nil {
+		workflowID := task.WorkflowID
+		if workflowID == "" {
+			// 自动创建默认工作流
+			workflow, err := s.approvalSvc.CreateWorkflow(ctx, tenantID, &approvalapp.CreateWorkflowRequest{
+				Name:        "Agent Task Auto Approval",
+				Type:        "agent_task",
+				Description: "Agent 任务自动审批工作流",
+				Definition: base.JSON{
+					"steps": []any{
+						map[string]any{
+							"name":      "审批",
+							"approvers": []string{userID},
+						},
+					},
+				},
+			})
+			if err != nil {
+				return nil, fmt.Errorf("自动创建审批工作流失败: %w", err)
+			}
+			if _, err := s.approvalSvc.ActivateWorkflow(ctx, tenantID, workflow.ID); err != nil {
+				return nil, fmt.Errorf("激活自动审批工作流失败: %w", err)
+			}
+			workflowID = workflow.ID
+		}
+
 		var ctxJSON base.JSON
 		if task.Context != nil {
 			ctxJSON = task.Context
 		}
 		inst, err := s.approvalSvc.StartApproval(ctx, tenantID, userID, &approvalapp.StartApprovalRequest{
-			WorkflowID: task.WorkflowID,
+			WorkflowID: workflowID,
 			Title:      fmt.Sprintf("Agent 任务审批: %s", task.Description),
 			Context:    ctxJSON,
 		})
@@ -84,6 +109,10 @@ func (s *AgentService) CreateAndExecuteTask(ctx context.Context, tenantID, userI
 			return nil, fmt.Errorf("更新任务关联失败: %w", err)
 		}
 	}
+
+	// 设置任务上下文信息供 Agent 使用
+	task.TenantID = tenantID
+	task.CreatedBy = userID
 
 	// 执行任务
 	result, err := s.engine.Execute(ctx, task)

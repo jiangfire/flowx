@@ -28,13 +28,13 @@ func (r *approvalRepository) CreateWorkflow(ctx context.Context, w *approval.Wor
 	if w.ID == "" {
 		w.ID = base.GenerateUUID()
 	}
-	return r.db.WithContext(ctx).Create(w).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Create(w).Error
 }
 
 // GetWorkflowByID 按 ID 获取工作流（多租户隔离）
 func (r *approvalRepository) GetWorkflowByID(ctx context.Context, tenantID, id string) (*approval.Workflow, error) {
 	var w approval.Workflow
-	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&w).Error; err != nil {
+	if err := DBFromContext(ctx, r.db).WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&w).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, approvalapp.ErrWorkflowNotFound
 		}
@@ -48,7 +48,7 @@ func (r *approvalRepository) ListWorkflows(ctx context.Context, filter approvala
 	var workflows []approval.Workflow
 	var total int64
 
-	q := r.db.WithContext(ctx).Model(&approval.Workflow{}).Where("tenant_id = ?", filter.TenantID)
+	q := DBFromContext(ctx, r.db).WithContext(ctx).Model(&approval.Workflow{}).Where("tenant_id = ?", filter.TenantID)
 	if filter.Type != "" {
 		q = q.Where("type = ?", filter.Type)
 	}
@@ -71,12 +71,12 @@ func (r *approvalRepository) ListWorkflows(ctx context.Context, filter approvala
 
 // UpdateWorkflow 更新工作流
 func (r *approvalRepository) UpdateWorkflow(ctx context.Context, w *approval.Workflow) error {
-	return r.db.WithContext(ctx).Save(w).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Save(w).Error
 }
 
 // UpdateWorkflowStatus 更新工作流状态
 func (r *approvalRepository) UpdateWorkflowStatus(ctx context.Context, tenantID, id string, status string) error {
-	return r.db.WithContext(ctx).Model(&approval.Workflow{}).Where("id = ? AND tenant_id = ?", id, tenantID).Update("status", status).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Model(&approval.Workflow{}).Where("id = ? AND tenant_id = ?", id, tenantID).Update("status", status).Error
 }
 
 // ===================== Instance =====================
@@ -86,13 +86,13 @@ func (r *approvalRepository) CreateInstance(ctx context.Context, inst *approval.
 	if inst.ID == "" {
 		inst.ID = base.GenerateUUID()
 	}
-	return r.db.WithContext(ctx).Create(inst).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Create(inst).Error
 }
 
 // GetInstanceByID 按 ID 获取实例（多租户隔离）
 func (r *approvalRepository) GetInstanceByID(ctx context.Context, tenantID, id string) (*approval.WorkflowInstance, error) {
 	var inst approval.WorkflowInstance
-	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&inst).Error; err != nil {
+	if err := DBFromContext(ctx, r.db).WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&inst).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, approvalapp.ErrInstanceNotFound
 		}
@@ -106,7 +106,7 @@ func (r *approvalRepository) ListInstances(ctx context.Context, filter approvala
 	var instances []approval.WorkflowInstance
 	var total int64
 
-	q := r.db.WithContext(ctx).Model(&approval.WorkflowInstance{}).Where("tenant_id = ?", filter.TenantID)
+	q := DBFromContext(ctx, r.db).WithContext(ctx).Model(&approval.WorkflowInstance{}).Where("tenant_id = ?", filter.TenantID)
 	if filter.Status != "" {
 		q = q.Where("status = ?", filter.Status)
 	}
@@ -132,7 +132,7 @@ func (r *approvalRepository) ListInstances(ctx context.Context, filter approvala
 
 // UpdateInstance 更新实例
 func (r *approvalRepository) UpdateInstance(ctx context.Context, inst *approval.WorkflowInstance) error {
-	return r.db.WithContext(ctx).Save(inst).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Save(inst).Error
 }
 
 // ===================== Approval =====================
@@ -142,13 +142,13 @@ func (r *approvalRepository) CreateApproval(ctx context.Context, a *approval.App
 	if a.ID == "" {
 		a.ID = base.GenerateUUID()
 	}
-	return r.db.WithContext(ctx).Create(a).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Create(a).Error
 }
 
 // ListApprovalsByInstance 按实例列出审批记录
 func (r *approvalRepository) ListApprovalsByInstance(ctx context.Context, tenantID, instanceID string) ([]approval.Approval, error) {
 	var approvals []approval.Approval
-	if err := r.db.WithContext(ctx).Where("tenant_id = ? AND instance_id = ?", tenantID, instanceID).Order("step ASC").Find(&approvals).Error; err != nil {
+	if err := DBFromContext(ctx, r.db).WithContext(ctx).Where("tenant_id = ? AND instance_id = ?", tenantID, instanceID).Order("step ASC").Find(&approvals).Error; err != nil {
 		return nil, fmt.Errorf("查询审批记录失败: %w", err)
 	}
 	return approvals, nil
@@ -157,7 +157,7 @@ func (r *approvalRepository) ListApprovalsByInstance(ctx context.Context, tenant
 // GetPendingApproval 获取指定步骤的待审批记录
 func (r *approvalRepository) GetPendingApproval(ctx context.Context, instanceID string, step int) (*approval.Approval, error) {
 	var a approval.Approval
-	if err := r.db.WithContext(ctx).Where("instance_id = ? AND step = ? AND status = ?", instanceID, step, "pending").First(&a).Error; err != nil {
+	if err := DBFromContext(ctx, r.db).WithContext(ctx).Where("instance_id = ? AND step = ? AND status = ?", instanceID, step, "pending").First(&a).Error; err != nil {
 		return nil, fmt.Errorf("待审批记录不存在: %w", err)
 	}
 	return &a, nil
@@ -165,14 +165,14 @@ func (r *approvalRepository) GetPendingApproval(ctx context.Context, instanceID 
 
 // UpdateApproval 更新审批记录
 func (r *approvalRepository) UpdateApproval(ctx context.Context, a *approval.Approval) error {
-	return r.db.WithContext(ctx).Save(a).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Save(a).Error
 }
 
 // GetPendingApprovalsByApprover 获取审批人的待审批实例列表（单次查询，无 N+1）
 func (r *approvalRepository) GetPendingApprovalsByApprover(ctx context.Context, tenantID, approverID string) ([]approval.WorkflowInstance, error) {
 	var instances []approval.WorkflowInstance
 	// 使用子查询一次性找出该审批人有待审批记录的实例
-	err := r.db.WithContext(ctx).
+	err := DBFromContext(ctx, r.db).WithContext(ctx).
 		Where(`tenant_id = ? AND status = ? AND id IN (
 			SELECT DISTINCT instance_id FROM approvals
 			WHERE step = (workflow_instances.current_step + 1)

@@ -110,6 +110,7 @@ func autoMigrate(db *gorm.DB) error {
 		&tenant.Role{},
 		&tenant.Permission{},
 		&agent.AgentTask{},
+		&agent.AgentTaskLog{},
 		&notification.Notification{},
 		&notification.NotificationTemplate{},
 		&notification.NotificationPreference{},

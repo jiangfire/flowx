@@ -22,6 +22,12 @@ func SetupRouter(r *gin.Engine, container *app.Container) {
 		// 健康检查
 		v1.GET("/health", handler.HealthCheck)
 
+		// MCP SSE endpoint
+		if container.MCPHandler != nil {
+			v1.GET("/mcp/sse", gin.WrapH(container.MCPHandler))
+			v1.POST("/mcp/sse", gin.WrapH(container.MCPHandler))
+		}
+
 		// 认证路由（无需认证）
 		authGroup := v1.Group("/auth")
 		{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/bpmn"
 	"gopkg.in/yaml.v3"
 )
@@ -77,6 +78,9 @@ func (s *ProcessService) StartProcess(ctx context.Context, tenantID, defID, star
 
 	// 使用内存引擎启动流程
 	inst := s.engine.Start(def, tenantID, startedBy, variables)
+	// 初始化 gateway state 为空
+	inst.JoinState = base.JSON{}
+	inst.InclusiveGatewayState = base.JSON{}
 
 	// 持久化流程实例
 	if err := s.instRepo.Create(ctx, inst); err != nil {
@@ -121,12 +125,16 @@ func (s *ProcessService) SuspendProcess(ctx context.Context, tenantID, id string
 		return err
 	}
 
-	s.engine.Suspend(id)
-	if s.engine.GetInstance(id) == nil {
-		return fmt.Errorf("instance runtime state not found (may be lost after restart)")
+	// 确保引擎内存中存在该实例
+	if !s.engine.HasInstance(id) {
+		if err := s.ensureInstanceInEngine(ctx, tenantID, id); err != nil {
+			return fmt.Errorf("流程实例运行态不可恢复: %w", err)
+		}
 	}
+
+	s.engine.Suspend(id)
 	inst.Status = "suspended"
-	return s.instRepo.Update(ctx, inst)
+	return s.persistInstanceState(ctx, inst, id)
 }
 
 // ResumeProcess 恢复流程实例
@@ -136,12 +144,16 @@ func (s *ProcessService) ResumeProcess(ctx context.Context, tenantID, id string)
 		return err
 	}
 
-	s.engine.Resume(id)
-	if s.engine.GetInstance(id) == nil {
-		return fmt.Errorf("instance runtime state not found (may be lost after restart)")
+	// 确保引擎内存中存在该实例
+	if !s.engine.HasInstance(id) {
+		if err := s.ensureInstanceInEngine(ctx, tenantID, id); err != nil {
+			return fmt.Errorf("流程实例运行态不可恢复: %w", err)
+		}
 	}
+
+	s.engine.Resume(id)
 	inst.Status = "running"
-	return s.instRepo.Update(ctx, inst)
+	return s.persistInstanceState(ctx, inst, id)
 }
 
 // CancelProcess 取消流程实例
@@ -151,10 +163,14 @@ func (s *ProcessService) CancelProcess(ctx context.Context, tenantID, id string)
 		return err
 	}
 
-	s.engine.Cancel(id)
-	if s.engine.GetInstance(id) == nil {
-		return fmt.Errorf("instance runtime state not found (may be lost after restart)")
+	// 确保引擎内存中存在该实例
+	if !s.engine.HasInstance(id) {
+		if err := s.ensureInstanceInEngine(ctx, tenantID, id); err != nil {
+			return fmt.Errorf("流程实例运行态不可恢复: %w", err)
+		}
 	}
+
+	s.engine.Cancel(id)
 	inst.Status = "cancelled"
 
 	// 更新所有未完成的任务状态为 cancelled
@@ -168,7 +184,7 @@ func (s *ProcessService) CancelProcess(ctx context.Context, tenantID, id string)
 		}
 	}
 
-	return s.instRepo.Update(ctx, inst)
+	return s.persistInstanceState(ctx, inst, id)
 }
 
 // GetPendingTasks 获取待办任务
@@ -238,11 +254,11 @@ func (s *ProcessService) CompleteTask(ctx context.Context, tenantID, taskID, com
 		}
 	}
 
-	// 更新流程实例状态
+	// 更新流程实例状态（包含 gateway state）
 	engineInst := s.engine.GetInstance(task.InstanceID)
 	if engineInst != nil {
-		if err := s.instRepo.Update(ctx, engineInst); err != nil {
-			return fmt.Errorf("更新流程实例状态失败: %w", err)
+		if err := s.persistInstanceState(ctx, engineInst, task.InstanceID); err != nil {
+			return err
 		}
 	}
 
@@ -284,5 +300,77 @@ func (s *ProcessService) ensureInstanceInEngine(ctx context.Context, tenantID, i
 		return err
 	}
 
-	return s.engine.RestoreInstance(inst, def, tasks, histories)
+	// 恢复 gateway state
+	joinState := make(map[string]int)
+	if inst.JoinState != nil {
+		for k, v := range inst.JoinState {
+			if count, ok := v.(float64); ok {
+				joinState[k] = int(count)
+			}
+		}
+	}
+	inclusiveState := make(map[string]int)
+	if inst.InclusiveGatewayState != nil {
+		for k, v := range inst.InclusiveGatewayState {
+			if count, ok := v.(float64); ok {
+				inclusiveState[k] = int(count)
+			}
+		}
+	}
+
+	return s.engine.RestoreInstanceWithGatewayState(inst, def, tasks, histories, joinState, inclusiveState)
+}
+
+// persistInstanceState 持久化流程实例状态（包含 gateway state）
+func (s *ProcessService) persistInstanceState(ctx context.Context, engineInst *bpmn.ProcessInstance, instanceID string) error {
+	joinState, inclusiveState, err := s.engine.GetGatewayState(instanceID)
+	if err != nil {
+		return fmt.Errorf("获取 gateway state 失败: %w", err)
+	}
+
+	engineInst.JoinState = base.JSON{}
+	for k, v := range joinState {
+		engineInst.JoinState[k] = v
+	}
+	engineInst.InclusiveGatewayState = base.JSON{}
+	for k, v := range inclusiveState {
+		engineInst.InclusiveGatewayState[k] = v
+	}
+
+	if err := s.instRepo.Update(ctx, engineInst); err != nil {
+		return fmt.Errorf("更新流程实例状态失败: %w", err)
+	}
+	return nil
+}
+
+// RestoreRunningInstances 启动时恢复所有运行中和挂起的流程实例到引擎
+func (s *ProcessService) RestoreRunningInstances(ctx context.Context) error {
+	instances, _, err := s.instRepo.List(ctx, ProcessInstanceFilter{
+		Status:   "running",
+		Page:     1,
+		PageSize: 10000,
+	})
+	if err != nil {
+		return fmt.Errorf("查询运行中流程实例失败: %w", err)
+	}
+
+	suspended, _, err := s.instRepo.List(ctx, ProcessInstanceFilter{
+		Status:   "suspended",
+		Page:     1,
+		PageSize: 10000,
+	})
+	if err != nil {
+		return fmt.Errorf("查询挂起流程实例失败: %w", err)
+	}
+
+	instances = append(instances, suspended...)
+
+	for _, inst := range instances {
+		if err := s.ensureInstanceInEngine(ctx, inst.TenantID, inst.ID); err != nil {
+			// 记录错误但不中断，允许部分实例恢复
+			fmt.Printf("恢复流程实例 %s 失败: %v\n", inst.ID, err)
+		}
+	}
+
+	return nil
 }

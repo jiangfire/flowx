@@ -27,13 +27,13 @@ func (r *toolRepository) Create(ctx context.Context, tl *tool.Tool) error {
 	if tl.ID == "" {
 		tl.ID = base.GenerateUUID()
 	}
-	return r.db.WithContext(ctx).Create(tl).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Create(tl).Error
 }
 
 // GetByID 根据 ID 查询工具
 func (r *toolRepository) GetByID(ctx context.Context, tenantID, id string) (*tool.Tool, error) {
 	var tl tool.Tool
-	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&tl).Error; err != nil {
+	if err := DBFromContext(ctx, r.db).WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&tl).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, toolapp.ErrToolNotFound
 		}
@@ -47,7 +47,7 @@ func (r *toolRepository) List(ctx context.Context, filter toolapp.ToolFilter) ([
 	var tools []tool.Tool
 	var total int64
 
-	query := r.db.WithContext(ctx).Model(&tool.Tool{}).Where("tenant_id = ?", filter.TenantID)
+	query := DBFromContext(ctx, r.db).WithContext(ctx).Model(&tool.Tool{}).Where("tenant_id = ?", filter.TenantID)
 
 	// 按类型过滤
 	if filter.Type != "" {
@@ -95,12 +95,12 @@ func (r *toolRepository) List(ctx context.Context, filter toolapp.ToolFilter) ([
 
 // Update 更新工具
 func (r *toolRepository) Update(ctx context.Context, tl *tool.Tool) error {
-	return r.db.WithContext(ctx).Save(tl).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Save(tl).Error
 }
 
 // Delete 软删除工具
 func (r *toolRepository) Delete(ctx context.Context, tenantID, id string) error {
-	return r.db.WithContext(ctx).Delete(&tool.Tool{}, "id = ? AND tenant_id = ?", id, tenantID).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Delete(&tool.Tool{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }
 
 // ==================== ConnectorRepository ====================
@@ -120,13 +120,13 @@ func (r *connectorRepository) Create(ctx context.Context, conn *tool.Connector) 
 	if conn.ID == "" {
 		conn.ID = base.GenerateUUID()
 	}
-	return r.db.WithContext(ctx).Create(conn).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Create(conn).Error
 }
 
 // GetByID 根据 ID 查询连接器
 func (r *connectorRepository) GetByID(ctx context.Context, tenantID, id string) (*tool.Connector, error) {
 	var conn tool.Connector
-	if err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&conn).Error; err != nil {
+	if err := DBFromContext(ctx, r.db).WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&conn).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, toolapp.ErrConnectorNotFound
 		}
@@ -140,7 +140,7 @@ func (r *connectorRepository) List(ctx context.Context, filter toolapp.Connector
 	var connectors []tool.Connector
 	var total int64
 
-	query := r.db.WithContext(ctx).Model(&tool.Connector{}).Where("tenant_id = ?", filter.TenantID)
+	query := DBFromContext(ctx, r.db).WithContext(ctx).Model(&tool.Connector{}).Where("tenant_id = ?", filter.TenantID)
 
 	// 按类型过滤
 	if filter.Type != "" {
@@ -183,10 +183,10 @@ func (r *connectorRepository) List(ctx context.Context, filter toolapp.Connector
 
 // Update 更新连接器
 func (r *connectorRepository) Update(ctx context.Context, conn *tool.Connector) error {
-	return r.db.WithContext(ctx).Save(conn).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Save(conn).Error
 }
 
 // Delete 软删除连接器
 func (r *connectorRepository) Delete(ctx context.Context, tenantID, id string) error {
-	return r.db.WithContext(ctx).Delete(&tool.Connector{}, "id = ? AND tenant_id = ?", id, tenantID).Error
+	return DBFromContext(ctx, r.db).WithContext(ctx).Delete(&tool.Connector{}, "id = ? AND tenant_id = ?", id, tenantID).Error
 }

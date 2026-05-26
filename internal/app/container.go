@@ -1,6 +1,9 @@
 package app
 
 import (
+	"context"
+	"fmt"
+	"net/http"
 	"time"
 
 	agentapp "git.neolidy.top/neo/flowx/internal/application/agent"
@@ -15,6 +18,8 @@ import (
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/handler"
 	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
+	"github.com/mark3labs/mcp-go/mcp"
+	mcpgo "github.com/mark3labs/mcp-go/server"
 	"gorm.io/gorm"
 )
 
@@ -28,17 +33,20 @@ type Container struct {
 	DataGovHandler  *handler.DataGovHandler
 	NotifHandler    *handler.NotificationHandler
 	BPMNHandler     *handler.BPMNHandler
+	MCPHandler      http.Handler
 	approvalSvc     approval.ApprovalService
+	dataGovSvc      *datagovapp.DataGovService
+	registry        mcpif.ToolRegistry
 }
 
 // NewContainer 创建并初始化所有服务
 func NewContainer(db *gorm.DB, cfg config.Config, llmSvc aiapp.LLMService) *Container {
 	c := &Container{}
 	c.initAuthServices(db, cfg)
-	c.initToolServices(db)
 	c.initDataGovServices(db)
+	c.initToolServices(db)
 	c.initApprovalServices(db, llmSvc)
-	c.initAgentServices(db)
+	c.initAgentServices(db, llmSvc)
 	c.initNotificationServices(db)
 	c.initBPMNServices(db)
 	return c
@@ -61,9 +69,22 @@ func (c *Container) initToolServices(db *gorm.DB) {
 	dataAssetRepo := persistence.NewDataAssetRepository(db)
 	dataRuleRepo := persistence.NewDataQualityRuleRepository(db)
 	dataCheckRepo := persistence.NewDataQualityCheckRepository(db)
-	toolService := toolapp.NewToolService(toolRepo, connectorRepo, dataPolicyRepo, dataAssetRepo, dataRuleRepo, dataCheckRepo)
+	toolService := toolapp.NewToolService(toolRepo, connectorRepo, dataPolicyRepo, dataAssetRepo, dataRuleRepo, dataCheckRepo, db)
 	excelService := toolapp.NewExcelService(toolRepo)
 	c.ToolHandler = handler.NewToolHandler(toolService, excelService)
+
+	// 初始化 MCP Registry 并同步 DB 工具
+	c.registry = mcpif.NewToolRegistry()
+	if err := mcpif.SyncToolsFromDB(context.Background(), c.registry, toolRepo); err != nil {
+		fmt.Printf("同步工具到 MCP Registry 失败: %v\n", err)
+	}
+
+	// 初始化 MCP SSE Server
+	mcpServer := mcpgo.NewMCPServer("flowx", "1.0.0")
+	mcpServer.AddTool(mcp.NewTool("ping"), func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		return mcp.NewToolResultText("pong"), nil
+	})
+	c.MCPHandler = mcpgo.NewSSEServer(mcpServer)
 }
 
 // initDataGovServices 初始化数据治理相关服务
@@ -72,9 +93,10 @@ func (c *Container) initDataGovServices(db *gorm.DB) {
 	dataAssetRepo := persistence.NewDataAssetRepository(db)
 	dataRuleRepo := persistence.NewDataQualityRuleRepository(db)
 	dataCheckRepo := persistence.NewDataQualityCheckRepository(db)
-	dataGovService := datagovapp.NewDataGovService(dataPolicyRepo, dataAssetRepo, dataRuleRepo, dataCheckRepo)
+	dataGovService := datagovapp.NewDataGovService(dataPolicyRepo, dataAssetRepo, dataRuleRepo, dataCheckRepo, db)
 	dataGovExcelService := datagovapp.NewDataGovExcelService()
 	c.DataGovHandler = handler.NewDataGovHandler(dataGovService, dataGovExcelService)
+	c.dataGovSvc = dataGovService
 }
 
 // initApprovalServices 初始化审批相关服务
@@ -86,12 +108,11 @@ func (c *Container) initApprovalServices(db *gorm.DB, llmSvc aiapp.LLMService) {
 }
 
 // initAgentServices 初始化 Agent 相关服务
-func (c *Container) initAgentServices(db *gorm.DB) {
-	registry := mcpif.NewToolRegistry()
-	engine := agentapp.NewAgentEngine(registry)
+func (c *Container) initAgentServices(db *gorm.DB, llmSvc aiapp.LLMService) {
+	engine := agentapp.NewAgentEngine(c.registry, persistence.NewAgentTaskLogRepository(db))
 	engine.RegisterAgent(agentapp.NewToolOrchestrationAgent(), 1)
-	engine.RegisterAgent(agentapp.NewApprovalAgent(), 1)
-	engine.RegisterAgent(agentapp.NewDataQualityAgent(), 1)
+	engine.RegisterAgent(agentapp.NewApprovalAgent(llmSvc), 1)
+	engine.RegisterAgent(agentapp.NewDataQualityAgent(c.dataGovSvc), 1)
 	agentTaskRepo := persistence.NewAgentTaskRepository(db)
 	agentSvc := agentapp.NewAgentService(engine, agentTaskRepo, c.approvalSvc)
 	c.AgentHandler = handler.NewAgentHandler(agentSvc)
@@ -115,4 +136,12 @@ func (c *Container) initBPMNServices(db *gorm.DB) {
 	historyRepo := persistence.NewExecutionHistoryRepository(db)
 	processSvc := bpmnapp.NewProcessService(engine, defRepo, instRepo, taskRepo, historyRepo)
 	c.BPMNHandler = handler.NewBPMNHandler(processSvc)
+
+	// 启动时恢复运行中和挂起的流程实例
+	go func() {
+		if err := processSvc.RestoreRunningInstances(context.Background()); err != nil {
+			// 启动恢复失败不应阻塞服务启动，仅记录日志
+			fmt.Printf("BPMN 流程实例恢复失败: %v\n", err)
+		}
+	}()
 }

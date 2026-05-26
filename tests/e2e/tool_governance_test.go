@@ -3,24 +3,29 @@ package e2e
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
+	"sync/atomic"
 	"testing"
 
+	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
+	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	domaingov "git.neolidy.top/neo/flowx/internal/domain/datagov"
 	"git.neolidy.top/neo/flowx/internal/domain/tool"
-	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
-	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	bizerrors "git.neolidy.top/neo/flowx/pkg/errors"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
+var e2eTestDBCounter int64
+
 // setupE2EDB 创建 E2E 测试用的 SQLite 内存数据库，并自动迁移所有相关表
 func setupE2EDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	dbName := fmt.Sprintf("file:mem_%d?mode=memory&cache=shared", atomic.AddInt64(&e2eTestDBCounter, 1))
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("创建 E2E 测试数据库失败: %v", err)
 	}
@@ -52,7 +57,7 @@ func setupE2EService(t *testing.T) (*toolapp.ToolService, *gorm.DB) {
 	checkRepo := persistence.NewDataQualityCheckRepository(db)
 
 	// 创建工具服务（注入所有仓储，不使用任何 mock）
-	svc := toolapp.NewToolService(toolRepo, connectorRepo, policyRepo, assetRepo, ruleRepo, checkRepo)
+	svc := toolapp.NewToolService(toolRepo, connectorRepo, policyRepo, assetRepo, ruleRepo, checkRepo, db)
 	return svc, db
 }
 
@@ -108,10 +113,10 @@ func TestE2E_ToolGovernance_FullLifecycle(t *testing.T) {
 
 	// 创建质量规则：匹配 tool_type=eda 的工具
 	ruleEDA := &domaingov.DataQualityRule{
-		BaseModel:   base.BaseModel{TenantID: tenantID},
-		Name:        "EDA工具质量检查", Type: "completeness",
-		Config:      base.JSON{"tool_type": "eda"},
-		Severity:    "warning", Status: "active",
+		BaseModel: base.BaseModel{TenantID: tenantID},
+		Name:      "EDA工具质量检查", Type: "completeness",
+		Config:   base.JSON{"tool_type": "eda"},
+		Severity: "warning", Status: "active",
 	}
 	createTestQualityRule(t, db, ruleEDA)
 
@@ -267,7 +272,7 @@ func TestE2E_ToolGovernance_PolicyBlocksCreate(t *testing.T) {
 		BaseModel: base.BaseModel{TenantID: tenantID},
 		Name:      "EDA工具描述必填策略", Type: "quality", Scope: "tool_type",
 		ScopeValue: "eda",
-		Priority:  10, Status: "active",
+		Priority:   10, Status: "active",
 		Rules: base.JSON{"required_fields": []any{"description"}},
 	})
 
@@ -328,16 +333,16 @@ func TestE2E_ToolGovernance_MultipleQualityRules(t *testing.T) {
 
 	// 创建两条都匹配 tool_type=eda 的质量规则
 	rule1 := &domaingov.DataQualityRule{
-		BaseModel:   base.BaseModel{TenantID: tenantID},
-		Name:        "EDA完整性检查", Type: "completeness",
-		Config:      base.JSON{"tool_type": "eda"},
-		Severity:    "warning", Status: "active",
+		BaseModel: base.BaseModel{TenantID: tenantID},
+		Name:      "EDA完整性检查", Type: "completeness",
+		Config:   base.JSON{"tool_type": "eda"},
+		Severity: "warning", Status: "active",
 	}
 	rule2 := &domaingov.DataQualityRule{
-		BaseModel:   base.BaseModel{TenantID: tenantID},
-		Name:        "EDA配置检查", Type: "format",
-		Config:      base.JSON{"tool_type": "eda"},
-		Severity:    "critical", Status: "active",
+		BaseModel: base.BaseModel{TenantID: tenantID},
+		Name:      "EDA配置检查", Type: "format",
+		Config:   base.JSON{"tool_type": "eda"},
+		Severity: "critical", Status: "active",
 	}
 	createTestQualityRule(t, db, rule1)
 	createTestQualityRule(t, db, rule2)

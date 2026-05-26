@@ -11,6 +11,8 @@ import (
 	"git.neolidy.top/neo/flowx/internal/domain/tool"
 	bizerrors "git.neolidy.top/neo/flowx/pkg/errors"
 	"git.neolidy.top/neo/flowx/pkg/pagination"
+	"git.neolidy.top/neo/flowx/pkg/transaction"
+	"gorm.io/gorm"
 )
 
 // 预定义错误
@@ -96,6 +98,7 @@ type ToolService struct {
 	assetRepo     datagovapp.DataAssetRepository
 	ruleRepo      datagovapp.DataQualityRuleRepository
 	checkRepo     datagovapp.DataQualityCheckRepository
+	db            *gorm.DB
 }
 
 // NewToolService 创建工具服务实例
@@ -106,6 +109,7 @@ func NewToolService(
 	assetRepo datagovapp.DataAssetRepository,
 	ruleRepo datagovapp.DataQualityRuleRepository,
 	checkRepo datagovapp.DataQualityCheckRepository,
+	db *gorm.DB,
 ) *ToolService {
 	return &ToolService{
 		toolRepo:      toolRepo,
@@ -114,6 +118,7 @@ func NewToolService(
 		assetRepo:     assetRepo,
 		ruleRepo:      ruleRepo,
 		checkRepo:     checkRepo,
+		db:            db,
 	}
 }
 
@@ -394,62 +399,65 @@ func (s *ToolService) ImportTools(ctx context.Context, tenantID string, tools []
 	}
 
 	var results []ImportResult
-	for _, tl := range tools {
-		tl.TenantID = tenantID
-		if err := s.toolRepo.Create(ctx, tl); err != nil {
-			results = append(results, ImportResult{
-				Status:  "error",
-				Message: fmt.Sprintf("创建失败: %v", err),
-			})
-			continue
-		}
-
-		// 自动注册数据资产（与手工创建保持一致）
-		if s.assetRepo != nil {
-			asset := &domaingov.DataAsset{
-				BaseModel:      base.BaseModel{TenantID: tenantID},
-				Name:           tl.Name + " (工具元数据)",
-				Type:           "config",
-				Source:         "tool",
-				SourceID:       tl.ID,
-				Description:    tl.Description,
-				Classification: tl.Category,
-				Status:         "active",
-				Schema: base.JSON{
-					"tool_id":       tl.ID,
-					"tool_name":     tl.Name,
-					"tool_type":     tl.Type,
-					"tool_category": tl.Category,
-					"endpoint":      tl.Endpoint,
-					"connector_id":  tl.ConnectorID,
-				},
+	err := transaction.WithTransaction(ctx, s.db, func(txCtx context.Context) error {
+		for _, tl := range tools {
+			tl.TenantID = tenantID
+			if err := s.toolRepo.Create(txCtx, tl); err != nil {
+				results = append(results, ImportResult{
+					Status:  "error",
+					Message: fmt.Sprintf("创建失败: %v", err),
+				})
+				continue
 			}
-			_ = s.assetRepo.Create(ctx, asset)
-		}
 
-		// 自动触发质量检查（与手工创建保持一致）
-		if s.ruleRepo != nil && s.checkRepo != nil {
-			rules, _, err := s.ruleRepo.List(ctx, datagovapp.DataQualityRuleFilter{
-				TenantID: tenantID,
-				Status:   "active",
-				PageSize: 1000,
-			})
-			if err == nil {
-				for _, rule := range rules {
-					if shouldRunRule(&rule, tl) {
-						runQualityCheck(ctx, s.checkRepo, &rule, tl.ID, tenantID)
+			// 自动注册数据资产（与手工创建保持一致）
+			if s.assetRepo != nil {
+				asset := &domaingov.DataAsset{
+					BaseModel:      base.BaseModel{TenantID: tenantID},
+					Name:           tl.Name + " (工具元数据)",
+					Type:           "config",
+					Source:         "tool",
+					SourceID:       tl.ID,
+					Description:    tl.Description,
+					Classification: tl.Category,
+					Status:         "active",
+					Schema: base.JSON{
+						"tool_id":       tl.ID,
+						"tool_name":     tl.Name,
+						"tool_type":     tl.Type,
+						"tool_category": tl.Category,
+						"endpoint":      tl.Endpoint,
+						"connector_id":  tl.ConnectorID,
+					},
+				}
+				_ = s.assetRepo.Create(txCtx, asset)
+			}
+
+			// 自动触发质量检查（与手工创建保持一致）
+			if s.ruleRepo != nil && s.checkRepo != nil {
+				rules, _, err := s.ruleRepo.List(txCtx, datagovapp.DataQualityRuleFilter{
+					TenantID: tenantID,
+					Status:   "active",
+					PageSize: 1000,
+				})
+				if err == nil {
+					for _, rule := range rules {
+						if shouldRunRule(&rule, tl) {
+							runQualityCheck(txCtx, s.checkRepo, &rule, tl.ID, tenantID)
+						}
 					}
 				}
 			}
-		}
 
-		results = append(results, ImportResult{
-			Status:  "success",
-			Message: "导入成功",
-			ToolID:  tl.ID,
-		})
-	}
-	return results, nil
+			results = append(results, ImportResult{
+				Status:  "success",
+				Message: "导入成功",
+				ToolID:  tl.ID,
+			})
+		}
+		return nil
+	})
+	return results, err
 }
 
 // CreateConnector 创建连接器

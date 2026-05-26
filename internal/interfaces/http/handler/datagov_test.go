@@ -3,9 +3,11 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -20,12 +22,15 @@ import (
 	"gorm.io/gorm"
 )
 
+var datagovHandlerTestDBCounter int64
+
 // setupDatagovHandlerTest 创建数据治理 Handler 测试环境
 func setupDatagovHandlerTest(t *testing.T) (*DataGovHandler, *gin.Engine, auth.JWTService) {
 	t.Helper()
 
 	// 创建内存数据库
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	dbName := fmt.Sprintf("file:mem_%d?mode=memory&cache=shared", atomic.AddInt64(&datagovHandlerTestDBCounter, 1))
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("创建测试数据库失败: %v", err)
 	}
@@ -39,7 +44,7 @@ func setupDatagovHandlerTest(t *testing.T) (*DataGovHandler, *gin.Engine, auth.J
 	ruleRepo := persistence.NewDataQualityRuleRepository(db)
 	checkRepo := persistence.NewDataQualityCheckRepository(db)
 
-	service := datagovapp.NewDataGovService(policyRepo, assetRepo, ruleRepo, checkRepo)
+	service := datagovapp.NewDataGovService(policyRepo, assetRepo, ruleRepo, checkRepo, db)
 	excelService := datagovapp.NewDataGovExcelService()
 	handler := NewDataGovHandler(service, excelService)
 

@@ -29,6 +29,7 @@ func setupE2E(t *testing.T) (*agentapp.AgentService, approvalapp.ApprovalService
 	// 自动迁移所有相关模型
 	if err := db.AutoMigrate(
 		&agent.AgentTask{},
+		&agent.AgentTaskLog{},
 		&approval.Workflow{},
 		&approval.WorkflowInstance{},
 		&approval.Approval{},
@@ -44,8 +45,8 @@ func setupE2E(t *testing.T) (*agentapp.AgentService, approvalapp.ApprovalService
 	registry := mcpif.NewToolRegistry()
 	engine := agentapp.NewAgentEngine(registry)
 	engine.RegisterAgent(agentapp.NewToolOrchestrationAgent(), 1)
-	engine.RegisterAgent(agentapp.NewApprovalAgent(), 1)
-	engine.RegisterAgent(agentapp.NewDataQualityAgent(), 1)
+	engine.RegisterAgent(agentapp.NewApprovalAgent(nil), 1)
+	engine.RegisterAgent(agentapp.NewDataQualityAgent(nil), 1)
 
 	// 创建 Agent 任务仓储和服务
 	agentTaskRepo := persistence.NewAgentTaskRepository(db)
@@ -65,8 +66,8 @@ func TestE2E_AgentApproval_FullWorkflow(t *testing.T) {
 
 	// 创建审批任务：ApprovalAgent 处理 type="approval_review"，返回 pending_approval
 	task := &agentapp.Task{
-		Type:        "approval_review",
-		Description: "工具部署审批",
+		Type:            "approval_review",
+		Description:     "工具部署审批",
 		RequireApproval: true,
 		Context: map[string]any{
 			"requester": "user-001",
@@ -90,8 +91,8 @@ func TestE2E_AgentApproval_FullWorkflow(t *testing.T) {
 		t.Fatal("期望 TaskID 不为空")
 	}
 
-	// 审批通过任务
-	approvedTask, err := agentSvc.ApproveTask(ctx, tenantID, "approver-001", result.TaskID, "同意")
+	// 审批通过任务（自动创建的工作流将任务创建者设为审批人）
+	approvedTask, err := agentSvc.ApproveTask(ctx, tenantID, userID, result.TaskID, "同意")
 	if err != nil {
 		t.Fatalf("审批通过任务失败: %v", err)
 	}
@@ -109,8 +110,8 @@ func TestE2E_AgentApproval_FullWorkflow(t *testing.T) {
 	if fetchedTask.Status != "approved" {
 		t.Errorf("期望查询到的任务状态为 'approved'，实际为 '%s'", fetchedTask.Status)
 	}
-	if fetchedTask.ApprovedBy != "approver-001" {
-		t.Errorf("期望审批人为 'approver-001'，实际为 '%s'", fetchedTask.ApprovedBy)
+	if fetchedTask.ApprovedBy != userID {
+		t.Errorf("期望审批人为 '%s'，实际为 '%s'", userID, fetchedTask.ApprovedBy)
 	}
 	if fetchedTask.ApprovalComment != "同意" {
 		t.Errorf("期望审批意见为 '同意'，实际为 '%s'", fetchedTask.ApprovalComment)
@@ -128,8 +129,8 @@ func TestE2E_AgentApproval_RejectTask(t *testing.T) {
 
 	// 创建审批任务
 	task := &agentapp.Task{
-		Type:        "approval_review",
-		Description: "工具部署审批",
+		Type:            "approval_review",
+		Description:     "工具部署审批",
 		RequireApproval: true,
 		Context: map[string]any{
 			"requester": "user-002",
@@ -150,8 +151,8 @@ func TestE2E_AgentApproval_RejectTask(t *testing.T) {
 		t.Fatalf("期望任务状态为 'pending_approval'，实际为 '%s'", result.Status)
 	}
 
-	// 拒绝任务
-	rejectedTask, err := agentSvc.RejectTask(ctx, tenantID, "approver-002", result.TaskID, "不符合规范")
+	// 拒绝任务（自动创建的工作流将任务创建者设为审批人）
+	rejectedTask, err := agentSvc.RejectTask(ctx, tenantID, userID, result.TaskID, "不符合规范")
 	if err != nil {
 		t.Fatalf("拒绝任务失败: %v", err)
 	}
@@ -169,8 +170,8 @@ func TestE2E_AgentApproval_RejectTask(t *testing.T) {
 	if fetchedTask.Status != "rejected" {
 		t.Errorf("期望查询到的任务状态为 'rejected'，实际为 '%s'", fetchedTask.Status)
 	}
-	if fetchedTask.ApprovedBy != "approver-002" {
-		t.Errorf("期望审批人为 'approver-002'，实际为 '%s'", fetchedTask.ApprovedBy)
+	if fetchedTask.ApprovedBy != userID {
+		t.Errorf("期望审批人为 '%s'，实际为 '%s'", userID, fetchedTask.ApprovedBy)
 	}
 	if fetchedTask.ApprovalComment != "不符合规范" {
 		t.Errorf("期望审批意见为 '不符合规范'，实际为 '%s'", fetchedTask.ApprovalComment)
@@ -188,8 +189,8 @@ func TestE2E_AgentApproval_ApproveNonPendingTask(t *testing.T) {
 
 	// 创建数据检查任务：DataQualityAgent 处理 type="data_check"，直接返回 completed
 	task := &agentapp.Task{
-		Type:        "data_check",
-		Description: "数据质量检查",
+		Type:            "data_check",
+		Description:     "数据质量检查",
 		RequireApproval: false,
 		Context: map[string]any{
 			"check_type": "full",
@@ -232,8 +233,8 @@ func TestE2E_AgentApproval_CrossTenantIsolation(t *testing.T) {
 
 	// 为租户 A 创建审批任务
 	task := &agentapp.Task{
-		Type:        "approval_review",
-		Description: "租户A的审批任务",
+		Type:            "approval_review",
+		Description:     "租户A的审批任务",
 		RequireApproval: true,
 		Context: map[string]any{
 			"requester": userID,
@@ -280,8 +281,8 @@ func TestE2E_AgentApproval_ListTasksWithFilter(t *testing.T) {
 	// 创建 2 个待审批任务
 	for i := 0; i < 2; i++ {
 		task := &agentapp.Task{
-			Type:        "approval_review",
-			Description: "审批任务",
+			Type:            "approval_review",
+			Description:     "审批任务",
 			RequireApproval: true,
 			Context: map[string]any{
 				"requester": userID,
@@ -299,8 +300,8 @@ func TestE2E_AgentApproval_ListTasksWithFilter(t *testing.T) {
 
 	// 创建 1 个已完成任务
 	completedTask := &agentapp.Task{
-		Type:        "data_check",
-		Description: "数据质量检查",
+		Type:            "data_check",
+		Description:     "数据质量检查",
 		RequireApproval: false,
 		Context: map[string]any{
 			"check_type": "full",
@@ -363,8 +364,8 @@ func TestE2E_AgentApproval_DataQualityAgent(t *testing.T) {
 
 	// 创建数据检查任务
 	task := &agentapp.Task{
-		Type:        "data_check",
-		Description: "数据质量检查",
+		Type:            "data_check",
+		Description:     "数据质量检查",
 		RequireApproval: false,
 		Context: map[string]any{
 			"check_type": "full",

@@ -14,8 +14,8 @@ import (
 	domainagent "git.neolidy.top/neo/flowx/internal/domain/agent"
 	"git.neolidy.top/neo/flowx/internal/domain/tool"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
+	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
@@ -46,8 +46,8 @@ func setupAgentHandlerTest(t *testing.T) (*AgentHandler, *gin.Engine, string) {
 	// 创建 Agent 引擎并注册内置 Agent
 	engine := agentapp.NewAgentEngine(registry)
 	engine.RegisterAgent(agentapp.NewToolOrchestrationAgent())
-	engine.RegisterAgent(agentapp.NewApprovalAgent())
-	engine.RegisterAgent(agentapp.NewDataQualityAgent())
+	engine.RegisterAgent(agentapp.NewApprovalAgent(nil))
+	engine.RegisterAgent(agentapp.NewDataQualityAgent(nil))
 
 	// 创建 AgentTaskRepository
 	agentTaskRepo := persistence.NewAgentTaskRepository(db)

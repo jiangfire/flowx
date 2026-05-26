@@ -58,3 +58,28 @@ func (r *agentTaskRepository) List(ctx context.Context, tenantID, status string,
 	}
 	return tasks, total, nil
 }
+
+// ==================== AgentTaskLogRepository ====================
+
+type agentTaskLogRepository struct {
+	db *gorm.DB
+}
+
+func NewAgentTaskLogRepository(db *gorm.DB) agentapp.AgentTaskLogRepository {
+	return &agentTaskLogRepository{db: db}
+}
+
+func (r *agentTaskLogRepository) Create(ctx context.Context, log *agent.AgentTaskLog) error {
+	if log.ID == "" {
+		log.ID = base.GenerateUUID()
+	}
+	return r.db.WithContext(ctx).Create(log).Error
+}
+
+func (r *agentTaskLogRepository) ListByTaskID(ctx context.Context, taskID string) ([]agent.AgentTaskLog, error) {
+	var logs []agent.AgentTaskLog
+	if err := r.db.WithContext(ctx).Where("task_id = ?", taskID).Order("step ASC").Find(&logs).Error; err != nil {
+		return nil, fmt.Errorf("查询任务日志失败: %w", err)
+	}
+	return logs, nil
+}

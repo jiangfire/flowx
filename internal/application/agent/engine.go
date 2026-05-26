@@ -2,11 +2,13 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"sort"
 	"sync"
 
+	domainagent "git.neolidy.top/neo/flowx/internal/domain/agent"
 	"git.neolidy.top/neo/flowx/internal/domain/tool"
 	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 )
@@ -20,6 +22,8 @@ type Task struct {
 	Steps           []TaskStep     `json:"steps"`
 	RequireApproval bool           `json:"require_approval"`
 	WorkflowID      string         `json:"workflow_id,omitempty"` // 关联的工作流定义 ID（可选）
+	TenantID        string         `json:"tenant_id,omitempty"`
+	CreatedBy       string         `json:"created_by,omitempty"`
 }
 
 // TaskStep 任务步骤
@@ -82,15 +86,20 @@ type agentEngine struct {
 	mu      sync.RWMutex
 	taskLog []TaskResult // 任务执行日志
 	taskMu  sync.Mutex
+	logRepo AgentTaskLogRepository
 }
 
 // NewAgentEngine 创建 Agent 编排引擎实例
-func NewAgentEngine(tools mcpif.ToolCaller) AgentEngine {
-	return &agentEngine{
+func NewAgentEngine(tools mcpif.ToolCaller, logRepo ...AgentTaskLogRepository) AgentEngine {
+	e := &agentEngine{
 		routes:  make(map[string][]routeEntry),
 		tools:   tools,
 		taskLog: make([]TaskResult, 0),
 	}
+	if len(logRepo) > 0 {
+		e.logRepo = logRepo[0]
+	}
+	return e
 }
 
 // RegisterAgent 注册 Agent（可选指定优先级，数值越大优先级越高）
@@ -216,6 +225,25 @@ func (e *agentEngine) recordTask(result *TaskResult) {
 	// 防止内存无限增长
 	if len(e.taskLog) > maxTaskLogSize {
 		e.taskLog = e.taskLog[len(e.taskLog)-maxTaskLogSize:]
+	}
+
+	// 持久化任务日志到数据库
+	if e.logRepo != nil && result.TaskID != "" {
+		for i, step := range result.Steps {
+			logEntry := &domainagent.AgentTaskLog{
+				TaskID:    result.TaskID,
+				Step:      i,
+				AgentName: step.AgentName,
+				Status:    step.Status,
+			}
+			if out, err := json.Marshal(step.Output); err == nil {
+				logEntry.Output = string(out)
+			}
+			logEntry.Error = step.Error
+			go func(l *domainagent.AgentTaskLog) {
+				_ = e.logRepo.Create(context.Background(), l)
+			}(logEntry)
+		}
 	}
 }
 

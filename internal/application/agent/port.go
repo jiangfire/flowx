@@ -13,3 +13,9 @@ type AgentTaskRepository interface {
 	Update(ctx context.Context, task *agent.AgentTask) error
 	List(ctx context.Context, tenantID, status string, page, pageSize int) ([]agent.AgentTask, int64, error)
 }
+
+// AgentTaskLogRepository Agent 任务日志仓储接口
+type AgentTaskLogRepository interface {
+	Create(ctx context.Context, log *agent.AgentTaskLog) error
+	ListByTaskID(ctx context.Context, taskID string) ([]agent.AgentTaskLog, error)
+}

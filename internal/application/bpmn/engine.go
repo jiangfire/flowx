@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"git.neolidy.top/neo/flowx/internal/application/datagov/expression"
-	"git.neolidy.top/neo/flowx/internal/domain/bpmn"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
+	"git.neolidy.top/neo/flowx/internal/domain/bpmn"
 )
 
 // taskInfo extends ProcessTask with internal tracking fields.
@@ -202,6 +202,11 @@ func (e *Engine) HasInstance(instanceID string) bool {
 
 // RestoreInstance rebuilds runtime state from persisted data.
 func (e *Engine) RestoreInstance(inst *bpmn.ProcessInstance, def *bpmn.ProcessDefinition, tasks []*bpmn.ProcessTask, histories []*bpmn.ExecutionHistory) error {
+	return e.RestoreInstanceWithGatewayState(inst, def, tasks, histories, nil, nil)
+}
+
+// RestoreInstanceWithGatewayState rebuilds runtime state including gateway token state.
+func (e *Engine) RestoreInstanceWithGatewayState(inst *bpmn.ProcessInstance, def *bpmn.ProcessDefinition, tasks []*bpmn.ProcessTask, histories []*bpmn.ExecutionHistory, joinState, inclusiveState map[string]int) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -209,13 +214,20 @@ func (e *Engine) RestoreInstance(inst *bpmn.ProcessInstance, def *bpmn.ProcessDe
 		return nil // already loaded
 	}
 
+	if joinState == nil {
+		joinState = make(map[string]int)
+	}
+	if inclusiveState == nil {
+		inclusiveState = make(map[string]int)
+	}
+
 	state := &instanceState{
 		instance:        inst,
 		definition:      def,
 		tasks:           make([]*taskInfo, 0, len(tasks)),
 		history:         make([]*bpmn.ExecutionHistory, 0, len(histories)),
-		joinReceived:    make(map[string]int),
-		inclusiveTokens: make(map[string]int),
+		joinReceived:    joinState,
+		inclusiveTokens: inclusiveState,
 	}
 
 	for _, t := range tasks {
@@ -229,6 +241,28 @@ func (e *Engine) RestoreInstance(inst *bpmn.ProcessInstance, def *bpmn.ProcessDe
 
 	e.instances[inst.ID] = state
 	return nil
+}
+
+// GetGatewayState returns the current gateway token state for persistence.
+func (e *Engine) GetGatewayState(instanceID string) (joinState, inclusiveState map[string]int, err error) {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	state, ok := e.instances[instanceID]
+	if !ok {
+		return nil, nil, fmt.Errorf("instance %s not found", instanceID)
+	}
+
+	// Deep copy maps to avoid race conditions
+	joinState = make(map[string]int, len(state.joinReceived))
+	for k, v := range state.joinReceived {
+		joinState[k] = v
+	}
+	inclusiveState = make(map[string]int, len(state.inclusiveTokens))
+	for k, v := range state.inclusiveTokens {
+		inclusiveState[k] = v
+	}
+	return joinState, inclusiveState, nil
 }
 
 // GetPendingTasks returns all pending tasks for a process instance.

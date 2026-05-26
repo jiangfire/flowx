@@ -3,6 +3,8 @@ package tool_test
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sync/atomic"
 	"testing"
 
 	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
@@ -37,10 +39,13 @@ func (m *mockDataPolicyRepo) Delete(ctx context.Context, tenantID, id string) er
 	return nil
 }
 
+var toolTestDBCounter int64
+
 // setupServiceTestDB 创建服务测试数据库
 func setupServiceTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	dbName := fmt.Sprintf("file:mem_%d?mode=memory&cache=shared", atomic.AddInt64(&toolTestDBCounter, 1))
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("创建测试数据库失败: %v", err)
 	}
@@ -56,7 +61,7 @@ func setupToolService(t *testing.T) (*toolapp.ToolService, *gorm.DB) {
 	db := setupServiceTestDB(t)
 	toolRepo := persistence.NewToolRepository(db)
 	connectorRepo := persistence.NewConnectorRepository(db)
-	svc := toolapp.NewToolService(toolRepo, connectorRepo, nil, nil, nil, nil)
+	svc := toolapp.NewToolService(toolRepo, connectorRepo, nil, nil, nil, nil, db)
 	return svc, db
 }
 
@@ -394,7 +399,7 @@ func setupToolServiceWithPolicy(t *testing.T, policies []domaingov.DataPolicy) (
 	toolRepo := persistence.NewToolRepository(db)
 	connectorRepo := persistence.NewConnectorRepository(db)
 	policyRepo := &mockDataPolicyRepo{policies: policies}
-	svc := toolapp.NewToolService(toolRepo, connectorRepo, policyRepo, nil, nil, nil)
+	svc := toolapp.NewToolService(toolRepo, connectorRepo, policyRepo, nil, nil, nil, db)
 	return svc, db
 }
 
@@ -462,7 +467,7 @@ func TestCreateTool_NoPolicyRepo(t *testing.T) {
 	db := setupServiceTestDB(t)
 	toolRepo := persistence.NewToolRepository(db)
 	connectorRepo := persistence.NewConnectorRepository(db)
-	svc := toolapp.NewToolService(toolRepo, connectorRepo, nil, nil, nil, nil)
+	svc := toolapp.NewToolService(toolRepo, connectorRepo, nil, nil, nil, nil, db)
 
 	req := &toolapp.CreateToolRequest{
 		Name: "NoPolicyRepo",
@@ -685,7 +690,7 @@ func setupToolServiceWithAssetRepos(t *testing.T) (*toolapp.ToolService, *mockDa
 	assetRepo := &mockDataAssetRepo{}
 	ruleRepo := &mockDataQualityRuleRepo{}
 	checkRepo := &mockDataQualityCheckRepo{}
-	svc := toolapp.NewToolService(toolRepo, connectorRepo, nil, assetRepo, ruleRepo, checkRepo)
+	svc := toolapp.NewToolService(toolRepo, connectorRepo, nil, assetRepo, ruleRepo, checkRepo, db)
 	return svc, assetRepo, ruleRepo, checkRepo, db
 }
 
@@ -890,7 +895,7 @@ func TestCreateTool_NilRepos(t *testing.T) {
 	toolRepo := persistence.NewToolRepository(db)
 	connectorRepo := persistence.NewConnectorRepository(db)
 	// 所有新仓储传 nil
-	svc := toolapp.NewToolService(toolRepo, connectorRepo, nil, nil, nil, nil)
+	svc := toolapp.NewToolService(toolRepo, connectorRepo, nil, nil, nil, nil, db)
 
 	req := &toolapp.CreateToolRequest{
 		Name: "NilRepos",

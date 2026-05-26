@@ -2,6 +2,8 @@ package datagov_test
 
 import (
 	"context"
+	"fmt"
+	"sync/atomic"
 	"testing"
 
 	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
@@ -12,10 +14,13 @@ import (
 	"gorm.io/gorm"
 )
 
+var testDBCounter int64
+
 // setupTestDB 创建测试用内存 SQLite 数据库
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	dbName := fmt.Sprintf("file:mem_%d?mode=memory&cache=shared", atomic.AddInt64(&testDBCounter, 1))
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("无法创建测试数据库: %v", err)
 	}
@@ -44,7 +49,7 @@ func setupTestService(t *testing.T) (*datagovapp.DataGovService, *gorm.DB) {
 	ruleRepo := persistence.NewDataQualityRuleRepository(db)
 	checkRepo := persistence.NewDataQualityCheckRepository(db)
 
-	svc := datagovapp.NewDataGovService(policyRepo, assetRepo, ruleRepo, checkRepo)
+	svc := datagovapp.NewDataGovService(policyRepo, assetRepo, ruleRepo, checkRepo, db)
 	return svc, db
 }
 

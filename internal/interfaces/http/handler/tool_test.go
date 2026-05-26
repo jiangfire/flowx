@@ -3,29 +3,34 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 
-	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"git.neolidy.top/neo/flowx/internal/application/auth"
+	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"git.neolidy.top/neo/flowx/internal/domain/tool"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
-	"github.com/xuri/excelize/v2"
 	"github.com/glebarez/sqlite"
+	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 )
+
+var toolHandlerTestDBCounter int64
 
 // setupToolHandlerTest 创建工具 Handler 测试环境
 func setupToolHandlerTest(t *testing.T) (*ToolHandler, *gin.Engine, auth.JWTService) {
 	t.Helper()
 
 	// 创建内存数据库
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	dbName := fmt.Sprintf("file:mem_%d?mode=memory&cache=shared", atomic.AddInt64(&toolHandlerTestDBCounter, 1))
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("创建测试数据库失败: %v", err)
 	}
@@ -36,7 +41,7 @@ func setupToolHandlerTest(t *testing.T) (*ToolHandler, *gin.Engine, auth.JWTServ
 	// 创建服务
 	toolRepo := persistence.NewToolRepository(db)
 	connectorRepo := persistence.NewConnectorRepository(db)
-	toolService := toolapp.NewToolService(toolRepo, connectorRepo, nil, nil, nil, nil)
+	toolService := toolapp.NewToolService(toolRepo, connectorRepo, nil, nil, nil, nil, db)
 	excelService := toolapp.NewExcelService(toolRepo)
 	toolHandler := NewToolHandler(toolService, excelService)
 
@@ -63,7 +68,6 @@ func generateTestToken(t *testing.T, jwtService auth.JWTService, tenantID string
 	}
 	return token
 }
-
 
 // setupToolHandlerWithAuth 创建带认证的工具 Handler 测试环境
 func setupToolHandlerWithAuth(t *testing.T) (*ToolHandler, *gin.Engine, string) {
