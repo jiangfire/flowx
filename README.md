@@ -276,6 +276,22 @@ go test ./internal/application/bpmn/... -v
 └─────────────────────────────────────────────────┘
 ```
 
+## 已知问题与限制
+
+### 已实现修复（2026-05-26）
+
+- **多租户隔离** — Repository 层 `GetByID`/`Delete` 已统一使用显式 `tenantID` 参数，所有查询强制 `WHERE id=? AND tenant_id=?`
+- **数据治理导入闭环** — Excel 导入改为解析层（`ParseXxx`）+ 服务层（`ImportXxx`）两段式，与工具治理导入策略一致
+- **排序稳定性** — `DataQualityCheck.GetByRuleAndAsset` 排序改为 `updated_at DESC, id DESC`
+- **错误处理一致性** — 所有 Repository 层返回标准 sentinel error（`ErrXxxNotFound`），Handler 移除不可达的 `ErrTenantMismatch` 检查
+
+### 当前限制
+
+- **BPMN 运行时** — 流程实例状态保存在内存中，服务重启后无法继续执行（建议生产环境使用外部状态存储或限制为 demo 模式）
+- **Agent/MCP** — 实验性功能，部分实现为桩代码或简化版
+- **数据质量检查** — 当前为模拟执行（简化版），未接入真实数据探查
+- **导入事务** — 批量导入采用逐条创建策略，部分失败时前序条目已提交不回滚（返回部分成功结果）
+
 ## License
 
 MIT

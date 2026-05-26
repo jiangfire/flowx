@@ -46,3 +46,5 @@ coverage.html
 
 # Swagger (generated)
 # docs/ 目录下的文件由 swag 生成，需要提交到仓库
+
+.claude/
