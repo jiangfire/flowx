@@ -1233,3 +1233,78 @@ func TestRunQualityCheck_TenantMismatch(t *testing.T) {
 		t.Fatalf("期望错误 ErrAssetNotFound, got: %v", err)
 	}
 }
+
+// ==================== Import Transaction Tests ====================
+
+// TestImportPolicies_RollbackOnFailure 验证导入事务回滚
+func TestImportPolicies_RollbackOnFailure(t *testing.T) {
+	svc, db := setupTestService(t)
+	ctx := context.Background()
+
+	requests := []*datagovapp.CreatePolicyRequest{
+		{Name: "策略1", Type: "retention"},
+		{Name: "", Type: "retention"}, // validation 失败
+	}
+
+	_, err := svc.ImportPolicies(ctx, testTenantID, requests)
+	if err == nil {
+		t.Fatal("期望导入失败返回错误")
+	}
+
+	// 验证事务回滚：DB 中应无记录
+	var count int64
+	if err := db.Model(&datagov.DataPolicy{}).Where("tenant_id = ?", testTenantID).Count(&count).Error; err != nil {
+		t.Fatalf("查询失败: %v", err)
+	}
+	if count != 0 {
+		t.Fatalf("事务应回滚，期望 0 条记录，实际 %d 条", count)
+	}
+}
+
+// TestImportAssets_RollbackOnFailure 验证导入事务回滚
+func TestImportAssets_RollbackOnFailure(t *testing.T) {
+	svc, db := setupTestService(t)
+	ctx := context.Background()
+
+	requests := []*datagovapp.CreateAssetRequest{
+		{Name: "资产1", Type: "dataset"},
+		{Name: "", Type: "dataset"}, // validation 失败
+	}
+
+	_, err := svc.ImportAssets(ctx, testTenantID, requests)
+	if err == nil {
+		t.Fatal("期望导入失败返回错误")
+	}
+
+	var count int64
+	if err := db.Model(&datagov.DataAsset{}).Where("tenant_id = ?", testTenantID).Count(&count).Error; err != nil {
+		t.Fatalf("查询失败: %v", err)
+	}
+	if count != 0 {
+		t.Fatalf("事务应回滚，期望 0 条记录，实际 %d 条", count)
+	}
+}
+
+// TestImportRules_RollbackOnFailure 验证导入事务回滚
+func TestImportRules_RollbackOnFailure(t *testing.T) {
+	svc, db := setupTestService(t)
+	ctx := context.Background()
+
+	requests := []*datagovapp.CreateRuleRequest{
+		{Name: "规则1", Type: "not_null"},
+		{Name: "", Type: "not_null"}, // validation 失败
+	}
+
+	_, err := svc.ImportRules(ctx, testTenantID, requests)
+	if err == nil {
+		t.Fatal("期望导入失败返回错误")
+	}
+
+	var count int64
+	if err := db.Model(&datagov.DataQualityRule{}).Where("tenant_id = ?", testTenantID).Count(&count).Error; err != nil {
+		t.Fatalf("查询失败: %v", err)
+	}
+	if count != 0 {
+		t.Fatalf("事务应回滚，期望 0 条记录，实际 %d 条", count)
+	}
+}

@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	notificationapp "git.neolidy.top/neo/flowx/internal/application/notification"
 	"git.neolidy.top/neo/flowx/internal/application/auth"
+	notificationapp "git.neolidy.top/neo/flowx/internal/application/notification"
 	"git.neolidy.top/neo/flowx/internal/domain/notification"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"

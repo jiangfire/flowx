@@ -1156,7 +1156,7 @@ func TestUpdateConnector_CrossTenant(t *testing.T) {
 
 // ==================== 批量导入边界测试 ====================
 
-// TestImportTools_PartialFailure 批量导入时部分失败，验证成功和失败结果
+// TestImportTools_PartialFailure 批量导入时部分失败，验证全有或全无回滚
 func TestImportTools_PartialFailure(t *testing.T) {
 	svc, db := setupToolService(t)
 	toolRepo := persistence.NewToolRepository(db)
@@ -1179,27 +1179,19 @@ func TestImportTools_PartialFailure(t *testing.T) {
 		{BaseModel: base.BaseModel{ID: "tool-2", TenantID: "tenant-001"}, Name: "NewTool2", Type: "plm", Status: "active"},
 	}
 
-	results, err := svc.ImportTools(context.Background(), "tenant-001", tools, "admin")
-	if err != nil {
-		t.Fatalf("批量导入不应整体失败，实际错误: %v", err)
-	}
-	if len(results) != 3 {
-		t.Fatalf("期望返回 3 条结果，实际为 %d", len(results))
+	// 期望整体失败（全有或全无事务）
+	_, err := svc.ImportTools(context.Background(), "tenant-001", tools, "admin")
+	if err == nil {
+		t.Fatal("期望导入整体失败返回错误")
 	}
 
-	// 第一个应该成功
-	if results[0].Status != "success" {
-		t.Errorf("期望第 1 个工具导入成功，实际状态为 '%s'", results[0].Status)
+	// 验证事务回滚：新工具不应被创建
+	var count int64
+	if err := db.Model(&tool.Tool{}).Where("tenant_id = ? AND name IN ?", "tenant-001", []string{"NewTool1", "NewTool2"}).Count(&count).Error; err != nil {
+		t.Fatalf("查询失败: %v", err)
 	}
-
-	// 第二个应该失败（重复 ID）
-	if results[1].Status != "error" {
-		t.Errorf("期望第 2 个工具导入失败（重复 ID），实际状态为 '%s'", results[1].Status)
-	}
-
-	// 第三个应该成功
-	if results[2].Status != "success" {
-		t.Errorf("期望第 3 个工具导入成功，实际状态为 '%s'", results[2].Status)
+	if count != 0 {
+		t.Fatalf("事务应回滚，新工具不应被创建，实际 %d 条", count)
 	}
 }
 
@@ -1262,5 +1254,37 @@ func TestShouldRunRule_ByCategory(t *testing.T) {
 	}
 	if checkRepo.createdCheck.RuleID != "rule-category" {
 		t.Errorf("期望 RuleID 为 'rule-category'，实际为 '%s'", checkRepo.createdCheck.RuleID)
+	}
+}
+
+// TestImportTools_RollbackOnFailure 验证导入事务回滚
+func TestImportTools_RollbackOnFailure(t *testing.T) {
+	svc, db := setupToolService(t)
+	ctx := context.Background()
+
+	// 先通过 DB 直接插入一个工具（手动设置 ID 以触发后续冲突）
+	tool1 := &tool.Tool{Name: "工具1", Type: "eda", BaseModel: base.BaseModel{TenantID: "tenant-001", ID: base.GenerateUUID()}}
+	if err := db.Create(tool1).Error; err != nil {
+		t.Fatalf("预插入工具失败: %v", err)
+	}
+
+	// 尝试导入含重复 ID 的工具，触发主键冲突
+	tools := []*tool.Tool{
+		{Name: "工具2", Type: "eda", BaseModel: base.BaseModel{TenantID: "tenant-001", ID: tool1.ID}}, // 重复 ID
+	}
+
+	_, err := svc.ImportTools(ctx, "tenant-001", tools, "admin")
+	if err == nil {
+		t.Fatal("期望导入失败返回错误")
+	}
+
+	// 验证事务回滚：DB 中应无记录
+	// 验证事务回滚：导入过程中创建的工具2不应存在，但预插入的工具1应保留
+	var count int64
+	if err := db.Model(&tool.Tool{}).Where("tenant_id = ?", "tenant-001").Count(&count).Error; err != nil {
+		t.Fatalf("查询失败: %v", err)
+	}
+	if count != 1 {
+		t.Fatalf("事务应回滚，工具2不应被创建，期望 1 条记录（预插入的工具1），实际 %d 条", count)
 	}
 }

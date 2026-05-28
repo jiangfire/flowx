@@ -11,14 +11,14 @@ import (
 // helper: create a policy
 func makePolicy(name, typ, scope, scopeValue string, priority int, status string, rules base.JSON) *domaingov.DataPolicy {
 	return &domaingov.DataPolicy{
-		BaseModel: base.BaseModel{ID: name},
-		Name:      name,
-		Type:      typ,
-		Scope:     scope,
+		BaseModel:  base.BaseModel{ID: name},
+		Name:       name,
+		Type:       typ,
+		Scope:      scope,
 		ScopeValue: scopeValue,
-		Priority:  priority,
-		Status:    status,
-		Rules:     rules,
+		Priority:   priority,
+		Status:     status,
+		Rules:      rules,
 	}
 }
 
@@ -412,7 +412,7 @@ func TestValidateTools_BatchValidation(t *testing.T) {
 
 	tools := []*tool.Tool{
 		makeTool("t1", "eda", "", "", "http://a.com", "active", "", nil), // has endpoint
-		makeTool("t2", "cae", "", "", "", "active", "", nil),              // missing endpoint
+		makeTool("t2", "cae", "", "", "", "active", "", nil),             // missing endpoint
 		makeTool("t3", "eda", "", "", "http://c.com", "active", "", nil), // has endpoint
 	}
 

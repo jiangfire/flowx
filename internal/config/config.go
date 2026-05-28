@@ -19,10 +19,10 @@ type Config struct {
 
 // ServerConfig HTTP服务配置
 type ServerConfig struct {
-	Host         string   `mapstructure:"host"`
-	Port         int      `mapstructure:"port"`
-	Mode         string   `mapstructure:"mode"` // debug / release / test
-	CORSOrigins  []string `mapstructure:"cors_origins"`
+	Host        string   `mapstructure:"host"`
+	Port        int      `mapstructure:"port"`
+	Mode        string   `mapstructure:"mode"` // debug / release / test
+	CORSOrigins []string `mapstructure:"cors_origins"`
 }
 
 // Addr 返回监听地址

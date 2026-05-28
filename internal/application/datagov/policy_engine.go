@@ -165,8 +165,8 @@ func evaluateQualityRules(p *datagov.DataPolicy, t *tool.Tool) []PolicyViolation
 			if !hasToolField(t, fieldName) {
 				violations = append(violations, PolicyViolation{
 					PolicyName: p.Name, PolicyType: "quality",
-					RuleKey:    "required_fields",
-					Message:    fmt.Sprintf("工具 '%s' 缺少必填字段: %s", t.Name, fieldName),
+					RuleKey: "required_fields",
+					Message: fmt.Sprintf("工具 '%s' 缺少必填字段: %s", t.Name, fieldName),
 				})
 			}
 		}
@@ -179,8 +179,8 @@ func evaluateQualityRules(p *datagov.DataPolicy, t *tool.Tool) []PolicyViolation
 	if desc, ok := rules["description_required"].(bool); ok && desc && t.Description == "" {
 		violations = append(violations, PolicyViolation{
 			PolicyName: p.Name, PolicyType: "quality",
-			RuleKey:    "description_required",
-			Message:    fmt.Sprintf("工具 '%s' 描述不能为空", t.Name),
+			RuleKey: "description_required",
+			Message: fmt.Sprintf("工具 '%s' 描述不能为空", t.Name),
 		})
 	}
 	if len(violations) > 0 {
@@ -194,8 +194,8 @@ func evaluateQualityRules(p *datagov.DataPolicy, t *tool.Tool) []PolicyViolation
 			if int64(len(configBytes)) > int64(maxSize) {
 				violations = append(violations, PolicyViolation{
 					PolicyName: p.Name, PolicyType: "quality",
-					RuleKey:    "max_config_size",
-					Message:    fmt.Sprintf("工具 '%s' 的配置大小 (%d 字节) 超过最大限制 (%.0f 字节)", t.Name, len(configBytes), maxSize),
+					RuleKey: "max_config_size",
+					Message: fmt.Sprintf("工具 '%s' 的配置大小 (%d 字节) 超过最大限制 (%.0f 字节)", t.Name, len(configBytes), maxSize),
 				})
 			}
 		}
@@ -215,8 +215,8 @@ func evaluateQualityRules(p *datagov.DataPolicy, t *tool.Tool) []PolicyViolation
 		if !allowed[t.Type] {
 			violations = append(violations, PolicyViolation{
 				PolicyName: p.Name, PolicyType: "quality",
-				RuleKey:    "allowed_types",
-				Message:    fmt.Sprintf("工具 '%s' 的类型 '%s' 不在允许列表中", t.Name, t.Type),
+				RuleKey: "allowed_types",
+				Message: fmt.Sprintf("工具 '%s' 的类型 '%s' 不在允许列表中", t.Name, t.Type),
 			})
 		}
 	}
@@ -237,8 +237,8 @@ func evaluateClassificationRules(p *datagov.DataPolicy, t *tool.Tool) []PolicyVi
 		}
 		violations = append(violations, PolicyViolation{
 			PolicyName: p.Name, PolicyType: "classification",
-			RuleKey:    "category_required",
-			Message:    fmt.Sprintf("工具 '%s' 必须指定分类", t.Name),
+			RuleKey: "category_required",
+			Message: fmt.Sprintf("工具 '%s' 必须指定分类", t.Name),
 		})
 	}
 	if len(violations) > 0 {
@@ -256,8 +256,8 @@ func evaluateClassificationRules(p *datagov.DataPolicy, t *tool.Tool) []PolicyVi
 		if t.Category != "" && !allowed[t.Category] {
 			violations = append(violations, PolicyViolation{
 				PolicyName: p.Name, PolicyType: "classification",
-				RuleKey:    "allowed_categories",
-				Message:    fmt.Sprintf("工具 '%s' 的分类 '%s' 不在允许列表中", t.Name, t.Category),
+				RuleKey: "allowed_categories",
+				Message: fmt.Sprintf("工具 '%s' 的分类 '%s' 不在允许列表中", t.Name, t.Category),
 			})
 		}
 	}
@@ -275,8 +275,8 @@ func evaluateAccessRules(p *datagov.DataPolicy, userRole string) []PolicyViolati
 			if role, ok := r.(string); ok && role == userRole {
 				violations = append(violations, PolicyViolation{
 					PolicyName: p.Name, PolicyType: "access",
-					RuleKey:    "blocked_roles",
-					Message:    fmt.Sprintf("角色 '%s' 被禁止执行此操作", userRole),
+					RuleKey: "blocked_roles",
+					Message: fmt.Sprintf("角色 '%s' 被禁止执行此操作", userRole),
 				})
 				return violations
 			}
@@ -287,8 +287,8 @@ func evaluateAccessRules(p *datagov.DataPolicy, userRole string) []PolicyViolati
 	if req, ok := rules["require_role"].(string); ok && req != "" && userRole != req {
 		violations = append(violations, PolicyViolation{
 			PolicyName: p.Name, PolicyType: "access",
-			RuleKey:    "require_role",
-			Message:    fmt.Sprintf("需要 '%s' 角色，当前角色为 '%s'", req, userRole),
+			RuleKey: "require_role",
+			Message: fmt.Sprintf("需要 '%s' 角色，当前角色为 '%s'", req, userRole),
 		})
 		return violations
 	}
@@ -305,8 +305,8 @@ func evaluateAccessRules(p *datagov.DataPolicy, userRole string) []PolicyViolati
 		if !found {
 			violations = append(violations, PolicyViolation{
 				PolicyName: p.Name, PolicyType: "access",
-				RuleKey:    "allowed_roles",
-				Message:    fmt.Sprintf("角色 '%s' 不在允许列表中", userRole),
+				RuleKey: "allowed_roles",
+				Message: fmt.Sprintf("角色 '%s' 不在允许列表中", userRole),
 			})
 		}
 	}
@@ -323,8 +323,8 @@ func evaluateRetentionRules(p *datagov.DataPolicy, t *tool.Tool) []PolicyViolati
 		if t.Config == nil || t.Config["expiry_date"] == nil {
 			violations = append(violations, PolicyViolation{
 				PolicyName: p.Name, PolicyType: "retention",
-				RuleKey:    "require_expiry_date",
-				Message:    fmt.Sprintf("工具 '%s' 必须配置过期日期 (config.expiry_date)", t.Name),
+				RuleKey: "require_expiry_date",
+				Message: fmt.Sprintf("工具 '%s' 必须配置过期日期 (config.expiry_date)", t.Name),
 			})
 		}
 	}
@@ -335,8 +335,8 @@ func evaluateRetentionRules(p *datagov.DataPolicy, t *tool.Tool) []PolicyViolati
 			if days, ok := t.Config["retention_days"].(float64); ok && days > maxDays {
 				violations = append(violations, PolicyViolation{
 					PolicyName: p.Name, PolicyType: "retention",
-					RuleKey:    "max_retention_days",
-					Message:    fmt.Sprintf("工具 '%s' 的保留天数 (%.0f) 超过最大限制 (%.0f)", t.Name, days, maxDays),
+					RuleKey: "max_retention_days",
+					Message: fmt.Sprintf("工具 '%s' 的保留天数 (%.0f) 超过最大限制 (%.0f)", t.Name, days, maxDays),
 				})
 			}
 		}

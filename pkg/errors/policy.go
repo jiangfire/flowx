@@ -12,7 +12,7 @@ const PolicyViolationErrorCode = 42201
 
 // PolicyViolationError 策略校验失败错误
 type PolicyViolationError struct {
-	Code       int                         `json:"code"`
+	Code       int                          `json:"code"`
 	Violations []datagovapp.PolicyViolation `json:"data"`
 }
 

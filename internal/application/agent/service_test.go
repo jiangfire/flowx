@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	approvalapp "git.neolidy.top/neo/flowx/internal/application/approval"
-	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 	domainagent "git.neolidy.top/neo/flowx/internal/domain/agent"
 	domainapproval "git.neolidy.top/neo/flowx/internal/domain/approval"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
+	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 	"git.neolidy.top/neo/flowx/pkg/pagination"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"

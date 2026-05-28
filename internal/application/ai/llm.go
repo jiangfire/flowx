@@ -12,10 +12,10 @@ import (
 
 // ApprovalSuggestionRequest 审批建议请求
 type ApprovalSuggestionRequest struct {
-	InstanceTitle string         `json:"instance_title"`
-	WorkflowType  string         `json:"workflow_type"`
-	StepName      string         `json:"step_name"`
-	Context       map[string]any `json:"context,omitempty"`
+	InstanceTitle string            `json:"instance_title"`
+	WorkflowType  string            `json:"workflow_type"`
+	StepName      string            `json:"step_name"`
+	Context       map[string]any    `json:"context,omitempty"`
 	History       []ApprovalHistory `json:"history,omitempty"`
 }
 
@@ -51,8 +51,8 @@ func NewLLMService(baseURL, apiKey string, timeout time.Duration) LLMService {
 
 // openAIRequest OpenAI 兼容接口请求体
 type openAIRequest struct {
-	Model    string                   `json:"model"`
-	Messages []openAIMessage          `json:"messages"`
+	Model    string          `json:"model"`
+	Messages []openAIMessage `json:"messages"`
 }
 
 // openAIMessage OpenAI 消息

@@ -5,12 +5,12 @@ import (
 	"context"
 	"testing"
 
+	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/tool"
-	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
 	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	"github.com/xuri/excelize/v2"
 	"github.com/glebarez/sqlite"
+	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 )
 
@@ -182,8 +182,8 @@ func TestImportTools_MissingRequired(t *testing.T) {
 
 	f := excelize.NewFile()
 	_ = f.SetSheetRow("Sheet1", "A1", &[]string{"name", "type", "status"})
-	_ = f.SetSheetRow("Sheet1", "A2", &[]string{"", "eda", "active"})           // 缺少 name
-	_ = f.SetSheetRow("Sheet1", "A3", &[]string{"ValidTool", "eda", "active"})  // 正常行
+	_ = f.SetSheetRow("Sheet1", "A2", &[]string{"", "eda", "active"})          // 缺少 name
+	_ = f.SetSheetRow("Sheet1", "A3", &[]string{"ValidTool", "eda", "active"}) // 正常行
 
 	buf, err := f.WriteToBuffer()
 	if err != nil {

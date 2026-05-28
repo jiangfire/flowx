@@ -671,18 +671,14 @@ type ImportResultItem struct {
 	ID      string `json:"id,omitempty"`
 }
 
-// ImportPolicies 批量导入数据策略
+// ImportPolicies 批量导入数据策略（全有或全无事务）
 func (s *DataGovService) ImportPolicies(ctx context.Context, tenantID string, requests []*CreatePolicyRequest) ([]ImportResultItem, error) {
 	var results []ImportResultItem
 	err := transaction.WithTransaction(ctx, s.db, func(txCtx context.Context) error {
 		for _, req := range requests {
 			policy, err := s.CreatePolicy(txCtx, tenantID, req)
 			if err != nil {
-				results = append(results, ImportResultItem{
-					Status:  "error",
-					Message: err.Error(),
-				})
-				continue
+				return err
 			}
 			results = append(results, ImportResultItem{
 				Status: "success",
@@ -691,21 +687,20 @@ func (s *DataGovService) ImportPolicies(ctx context.Context, tenantID string, re
 		}
 		return nil
 	})
-	return results, err
+	if err != nil {
+		return nil, fmt.Errorf("导入数据策略失败: %w", err)
+	}
+	return results, nil
 }
 
-// ImportAssets 批量导入数据资产
+// ImportAssets 批量导入数据资产（全有或全无事务）
 func (s *DataGovService) ImportAssets(ctx context.Context, tenantID string, requests []*CreateAssetRequest) ([]ImportResultItem, error) {
 	var results []ImportResultItem
 	err := transaction.WithTransaction(ctx, s.db, func(txCtx context.Context) error {
 		for _, req := range requests {
 			asset, err := s.CreateAsset(txCtx, tenantID, req)
 			if err != nil {
-				results = append(results, ImportResultItem{
-					Status:  "error",
-					Message: err.Error(),
-				})
-				continue
+				return err
 			}
 			results = append(results, ImportResultItem{
 				Status: "success",
@@ -714,7 +709,10 @@ func (s *DataGovService) ImportAssets(ctx context.Context, tenantID string, requ
 		}
 		return nil
 	})
-	return results, err
+	if err != nil {
+		return nil, fmt.Errorf("导入数据资产失败: %w", err)
+	}
+	return results, nil
 }
 
 // ImportRules 批量导入数据质量规则
@@ -724,11 +722,7 @@ func (s *DataGovService) ImportRules(ctx context.Context, tenantID string, reque
 		for _, req := range requests {
 			rule, err := s.CreateRule(txCtx, tenantID, req)
 			if err != nil {
-				results = append(results, ImportResultItem{
-					Status:  "error",
-					Message: err.Error(),
-				})
-				continue
+				return err
 			}
 			results = append(results, ImportResultItem{
 				Status: "success",
@@ -737,5 +731,8 @@ func (s *DataGovService) ImportRules(ctx context.Context, tenantID string, reque
 		}
 		return nil
 	})
-	return results, err
+	if err != nil {
+		return nil, fmt.Errorf("导入数据质量规则失败: %w", err)
+	}
+	return results, nil
 }

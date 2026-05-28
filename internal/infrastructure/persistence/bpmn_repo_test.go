@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
+	bpmnapp "git.neolidy.top/neo/flowx/internal/application/bpmn"
 	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"git.neolidy.top/neo/flowx/internal/domain/bpmn"
-	bpmnapp "git.neolidy.top/neo/flowx/internal/application/bpmn"
+	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -109,12 +109,12 @@ func TestCreateAndGetProcessInstance(t *testing.T) {
 
 	now := time.Now()
 	inst := &bpmn.ProcessInstance{
-		BaseModel:      base.BaseModel{ID: base.GenerateUUID(), TenantID: "tenant-001", CreatedAt: now, UpdatedAt: now},
-		DefinitionID:   "def-001",
-		Status:         "running",
-		Variables:      base.JSON{"amount": 100},
+		BaseModel:       base.BaseModel{ID: base.GenerateUUID(), TenantID: "tenant-001", CreatedAt: now, UpdatedAt: now},
+		DefinitionID:    "def-001",
+		Status:          "running",
+		Variables:       base.JSON{"amount": 100},
 		CurrentElements: base.JSON{"task1": true},
-		StartedBy:      "user-001",
+		StartedBy:       "user-001",
 	}
 
 	err := repo.Create(ctx, inst)
@@ -167,13 +167,13 @@ func TestCreateAndGetProcessTask(t *testing.T) {
 
 	now := time.Now()
 	task := &bpmn.ProcessTask{
-		BaseModel:   base.BaseModel{ID: base.GenerateUUID(), TenantID: "tenant-001", CreatedAt: now, UpdatedAt: now},
-		InstanceID:  "inst-001",
-		ElementID:   "task1",
-		Name:        "审批任务",
-		Assignee:    "admin",
-		Status:      "pending",
-		FormFields:  base.JSON{"field1": "value1"},
+		BaseModel:  base.BaseModel{ID: base.GenerateUUID(), TenantID: "tenant-001", CreatedAt: now, UpdatedAt: now},
+		InstanceID: "inst-001",
+		ElementID:  "task1",
+		Name:       "审批任务",
+		Assignee:   "admin",
+		Status:     "pending",
+		FormFields: base.JSON{"field1": "value1"},
 	}
 
 	err := repo.Create(ctx, task)
@@ -245,19 +245,19 @@ func TestCreateAndListHistory(t *testing.T) {
 	now := time.Now()
 	histories := []*bpmn.ExecutionHistory{
 		{
-			BaseModel:    base.BaseModel{ID: base.GenerateUUID(), TenantID: "tenant-001", CreatedAt: now, UpdatedAt: now},
-			InstanceID:   "inst-001",
-			ElementID:    "start",
-			ElementType:  "startEvent",
-			Action:       "enter",
-			Variables:    base.JSON{"key": "value"},
+			BaseModel:   base.BaseModel{ID: base.GenerateUUID(), TenantID: "tenant-001", CreatedAt: now, UpdatedAt: now},
+			InstanceID:  "inst-001",
+			ElementID:   "start",
+			ElementType: "startEvent",
+			Action:      "enter",
+			Variables:   base.JSON{"key": "value"},
 		},
 		{
-			BaseModel:    base.BaseModel{ID: base.GenerateUUID(), TenantID: "tenant-001", CreatedAt: now, UpdatedAt: now},
-			InstanceID:   "inst-001",
-			ElementID:    "start",
-			ElementType:  "startEvent",
-			Action:       "leave",
+			BaseModel:   base.BaseModel{ID: base.GenerateUUID(), TenantID: "tenant-001", CreatedAt: now, UpdatedAt: now},
+			InstanceID:  "inst-001",
+			ElementID:   "start",
+			ElementType: "startEvent",
+			Action:      "leave",
 		},
 	}
 

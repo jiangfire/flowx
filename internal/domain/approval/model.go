@@ -30,8 +30,8 @@ type WorkflowInstance struct {
 	Status      string    `gorm:"size:20;not null;index" json:"status"` // pending/approving/rejected/approved/cancelled
 	CurrentStep int       `gorm:"default:0" json:"current_step"`
 	InitiatorID string    `gorm:"size:26;not null;index" json:"initiator_id"`
-	Context     base.JSON `gorm:"type:jsonb" json:"context"`  // 审批上下文数据
-	Result      base.JSON `gorm:"type:jsonb" json:"result"`    // 审批结果数据
+	Context     base.JSON `gorm:"type:jsonb" json:"context"` // 审批上下文数据
+	Result      base.JSON `gorm:"type:jsonb" json:"result"`  // 审批结果数据
 	AgentTaskID string    `gorm:"size:26;index" json:"agent_task_id"`
 }
 

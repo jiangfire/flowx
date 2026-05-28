@@ -16,8 +16,8 @@ type mockAgent struct {
 	handleFunc  func(ctx context.Context, task *Task, tools mcp.ToolCaller) (*StepResult, error)
 }
 
-func (a *mockAgent) Name() string        { return a.name }
-func (a *mockAgent) Description() string  { return a.description }
+func (a *mockAgent) Name() string           { return a.name }
+func (a *mockAgent) Description() string    { return a.description }
 func (a *mockAgent) HandledTypes() []string { return a.taskTypes }
 func (a *mockAgent) Execute(ctx context.Context, task *Task, tools mcp.ToolCaller) (*StepResult, error) {
 	if a.handleFunc != nil {

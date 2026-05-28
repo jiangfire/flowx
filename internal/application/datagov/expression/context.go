@@ -9,7 +9,7 @@ type Context struct {
 
 type ToolContext struct {
 	Name, Type, Category, Description, Endpoint, Status, ConnectorID string
-	Config                                                         map[string]any
+	Config                                                           map[string]any
 }
 
 type UserContext struct {

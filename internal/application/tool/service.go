@@ -403,11 +403,7 @@ func (s *ToolService) ImportTools(ctx context.Context, tenantID string, tools []
 		for _, tl := range tools {
 			tl.TenantID = tenantID
 			if err := s.toolRepo.Create(txCtx, tl); err != nil {
-				results = append(results, ImportResult{
-					Status:  "error",
-					Message: fmt.Sprintf("创建失败: %v", err),
-				})
-				continue
+				return fmt.Errorf("创建工具 '%s' 失败: %w", tl.Name, err)
 			}
 
 			// 自动注册数据资产（与手工创建保持一致）
@@ -430,22 +426,8 @@ func (s *ToolService) ImportTools(ctx context.Context, tenantID string, tools []
 						"connector_id":  tl.ConnectorID,
 					},
 				}
-				_ = s.assetRepo.Create(txCtx, asset)
-			}
-
-			// 自动触发质量检查（与手工创建保持一致）
-			if s.ruleRepo != nil && s.checkRepo != nil {
-				rules, _, err := s.ruleRepo.List(txCtx, datagovapp.DataQualityRuleFilter{
-					TenantID: tenantID,
-					Status:   "active",
-					PageSize: 1000,
-				})
-				if err == nil {
-					for _, rule := range rules {
-						if shouldRunRule(&rule, tl) {
-							runQualityCheck(txCtx, s.checkRepo, &rule, tl.ID, tenantID)
-						}
-					}
+				if err := s.assetRepo.Create(txCtx, asset); err != nil {
+					return fmt.Errorf("注册工具 '%s' 的数据资产失败: %w", tl.Name, err)
 				}
 			}
 
@@ -457,7 +439,10 @@ func (s *ToolService) ImportTools(ctx context.Context, tenantID string, tools []
 		}
 		return nil
 	})
-	return results, err
+	if err != nil {
+		return nil, fmt.Errorf("导入工具失败: %w", err)
+	}
+	return results, nil
 }
 
 // CreateConnector 创建连接器
