@@ -692,7 +692,7 @@ func TestEngine_GatewayState_PersistAndRestore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetGatewayState failed: %v", err)
 	}
-	if joinState == nil || len(joinState) == 0 {
+	if len(joinState) == 0 {
 		t.Fatal("expected non-empty joinState after completing one branch")
 	}
 	if inclusiveState == nil {

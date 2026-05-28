@@ -805,7 +805,7 @@ elements:
 	}
 
 	// 验证 DB 中有 join_state 记录（gateway state 已持久化）
-	if runningInst.JoinState == nil || len(runningInst.JoinState) == 0 {
+	if len(runningInst.JoinState) == 0 {
 		t.Fatal("期望 DB 中的实例有 join_state 记录")
 	}
 	if runningInst.JoinState["join"] != float64(1) {

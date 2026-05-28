@@ -130,7 +130,7 @@ func (a *dataQualityAgent) Execute(ctx context.Context, task *Task, tools mcpif.
 	checkType, _ := task.Context["check_type"].(string)
 	target, _ := task.Context["target"].(string)
 
-	var qualityScore float64 = 100.0
+	var qualityScore = 100.0
 	var issues []any
 	var totalItems int
 
