@@ -3,6 +3,7 @@ package datagov_test
 import (
 	"context"
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -1306,5 +1307,71 @@ func TestImportRules_RollbackOnFailure(t *testing.T) {
 	}
 	if count != 0 {
 		t.Fatalf("事务应回滚，期望 0 条记录，实际 %d 条", count)
+	}
+}
+
+// ==================== 导入边界 case 测试 ====================
+
+// TestImportPolicies_Concurrent 验证并发导入的事务隔离
+func TestImportPolicies_Concurrent(t *testing.T) {
+	svc, db := setupTestService(t)
+	ctx := context.Background()
+
+	// 并发导入不同的策略
+	var wg sync.WaitGroup
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			requests := []*datagovapp.CreatePolicyRequest{
+				{Name: fmt.Sprintf("并发策略-%d", idx), Type: "retention"},
+			}
+			_, err := svc.ImportPolicies(ctx, testTenantID, requests)
+			if err != nil {
+				t.Errorf("并发导入策略 %d 失败: %v", idx, err)
+			}
+		}(i)
+	}
+	wg.Wait()
+
+	// 验证所有策略都已导入
+	var count int64
+	if err := db.Model(&datagov.DataPolicy{}).Where("tenant_id = ?", testTenantID).Count(&count).Error; err != nil {
+		t.Fatalf("查询失败: %v", err)
+	}
+	if count != 5 {
+		t.Fatalf("期望导入 5 条策略，实际 %d 条", count)
+	}
+}
+
+// TestImportPolicies_LargeBatch 验证大批量导入性能
+func TestImportPolicies_LargeBatch(t *testing.T) {
+	svc, db := setupTestService(t)
+	ctx := context.Background()
+
+	// 导入 100 条策略
+	requests := make([]*datagovapp.CreatePolicyRequest, 100)
+	for i := 0; i < 100; i++ {
+		requests[i] = &datagovapp.CreatePolicyRequest{
+			Name: fmt.Sprintf("批量策略-%d", i),
+			Type: "retention",
+		}
+	}
+
+	results, err := svc.ImportPolicies(ctx, testTenantID, requests)
+	if err != nil {
+		t.Fatalf("大批量导入失败: %v", err)
+	}
+	if len(results) != 100 {
+		t.Fatalf("期望返回 100 条结果，实际 %d 条", len(results))
+	}
+
+	// 验证所有策略都已导入
+	var count int64
+	if err := db.Model(&datagov.DataPolicy{}).Where("tenant_id = ?", testTenantID).Count(&count).Error; err != nil {
+		t.Fatalf("查询失败: %v", err)
+	}
+	if count != 100 {
+		t.Fatalf("期望导入 100 条策略，实际 %d 条", count)
 	}
 }

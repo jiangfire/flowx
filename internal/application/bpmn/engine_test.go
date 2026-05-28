@@ -657,6 +657,169 @@ func TestEngine_ParallelGateway_DifferentCompletionOrder(t *testing.T) {
 	}
 }
 
+// ========== Gateway State Persistence ==========
+
+func TestEngine_GatewayState_PersistAndRestore(t *testing.T) {
+	def := newDef("parallel-persist", []bpmn.Element{
+		{ID: "start", Type: "startEvent", Outgoing: bpmn.StringSlice{"flow1"}},
+		{ID: "flow1", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"start"}, Outgoing: bpmn.StringSlice{"gw_fork"}},
+		{ID: "gw_fork", Type: "parallelGateway", Incoming: bpmn.StringSlice{"flow1"}, Outgoing: bpmn.StringSlice{"flow2", "flow3"}},
+		{ID: "flow2", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"gw_fork"}, Outgoing: bpmn.StringSlice{"taskA"}},
+		{ID: "flow3", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"gw_fork"}, Outgoing: bpmn.StringSlice{"taskB"}},
+		{ID: "taskA", Type: "userTask", Name: "TaskA", Incoming: bpmn.StringSlice{"flow2"}, Outgoing: bpmn.StringSlice{"flow4"}},
+		{ID: "taskB", Type: "userTask", Name: "TaskB", Incoming: bpmn.StringSlice{"flow3"}, Outgoing: bpmn.StringSlice{"flow5"}},
+		{ID: "flow4", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"taskA"}, Outgoing: bpmn.StringSlice{"gw_join"}},
+		{ID: "flow5", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"taskB"}, Outgoing: bpmn.StringSlice{"gw_join"}},
+		{ID: "gw_join", Type: "parallelGateway", Incoming: bpmn.StringSlice{"flow4", "flow5"}, Outgoing: bpmn.StringSlice{"flow6"}},
+		{ID: "flow6", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"gw_join"}, Outgoing: bpmn.StringSlice{"end"}},
+		{ID: "end", Type: "endEvent", Incoming: bpmn.StringSlice{"flow6"}},
+	})
+
+	// Step 1: Start process in engine1
+	engine1 := NewEngine()
+	inst := startInstance(t, engine1, def, nil)
+
+	tasks := engine1.GetPendingTasks(inst.ID)
+	if len(tasks) != 2 {
+		t.Fatalf("expected 2 pending tasks, got %d", len(tasks))
+	}
+
+	// Complete first task
+	_ = engine1.CompleteTask(inst.ID, tasks[0].ID, "user1", nil)
+
+	// Step 2: Get gateway state (simulating persistence before crash)
+	joinState, inclusiveState, err := engine1.GetGatewayState(inst.ID)
+	if err != nil {
+		t.Fatalf("GetGatewayState failed: %v", err)
+	}
+	if joinState == nil || len(joinState) == 0 {
+		t.Fatal("expected non-empty joinState after completing one branch")
+	}
+	if inclusiveState == nil {
+		t.Fatal("expected non-nil inclusiveState")
+	}
+
+	// Verify joinReceived has recorded one token for gw_join
+	if joinState["gw_join"] != 1 {
+		t.Fatalf("expected joinState[gw_join]=1, got %d", joinState["gw_join"])
+	}
+
+	// Step 3: Simulate crash recovery with new engine
+	engine2 := NewEngine()
+	// Reconstruct the instance as it would be loaded from DB
+	instFromDB := &bpmn.ProcessInstance{
+		BaseModel:             inst.BaseModel,
+		Status:                inst.Status,
+		Variables:             inst.Variables,
+		JoinState:             map[string]any{"gw_join": float64(1)},
+		InclusiveGatewayState: map[string]any{},
+	}
+
+	// Restore with gateway state
+	remainingTask := tasks[1]
+	err = engine2.RestoreInstanceWithGatewayState(instFromDB, def,
+		[]*bpmn.ProcessTask{remainingTask},
+		[]*bpmn.ExecutionHistory{},
+		joinState, inclusiveState)
+	if err != nil {
+		t.Fatalf("RestoreInstanceWithGatewayState failed: %v", err)
+	}
+
+	// Step 4: Verify restored instance can continue
+	restoredTasks := engine2.GetPendingTasks(inst.ID)
+	if len(restoredTasks) != 1 {
+		t.Fatalf("expected 1 pending task after restore, got %d", len(restoredTasks))
+	}
+	if restoredTasks[0].ElementID != remainingTask.ElementID {
+		t.Fatalf("expected restored task %s, got %s", remainingTask.ElementID, restoredTasks[0].ElementID)
+	}
+
+	// Complete the remaining task - process should finish
+	_ = engine2.CompleteTask(inst.ID, restoredTasks[0].ID, "user1", nil)
+	completedInst := engine2.GetInstance(inst.ID)
+	if completedInst.Status != "completed" {
+		t.Fatalf("expected completed after restore and complete, got %s", completedInst.Status)
+	}
+}
+
+func TestEngine_GatewayState_InclusivePersistAndRestore(t *testing.T) {
+	def := newDef("inclusive-persist", []bpmn.Element{
+		{ID: "start", Type: "startEvent", Outgoing: bpmn.StringSlice{"flow1"}},
+		{ID: "flow1", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"start"}, Outgoing: bpmn.StringSlice{"gw1"}},
+		{ID: "gw1", Type: "inclusiveGateway", Incoming: bpmn.StringSlice{"flow1"}, Outgoing: bpmn.StringSlice{"flow2", "flow3", "flow4"}},
+		{ID: "flow2", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"gw1"}, Outgoing: bpmn.StringSlice{"taskA"}, Condition: "tool.config.amount > 5000"},
+		{ID: "flow3", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"gw1"}, Outgoing: bpmn.StringSlice{"taskB"}, Condition: "tool.config.role == \"manager\""},
+		{ID: "flow4", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"gw1"}, Outgoing: bpmn.StringSlice{"taskC"}},
+		{ID: "taskA", Type: "userTask", Name: "TaskA", Incoming: bpmn.StringSlice{"flow2"}, Outgoing: bpmn.StringSlice{"flow5"}},
+		{ID: "taskB", Type: "userTask", Name: "TaskB", Incoming: bpmn.StringSlice{"flow3"}, Outgoing: bpmn.StringSlice{"flow6"}},
+		{ID: "taskC", Type: "userTask", Name: "TaskC", Incoming: bpmn.StringSlice{"flow4"}, Outgoing: bpmn.StringSlice{"flow7"}},
+		{ID: "flow5", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"taskA"}, Outgoing: bpmn.StringSlice{"gw2"}},
+		{ID: "flow6", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"taskB"}, Outgoing: bpmn.StringSlice{"gw2"}},
+		{ID: "flow7", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"taskC"}, Outgoing: bpmn.StringSlice{"gw2"}},
+		{ID: "gw2", Type: "inclusiveGateway", Incoming: bpmn.StringSlice{"flow5", "flow6", "flow7"}, Outgoing: bpmn.StringSlice{"flow8"}},
+		{ID: "flow8", Type: "sequenceFlow", Incoming: bpmn.StringSlice{"gw2"}, Outgoing: bpmn.StringSlice{"end"}},
+		{ID: "end", Type: "endEvent", Incoming: bpmn.StringSlice{"flow8"}},
+	})
+
+	// Step 1: Start process - all 3 branches activated
+	engine1 := NewEngine()
+	inst := startInstance(t, engine1, def, map[string]any{"amount": 6000, "role": "manager"})
+
+	tasks := engine1.GetPendingTasks(inst.ID)
+	if len(tasks) != 3 {
+		t.Fatalf("expected 3 pending tasks, got %d", len(tasks))
+	}
+
+	// Complete 2 tasks
+	_ = engine1.CompleteTask(inst.ID, tasks[0].ID, "user1", nil)
+	_ = engine1.CompleteTask(inst.ID, tasks[1].ID, "user1", nil)
+
+	// Step 2: Get gateway state
+	joinState, inclusiveState, err := engine1.GetGatewayState(inst.ID)
+	if err != nil {
+		t.Fatalf("GetGatewayState failed: %v", err)
+	}
+
+	// Join gateway should have received 2 tokens (2 branches completed out of 3)
+	if joinState["gw2"] != 2 {
+		t.Fatalf("expected joinState[gw2]=2, got %d", joinState["gw2"])
+	}
+	// Fork gateway should have dispatched 3 tokens
+	if inclusiveState["gw1"] != 3 {
+		t.Fatalf("expected inclusiveState[gw1]=3, got %d", inclusiveState["gw1"])
+	}
+
+	// Step 3: Restore with new engine
+	engine2 := NewEngine()
+	instFromDB := &bpmn.ProcessInstance{
+		BaseModel:             inst.BaseModel,
+		Status:                inst.Status,
+		Variables:             inst.Variables,
+		JoinState:             map[string]any{"gw2": float64(2)},
+		InclusiveGatewayState: map[string]any{"gw1": float64(3)},
+	}
+
+	remainingTask := tasks[2]
+	err = engine2.RestoreInstanceWithGatewayState(instFromDB, def,
+		[]*bpmn.ProcessTask{remainingTask},
+		[]*bpmn.ExecutionHistory{},
+		joinState, inclusiveState)
+	if err != nil {
+		t.Fatalf("RestoreInstanceWithGatewayState failed: %v", err)
+	}
+
+	// Step 4: Complete last task - should finish
+	restoredTasks := engine2.GetPendingTasks(inst.ID)
+	if len(restoredTasks) != 1 {
+		t.Fatalf("expected 1 pending task after restore, got %d", len(restoredTasks))
+	}
+	_ = engine2.CompleteTask(inst.ID, restoredTasks[0].ID, "user1", nil)
+	completedInst := engine2.GetInstance(inst.ID)
+	if completedInst.Status != "completed" {
+		t.Fatalf("expected completed, got %s", completedInst.Status)
+	}
+}
+
 // ========== Boundary: CompleteTask with wrong instance ==========
 
 func TestEngine_CompleteTask_WrongInstance(t *testing.T) {

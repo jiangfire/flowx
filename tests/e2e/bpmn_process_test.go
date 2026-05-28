@@ -699,3 +699,166 @@ elements:
 		t.Fatalf("期望变量 comment=ok，实际为 %v", completedInst.Variables["comment"])
 	}
 }
+
+// ==================== 场景7: 并行网关崩溃恢复 ====================
+
+func TestE2E_BPMN_ParallelGateway_CrashRecovery(t *testing.T) {
+	svc, db := setupBPMNE2E(t)
+	ctx := context.Background()
+	const tenantID = "tenant-e2e-7"
+
+	// 并行网关定义 YAML
+	parallelYAML := []byte(`
+id: parallel-crash
+name: 并行网关崩溃恢复测试
+version: 1
+status: active
+elements:
+  - id: start
+    type: startEvent
+    outgoing: flow1
+  - id: flow1
+    type: sequenceFlow
+    incoming: start
+    outgoing: fork
+  - id: fork
+    type: parallelGateway
+    incoming: flow1
+    outgoing:
+      - flow2
+      - flow3
+  - id: flow2
+    type: sequenceFlow
+    incoming: fork
+    outgoing: taskA
+  - id: flow3
+    type: sequenceFlow
+    incoming: fork
+    outgoing: taskB
+  - id: taskA
+    type: userTask
+    name: 任务A
+    incoming: flow2
+    outgoing: flow4
+  - id: taskB
+    type: userTask
+    name: 任务B
+    incoming: flow3
+    outgoing: flow5
+  - id: flow4
+    type: sequenceFlow
+    incoming: taskA
+    outgoing: join
+  - id: flow5
+    type: sequenceFlow
+    incoming: taskB
+    outgoing: join
+  - id: join
+    type: parallelGateway
+    incoming:
+      - flow4
+      - flow5
+    outgoing: flow6
+  - id: flow6
+    type: sequenceFlow
+    incoming: join
+    outgoing: end
+  - id: end
+    type: endEvent
+    incoming: flow6
+`)
+
+	// 1. 部署并行网关定义
+	def, err := svc.DeployDefinition(ctx, tenantID, parallelYAML)
+	if err != nil {
+		t.Fatalf("部署流程定义失败: %v", err)
+	}
+
+	// 2. 启动流程实例
+	inst, err := svc.StartProcess(ctx, tenantID, def.ID, "user1", nil)
+	if err != nil {
+		t.Fatalf("启动流程实例失败: %v", err)
+	}
+
+	// 3. 验证有 2 个待办任务
+	pendingTasks, err := svc.GetPendingTasks(ctx, tenantID, "")
+	if err != nil {
+		t.Fatalf("获取待办任务失败: %v", err)
+	}
+	if len(pendingTasks) != 2 {
+		t.Fatalf("期望 2 个待办任务，实际为 %d", len(pendingTasks))
+	}
+
+	// 4. 完成第一个任务（这会触发 gateway state 持久化到 DB）
+	err = svc.CompleteTask(ctx, tenantID, pendingTasks[0].ID, "user1", map[string]any{"taskA": "done"})
+	if err != nil {
+		t.Fatalf("完成第一个任务失败: %v", err)
+	}
+
+	// 验证实例仍在运行（join 还在等待第二个分支）
+	runningInst, err := svc.GetProcessInstance(ctx, tenantID, inst.ID)
+	if err != nil {
+		t.Fatalf("获取流程实例失败: %v", err)
+	}
+	if runningInst.Status != "running" {
+		t.Fatalf("期望实例状态为 running，实际为 %s", runningInst.Status)
+	}
+
+	// 验证 DB 中有 join_state 记录（gateway state 已持久化）
+	if runningInst.JoinState == nil || len(runningInst.JoinState) == 0 {
+		t.Fatal("期望 DB 中的实例有 join_state 记录")
+	}
+	if runningInst.JoinState["join"] != float64(1) {
+		t.Fatalf("期望 join_state[join]=1，实际为 %v", runningInst.JoinState["join"])
+	}
+
+	// 5. 模拟服务崩溃：丢弃当前 service，创建新的 service（新 engine）
+	engine2 := bpmnapp.NewEngine()
+	defRepo := persistence.NewProcessDefinitionRepository(db)
+	instRepo := persistence.NewProcessInstanceRepository(db)
+	taskRepo := persistence.NewProcessTaskRepository(db)
+	historyRepo := persistence.NewExecutionHistoryRepository(db)
+	svc2 := bpmnapp.NewProcessService(engine2, defRepo, instRepo, taskRepo, historyRepo)
+
+	// 6. 新 service 中获取待办任务（此时 engine 为空，需要自动恢复）
+	pendingTasks2, err := svc2.GetPendingTasks(ctx, tenantID, "")
+	if err != nil {
+		t.Fatalf("新服务获取待办任务失败: %v", err)
+	}
+	// 过滤出属于当前实例的任务
+	var instTasks []*bpmn.ProcessTask
+	for _, task := range pendingTasks2 {
+		if task.InstanceID == inst.ID {
+			instTasks = append(instTasks, task)
+		}
+	}
+	if len(instTasks) != 1 {
+		t.Fatalf("期望恢复后仍有 1 个待办任务（剩余分支），实际为 %d", len(instTasks))
+	}
+
+	// 7. 完成剩余任务（这会触发 ensureInstanceInEngine 自动恢复 gateway state）
+	err = svc2.CompleteTask(ctx, tenantID, instTasks[0].ID, "user1", map[string]any{"taskB": "done"})
+	if err != nil {
+		t.Fatalf("完成剩余任务失败: %v", err)
+	}
+
+	// 8. 验证流程已完成
+	completedInst, err := svc2.GetProcessInstance(ctx, tenantID, inst.ID)
+	if err != nil {
+		t.Fatalf("获取流程实例失败: %v", err)
+	}
+	if completedInst.Status != "completed" {
+		t.Fatalf("期望实例状态为 completed，实际为 %s", completedInst.Status)
+	}
+
+	// 9. 验证变量包含两个任务提交的数据
+	if completedInst.Variables == nil {
+		t.Fatal("期望实例变量不为空")
+	}
+	if completedInst.Variables["taskA"] != "done" {
+		t.Fatalf("期望变量 taskA=done，实际为 %v", completedInst.Variables["taskA"])
+	}
+	if completedInst.Variables["taskB"] != "done" {
+		t.Fatalf("期望变量 taskB=done，实际为 %v", completedInst.Variables["taskB"])
+	}
+}

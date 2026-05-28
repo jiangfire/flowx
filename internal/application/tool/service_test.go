@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -1286,5 +1287,71 @@ func TestImportTools_RollbackOnFailure(t *testing.T) {
 	}
 	if count != 1 {
 		t.Fatalf("事务应回滚，工具2不应被创建，期望 1 条记录（预插入的工具1），实际 %d 条", count)
+	}
+}
+
+// ==================== 导入边界 case 测试 ====================
+
+// TestImportTools_Concurrent 验证并发导入的事务隔离
+func TestImportTools_Concurrent(t *testing.T) {
+	svc, db := setupToolService(t)
+	ctx := context.Background()
+
+	// 并发导入不同的工具
+	var wg sync.WaitGroup
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			tools := []*tool.Tool{
+				{Name: fmt.Sprintf("并发工具-%d", idx), Type: "eda"},
+			}
+			_, err := svc.ImportTools(ctx, "tenant-001", tools, "admin")
+			if err != nil {
+				t.Errorf("并发导入工具 %d 失败: %v", idx, err)
+			}
+		}(i)
+	}
+	wg.Wait()
+
+	// 验证所有工具都已导入
+	var count int64
+	if err := db.Model(&tool.Tool{}).Where("tenant_id = ?", "tenant-001").Count(&count).Error; err != nil {
+		t.Fatalf("查询失败: %v", err)
+	}
+	if count != 5 {
+		t.Fatalf("期望导入 5 个工具，实际 %d 个", count)
+	}
+}
+
+// TestImportTools_LargeBatch 验证大批量导入性能
+func TestImportTools_LargeBatch(t *testing.T) {
+	svc, db := setupToolService(t)
+	ctx := context.Background()
+
+	// 导入 100 个工具
+	tools := make([]*tool.Tool, 100)
+	for i := 0; i < 100; i++ {
+		tools[i] = &tool.Tool{
+			Name: fmt.Sprintf("批量工具-%d", i),
+			Type: "eda",
+		}
+	}
+
+	results, err := svc.ImportTools(ctx, "tenant-001", tools, "admin")
+	if err != nil {
+		t.Fatalf("大批量导入失败: %v", err)
+	}
+	if len(results) != 100 {
+		t.Fatalf("期望返回 100 条结果，实际 %d 条", len(results))
+	}
+
+	// 验证所有工具都已导入
+	var count int64
+	if err := db.Model(&tool.Tool{}).Where("tenant_id = ?", "tenant-001").Count(&count).Error; err != nil {
+		t.Fatalf("查询失败: %v", err)
+	}
+	if count != 100 {
+		t.Fatalf("期望导入 100 个工具，实际 %d 个", count)
 	}
 }
