@@ -130,8 +130,13 @@ func main() {
 	sig := <-quit
 	slog.Info("收到关闭信号，开始优雅关闭...", "signal", sig.String())
 
+	// 先停止接收新请求
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
+	// 给运行中的 BPMN 实例一些时间完成状态持久化
+	// (CompleteTask 已在每次完成后自动调用 persistInstanceState)
+	time.Sleep(2 * time.Second)
 
 	if err := srv.Shutdown(ctx); err != nil {
 		slog.Error("服务关闭失败", "error", err)

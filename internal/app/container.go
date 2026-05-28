@@ -33,6 +33,7 @@ type Container struct {
 	DataGovHandler  *handler.DataGovHandler
 	NotifHandler    *handler.NotificationHandler
 	BPMNHandler     *handler.BPMNHandler
+	HealthHandler   *handler.HealthHandler
 	MCPHandler      http.Handler
 	approvalSvc     approval.ApprovalService
 	dataGovSvc      *datagovapp.DataGovService
@@ -49,6 +50,7 @@ func NewContainer(db *gorm.DB, cfg config.Config, llmSvc aiapp.LLMService) *Cont
 	c.initAgentServices(db, llmSvc)
 	c.initNotificationServices(db)
 	c.initBPMNServices(db)
+	c.HealthHandler = handler.NewHealthHandler(db)
 	return c
 }
 

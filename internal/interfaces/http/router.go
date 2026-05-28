@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"git.neolidy.top/neo/flowx/internal/app"
-	"git.neolidy.top/neo/flowx/internal/interfaces/http/handler"
 	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -20,7 +19,8 @@ func SetupRouter(r *gin.Engine, container *app.Container) {
 	v1 := r.Group("/api/v1")
 	{
 		// 健康检查
-		v1.GET("/health", handler.HealthCheck)
+		v1.GET("/health", container.HealthHandler.HealthCheck)
+		v1.GET("/ready", container.HealthHandler.ReadinessCheck)
 
 		// MCP SSE endpoint
 		if container.MCPHandler != nil {

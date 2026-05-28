@@ -2865,7 +2865,7 @@
         },
         "/health": {
             "get": {
-                "description": "检查服务运行状态和版本信息",
+                "description": "检查服务运行状态和版本信息（liveness probe）",
                 "consumes": [
                     "application/json"
                 ],
@@ -4652,6 +4652,36 @@
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ready": {
+            "get": {
+                "description": "检查服务是否已准备好接收流量（readiness probe），包含数据库连接检查",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统"
+                ],
+                "summary": "就绪检查",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
                         "schema": {
                             "$ref": "#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse"
                         }

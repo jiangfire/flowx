@@ -2361,7 +2361,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: 检查服务运行状态和版本信息
+      description: 检查服务运行状态和版本信息（liveness probe）
       produces:
       - application/json
       responses:
@@ -3517,6 +3517,26 @@ paths:
       summary: 获取待办任务
       tags:
       - BPMN流程
+  /ready:
+    get:
+      consumes:
+      - application/json
+      description: 检查服务是否已准备好接收流量（readiness probe），包含数据库连接检查
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/git_neolidy_top_neo_flowx_pkg_response.APIResponse'
+      summary: 就绪检查
+      tags:
+      - 系统
   /tools:
     get:
       consumes:
