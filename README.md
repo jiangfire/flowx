@@ -5,20 +5,20 @@
 ## 特性
 
 - 🔧 **工具治理** — 工具全生命周期管理，策略校验自动拦截违规操作
-- 📋 **BPMN 流程引擎** — 支持 9 种元素类型、并行/排他/包容网关、子流程（运行态为内存模式，重启后需重新加载实例）
-- 🤖 **Agent 智能体** — 工具编排、审批分析、数据质量检查三种内置 Agent（experimental）
+- 📋 **BPMN 流程引擎** — 支持 9 种元素类型、并行/排他/包容网关、子流程，Gateway 状态持久化支持崩溃恢复
+- 🤖 **Agent 智能体** — 工具编排、审批分析、数据质量检查三种内置 Agent，集成 LLM
 - ✅ **审批工作流** — 多步审批、转审、AI 智能建议、工作流发布机制
 - 🛡️ **策略执行引擎** — 自定义表达式 + 四种策略类型（quality/classification/access/retention）
-- 📊 **数据治理** — 数据资产注册、质量规则、质量检查（demo）、Excel 导入导出
+- 📊 **数据治理** — 数据资产注册、质量规则、质量检查、Excel 导入导出，全有或全无事务
 - 🔔 **通知系统** — 多渠道通知、模板管理、偏好设置
 - 🏢 **多租户** — 基于 JWT 的租户隔离
-- 🔌 **MCP 协议** — Model Context Protocol 基础封装（experimental）
+- 🔌 **MCP 协议** — Model Context Protocol，支持 SSE 传输和工具注册表同步
 
 ## 技术栈
 
 | 层级 | 技术 |
 |------|------|
-| 语言 | Go 1.25.9 |
+| 语言 | Go 1.26.3 |
 | Web 框架 | Gin |
 | ORM | GORM |
 | 数据库 | PostgreSQL / SQLite（测试） |
@@ -26,7 +26,7 @@
 | 认证 | JWT (golang-jwt/v5) |
 | 配置 | Viper |
 | AI/LLM | Ollama (OpenAI 兼容接口) |
-| 协议 | MCP (Model Context Protocol) |
+| 协议 | MCP (Model Context Protocol) + SSE |
 | 容器 | Docker + Docker Compose |
 
 ## 项目结构
@@ -55,12 +55,15 @@ flowx/
 │       │   └── middleware/   # 中间件（认证/租户/超时/上传）
 │       └── mcp/             # MCP 协议服务
 ├── pkg/                     # 公共包
+│   ├── crud/                # 通用 CRUD 接口
 │   ├── errors/              # 错误类型
 │   ├── pagination/          # 分页
 │   ├── response/            # 统一响应
-│   └── tenant/              # 租户上下文
+│   ├── tenant/              # 租户上下文
+│   ├── transaction/         # 数据库事务
+│   └── version/             # 版本信息
 ├── tests/e2e/               # E2E 场景测试
-├── docs/                    # 设计文档
+├── docs/                    # Swagger 文档（自动生成）
 ├── config.example.yaml      # 配置示例
 ├── Dockerfile               # 多阶段构建
 ├── docker-compose.yml       # 编排（PostgreSQL + Redis + App）
@@ -71,7 +74,7 @@ flowx/
 
 ### 环境要求
 
-- Go 1.25.9+
+- Go 1.26.3+
 - PostgreSQL 14+（生产）/ SQLite（开发测试）
 - Redis 7+（必需依赖）
 
@@ -141,7 +144,7 @@ make docker-down    # Docker 停止
 
 ## API 概览
 
-服务启动后访问 `http://localhost:8080/api/v1`，共 **89 个接口**：
+服务启动后访问 `http://localhost:8080/api/v1`，共 **92 个接口**：
 
 | 模块 | 接口数 | 说明 |
 |------|--------|------|
@@ -159,7 +162,7 @@ make docker-down    # Docker 停止
 | 通知模板 | 5 | CRUD |
 | 通知偏好 | 4 | CRUD |
 | BPMN 流程 | 12 | 定义部署 / 实例管理 / 任务处理 |
-| 健康检查 | 1 | 状态检查 |
+| 健康检查 | 2 | 健康检查 / 就绪检查 |
 
 ### 认证
 
@@ -239,7 +242,7 @@ elements:
 ## 测试
 
 ```bash
-# 全量测试（630+ 用例）
+# 全量测试（640+ 用例）
 go test ./... -count=1
 
 # 含 E2E 场景测试
@@ -251,7 +254,8 @@ go test ./internal/application/bpmn/... -v
 
 测试覆盖：
 - **单元测试** — 每个模块独立测试，使用内存 mock 或 SQLite 内存数据库
-- **E2E 场景测试** — 工具治理链路、BPMN 流程生命周期、Agent-审批联动
+- **E2E 场景测试** — 工具治理链路、BPMN 流程生命周期、Agent-审批联动、BPMN 崩溃恢复
+- **事务测试** — 导入事务回滚、并发导入隔离、大批量导入性能
 
 ## 架构设计
 
@@ -278,19 +282,11 @@ go test ./internal/application/bpmn/... -v
 
 ## 已知问题与限制
 
-### 已实现修复（2026-05-26）
-
-- **多租户隔离** — Repository 层 `GetByID`/`Delete` 已统一使用显式 `tenantID` 参数，所有查询强制 `WHERE id=? AND tenant_id=?`
-- **数据治理导入闭环** — Excel 导入改为解析层（`ParseXxx`）+ 服务层（`ImportXxx`）两段式，与工具治理导入策略一致
-- **排序稳定性** — `DataQualityCheck.GetByRuleAndAsset` 排序改为 `updated_at DESC, id DESC`
-- **错误处理一致性** — 所有 Repository 层返回标准 sentinel error（`ErrXxxNotFound`），Handler 移除不可达的 `ErrTenantMismatch` 检查
-
 ### 当前限制
 
-- **BPMN 运行时** — 流程实例状态保存在内存中，服务重启后无法继续执行（建议生产环境使用外部状态存储或限制为 demo 模式）
-- **Agent/MCP** — 实验性功能，部分实现为桩代码或简化版
-- **数据质量检查** — 当前为模拟执行（简化版），未接入真实数据探查
-- **导入事务** — 批量导入采用逐条创建策略，部分失败时前序条目已提交不回滚（返回部分成功结果）
+- **Agent/MCP** — LLM 集成依赖外部服务（Ollama），需确保 LLM 服务可用
+- **数据质量检查** — 当前为简化版执行，未接入真实数据探查连接器
+- **通知渠道** — 当前仅支持站内通知，邮件/飞书等外部渠道待接入
 
 ## License
 
