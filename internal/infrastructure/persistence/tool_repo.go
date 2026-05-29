@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/tool"
+	toolapp "github.com/jiangfire/flowx/internal/application/tool"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/tool"
 	"gorm.io/gorm"
 )
 

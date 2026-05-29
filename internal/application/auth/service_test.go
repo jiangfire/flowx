@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/tenant"
 	"github.com/glebarez/sqlite"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/tenant"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )

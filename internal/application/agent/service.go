@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"log/slog"
 
-	approvalapp "git.neolidy.top/neo/flowx/internal/application/approval"
-	domainagent "git.neolidy.top/neo/flowx/internal/domain/agent"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
-	"git.neolidy.top/neo/flowx/pkg/pagination"
+	approvalapp "github.com/jiangfire/flowx/internal/application/approval"
+	domainagent "github.com/jiangfire/flowx/internal/domain/agent"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	mcpif "github.com/jiangfire/flowx/internal/interfaces/mcp"
+	"github.com/jiangfire/flowx/pkg/pagination"
 )
 
 // Sentinel errors for Agent service

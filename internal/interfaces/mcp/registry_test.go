@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"git.neolidy.top/neo/flowx/internal/domain/tool"
+	"github.com/jiangfire/flowx/internal/domain/tool"
 )
 
 // TestToolRegistry_RegisterTool_Success 验证注册工具成功

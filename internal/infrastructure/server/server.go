@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/config"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/jiangfire/flowx/internal/config"
 )
 
 // slogLogger Gin 日志中间件，使用 slog 结构化日志

@@ -9,15 +9,15 @@ import (
 	"testing"
 	"time"
 
-	agentapp "git.neolidy.top/neo/flowx/internal/application/agent"
-	"git.neolidy.top/neo/flowx/internal/application/auth"
-	domainagent "git.neolidy.top/neo/flowx/internal/domain/agent"
-	"git.neolidy.top/neo/flowx/internal/domain/tool"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
-	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
+	agentapp "github.com/jiangfire/flowx/internal/application/agent"
+	"github.com/jiangfire/flowx/internal/application/auth"
+	domainagent "github.com/jiangfire/flowx/internal/domain/agent"
+	"github.com/jiangfire/flowx/internal/domain/tool"
+	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
+	"github.com/jiangfire/flowx/internal/interfaces/http/middleware"
+	mcpif "github.com/jiangfire/flowx/internal/interfaces/mcp"
 	"gorm.io/gorm"
 )
 

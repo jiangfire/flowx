@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	approvalapp "git.neolidy.top/neo/flowx/internal/application/approval"
-	"git.neolidy.top/neo/flowx/pkg/response"
 	"github.com/gin-gonic/gin"
+	approvalapp "github.com/jiangfire/flowx/internal/application/approval"
+	"github.com/jiangfire/flowx/pkg/response"
 )
 
 // ApprovalHandler 审批处理器

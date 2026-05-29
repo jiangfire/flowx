@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	agentapp "git.neolidy.top/neo/flowx/internal/application/agent"
-	"git.neolidy.top/neo/flowx/internal/domain/agent"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/pkg/pagination"
+	agentapp "github.com/jiangfire/flowx/internal/application/agent"
+	"github.com/jiangfire/flowx/internal/domain/agent"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/pkg/pagination"
 	"gorm.io/gorm"
 )
 

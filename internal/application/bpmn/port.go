@@ -3,7 +3,7 @@ package bpmn
 import (
 	"context"
 
-	"git.neolidy.top/neo/flowx/internal/domain/bpmn"
+	"github.com/jiangfire/flowx/internal/domain/bpmn"
 )
 
 // ProcessDefinitionFilter 流程定义查询过滤

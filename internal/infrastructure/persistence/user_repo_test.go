@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"git.neolidy.top/neo/flowx/internal/domain/tenant"
 	"github.com/glebarez/sqlite"
+	"github.com/jiangfire/flowx/internal/domain/tenant"
 	"gorm.io/gorm"
 )
 

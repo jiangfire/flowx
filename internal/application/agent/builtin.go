@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	aiapp "git.neolidy.top/neo/flowx/internal/application/ai"
-	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
-	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
+	aiapp "github.com/jiangfire/flowx/internal/application/ai"
+	datagovapp "github.com/jiangfire/flowx/internal/application/datagov"
+	mcpif "github.com/jiangfire/flowx/internal/interfaces/mcp"
 )
 
 // ==================== ToolOrchestrationAgent ====================

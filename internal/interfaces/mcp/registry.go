@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"git.neolidy.top/neo/flowx/internal/domain/tool"
+	"github.com/jiangfire/flowx/internal/domain/tool"
 )
 
 // MCPToolDefinition MCP 工具定义

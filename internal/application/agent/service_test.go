@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"testing"
 
-	approvalapp "git.neolidy.top/neo/flowx/internal/application/approval"
-	domainagent "git.neolidy.top/neo/flowx/internal/domain/agent"
-	domainapproval "git.neolidy.top/neo/flowx/internal/domain/approval"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
-	"git.neolidy.top/neo/flowx/pkg/pagination"
 	"github.com/glebarez/sqlite"
+	approvalapp "github.com/jiangfire/flowx/internal/application/approval"
+	domainagent "github.com/jiangfire/flowx/internal/domain/agent"
+	domainapproval "github.com/jiangfire/flowx/internal/domain/approval"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	mcpif "github.com/jiangfire/flowx/internal/interfaces/mcp"
+	"github.com/jiangfire/flowx/pkg/pagination"
 	"gorm.io/gorm"
 )
 

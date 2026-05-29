@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/config"
+	"github.com/jiangfire/flowx/internal/config"
 
 	"github.com/redis/go-redis/v9"
 )

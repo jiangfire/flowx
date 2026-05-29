@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"git.neolidy.top/neo/flowx/internal/interfaces/mcp"
+	"github.com/jiangfire/flowx/internal/interfaces/mcp"
 )
 
 // TestToolOrchestrationAgent_HandledTypes 验证 ToolOrchestrationAgent 正确声明任务类型

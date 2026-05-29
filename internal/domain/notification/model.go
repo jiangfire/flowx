@@ -3,7 +3,7 @@ package notification
 import (
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/base"
 )
 
 // TableName 指定 Notification 表名

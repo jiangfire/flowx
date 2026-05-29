@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	bpmnapp "git.neolidy.top/neo/flowx/internal/application/bpmn"
-	"git.neolidy.top/neo/flowx/pkg/response"
 	"github.com/gin-gonic/gin"
+	bpmnapp "github.com/jiangfire/flowx/internal/application/bpmn"
+	"github.com/jiangfire/flowx/pkg/response"
 )
 
 // BPMNHandler BPMN 流程 HTTP 处理器

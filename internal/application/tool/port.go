@@ -3,7 +3,7 @@ package tool
 import (
 	"context"
 
-	domaintool "git.neolidy.top/neo/flowx/internal/domain/tool"
+	domaintool "github.com/jiangfire/flowx/internal/domain/tool"
 )
 
 // ToolFilter 工具查询过滤条件

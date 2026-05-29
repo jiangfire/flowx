@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	notifapp "git.neolidy.top/neo/flowx/internal/application/notification"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/notification"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"github.com/glebarez/sqlite"
+	notifapp "github.com/jiangfire/flowx/internal/application/notification"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/notification"
+	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
 	"gorm.io/gorm"
 )
 

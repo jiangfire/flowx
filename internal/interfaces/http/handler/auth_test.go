@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/application/auth"
-	"git.neolidy.top/neo/flowx/internal/domain/tenant"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
+	"github.com/jiangfire/flowx/internal/application/auth"
+	"github.com/jiangfire/flowx/internal/domain/tenant"
+	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
+	"github.com/jiangfire/flowx/internal/interfaces/http/middleware"
 	"gorm.io/gorm"
 )
 

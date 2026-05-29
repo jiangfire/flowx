@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"sort"
 
-	"git.neolidy.top/neo/flowx/internal/application/datagov/expression"
-	"git.neolidy.top/neo/flowx/internal/domain/datagov"
-	"git.neolidy.top/neo/flowx/internal/domain/tool"
+	"github.com/jiangfire/flowx/internal/application/datagov/expression"
+	"github.com/jiangfire/flowx/internal/domain/datagov"
+	"github.com/jiangfire/flowx/internal/domain/tool"
 )
 
 // PolicyViolation 策略违规记录

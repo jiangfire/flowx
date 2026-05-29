@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/datagov"
-	"git.neolidy.top/neo/flowx/pkg/pagination"
-	"git.neolidy.top/neo/flowx/pkg/transaction"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/datagov"
+	"github.com/jiangfire/flowx/pkg/pagination"
+	"github.com/jiangfire/flowx/pkg/transaction"
 	"gorm.io/gorm"
 )
 

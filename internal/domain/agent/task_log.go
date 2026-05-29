@@ -1,6 +1,6 @@
 package agent
 
-import "git.neolidy.top/neo/flowx/internal/domain/base"
+import "github.com/jiangfire/flowx/internal/domain/base"
 
 // AgentTaskLog Agent 任务执行日志
 type AgentTaskLog struct {

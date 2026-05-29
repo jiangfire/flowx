@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	bpmnapp "git.neolidy.top/neo/flowx/internal/application/bpmn"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/bpmn"
+	bpmnapp "github.com/jiangfire/flowx/internal/application/bpmn"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/bpmn"
 	"gopkg.in/yaml.v3"
 	"gorm.io/gorm"
 )

@@ -3,7 +3,7 @@ package bpmn
 import (
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/base"
 	"gopkg.in/yaml.v3"
 )
 

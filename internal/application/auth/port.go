@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	"git.neolidy.top/neo/flowx/internal/domain/tenant"
+	"github.com/jiangfire/flowx/internal/domain/tenant"
 )
 
 // UserRepository 用户仓储接口

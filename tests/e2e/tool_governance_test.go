@@ -8,14 +8,14 @@ import (
 	"sync/atomic"
 	"testing"
 
-	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
-	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	domaingov "git.neolidy.top/neo/flowx/internal/domain/datagov"
-	"git.neolidy.top/neo/flowx/internal/domain/tool"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	bizerrors "git.neolidy.top/neo/flowx/pkg/errors"
 	"github.com/glebarez/sqlite"
+	datagovapp "github.com/jiangfire/flowx/internal/application/datagov"
+	toolapp "github.com/jiangfire/flowx/internal/application/tool"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	domaingov "github.com/jiangfire/flowx/internal/domain/datagov"
+	"github.com/jiangfire/flowx/internal/domain/tool"
+	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
+	bizerrors "github.com/jiangfire/flowx/pkg/errors"
 	"gorm.io/gorm"
 )
 

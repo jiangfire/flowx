@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/application/datagov/expression"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/bpmn"
+	"github.com/jiangfire/flowx/internal/application/datagov/expression"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/bpmn"
 )
 
 // taskInfo extends ProcessTask with internal tracking fields.

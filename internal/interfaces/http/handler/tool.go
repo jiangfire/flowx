@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
-	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
-	bizerrors "git.neolidy.top/neo/flowx/pkg/errors"
-	"git.neolidy.top/neo/flowx/pkg/response"
 	"github.com/gin-gonic/gin"
+	toolapp "github.com/jiangfire/flowx/internal/application/tool"
+	bizerrors "github.com/jiangfire/flowx/pkg/errors"
+	"github.com/jiangfire/flowx/pkg/response"
 )
 
 // ToolHandler 工具 HTTP 处理器

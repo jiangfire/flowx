@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/datagov"
+	datagovapp "github.com/jiangfire/flowx/internal/application/datagov"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/datagov"
 	"gorm.io/gorm"
 )
 

@@ -5,13 +5,13 @@ import (
 	"errors"
 	"fmt"
 
-	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	domaingov "git.neolidy.top/neo/flowx/internal/domain/datagov"
-	"git.neolidy.top/neo/flowx/internal/domain/tool"
-	bizerrors "git.neolidy.top/neo/flowx/pkg/errors"
-	"git.neolidy.top/neo/flowx/pkg/pagination"
-	"git.neolidy.top/neo/flowx/pkg/transaction"
+	datagovapp "github.com/jiangfire/flowx/internal/application/datagov"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	domaingov "github.com/jiangfire/flowx/internal/domain/datagov"
+	"github.com/jiangfire/flowx/internal/domain/tool"
+	bizerrors "github.com/jiangfire/flowx/pkg/errors"
+	"github.com/jiangfire/flowx/pkg/pagination"
+	"github.com/jiangfire/flowx/pkg/transaction"
 	"gorm.io/gorm"
 )
 

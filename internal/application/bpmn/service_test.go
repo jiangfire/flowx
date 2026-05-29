@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	"git.neolidy.top/neo/flowx/internal/domain/bpmn"
+	"github.com/jiangfire/flowx/internal/domain/bpmn"
 )
 
 // ==================== 内存模拟仓储实现 ====================

@@ -1,7 +1,7 @@
 package agent
 
 import (
-	"git.neolidy.top/neo/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/base"
 )
 
 // AgentTask Agent 任务

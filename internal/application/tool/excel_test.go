@@ -5,11 +5,11 @@ import (
 	"context"
 	"testing"
 
-	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/tool"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"github.com/glebarez/sqlite"
+	toolapp "github.com/jiangfire/flowx/internal/application/tool"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/tool"
+	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
 	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 )

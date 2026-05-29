@@ -3,7 +3,7 @@ package agent
 import (
 	"context"
 
-	"git.neolidy.top/neo/flowx/internal/domain/agent"
+	"github.com/jiangfire/flowx/internal/domain/agent"
 )
 
 // AgentTaskRepository Agent 任务仓储接口

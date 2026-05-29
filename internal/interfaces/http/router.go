@@ -3,9 +3,9 @@ package http
 import (
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/app"
-	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/jiangfire/flowx/internal/app"
+	"github.com/jiangfire/flowx/internal/interfaces/http/middleware"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )

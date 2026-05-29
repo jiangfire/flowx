@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"git.neolidy.top/neo/flowx/internal/interfaces/mcp"
+	"github.com/jiangfire/flowx/internal/interfaces/mcp"
 )
 
 // mockAgent 模拟 Agent 实现

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/bpmn"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/bpmn"
 	"gopkg.in/yaml.v3"
 )
 

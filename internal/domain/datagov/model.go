@@ -1,7 +1,7 @@
 package datagov
 
 import (
-	"git.neolidy.top/neo/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/base"
 )
 
 // ==================== DataPolicy 数据治理策略 ====================

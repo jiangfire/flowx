@@ -3,7 +3,7 @@ package datagov
 import (
 	"context"
 
-	domaintool "git.neolidy.top/neo/flowx/internal/domain/datagov"
+	domaintool "github.com/jiangfire/flowx/internal/domain/datagov"
 )
 
 // DataPolicyFilter 数据策略查询过滤条件

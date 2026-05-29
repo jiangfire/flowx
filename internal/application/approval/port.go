@@ -3,7 +3,7 @@ package approval
 import (
 	"context"
 
-	"git.neolidy.top/neo/flowx/internal/domain/approval"
+	"github.com/jiangfire/flowx/internal/domain/approval"
 )
 
 // WorkflowFilter 工作流查询过滤条件

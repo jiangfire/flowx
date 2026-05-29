@@ -6,13 +6,13 @@ import (
 	"errors"
 	"testing"
 
-	agentapp "git.neolidy.top/neo/flowx/internal/application/agent"
-	approvalapp "git.neolidy.top/neo/flowx/internal/application/approval"
-	"git.neolidy.top/neo/flowx/internal/domain/agent"
-	"git.neolidy.top/neo/flowx/internal/domain/approval"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
 	"github.com/glebarez/sqlite"
+	agentapp "github.com/jiangfire/flowx/internal/application/agent"
+	approvalapp "github.com/jiangfire/flowx/internal/application/approval"
+	"github.com/jiangfire/flowx/internal/domain/agent"
+	"github.com/jiangfire/flowx/internal/domain/approval"
+	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
+	mcpif "github.com/jiangfire/flowx/internal/interfaces/mcp"
 	"gorm.io/gorm"
 )
 

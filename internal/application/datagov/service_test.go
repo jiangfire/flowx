@@ -7,11 +7,11 @@ import (
 	"sync/atomic"
 	"testing"
 
-	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/datagov"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"github.com/glebarez/sqlite"
+	datagovapp "github.com/jiangfire/flowx/internal/application/datagov"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/datagov"
+	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
 	"gorm.io/gorm"
 )
 

@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
-	agentapp "git.neolidy.top/neo/flowx/internal/application/agent"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/pkg/response"
 	"github.com/gin-gonic/gin"
+	agentapp "github.com/jiangfire/flowx/internal/application/agent"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/pkg/response"
 )
 
 // AgentHandler Agent HTTP 处理器

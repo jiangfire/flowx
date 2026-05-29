@@ -1,7 +1,7 @@
 package workflow
 
 import (
-	"git.neolidy.top/neo/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/base"
 )
 
 // Workflow 工作流域模型（预留）

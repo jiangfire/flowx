@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	toolapp "git.neolidy.top/neo/flowx/internal/application/tool"
+	toolapp "github.com/jiangfire/flowx/internal/application/tool"
 )
 
 // SyncToolsFromDB loads all active tools from repository and registers them

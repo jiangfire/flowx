@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
-	datagovapp "git.neolidy.top/neo/flowx/internal/application/datagov"
-	"git.neolidy.top/neo/flowx/pkg/response"
 	"github.com/gin-gonic/gin"
+	datagovapp "github.com/jiangfire/flowx/internal/application/datagov"
+	"github.com/jiangfire/flowx/pkg/response"
 )
 
 // DataGovHandler 数据治理 HTTP 处理器

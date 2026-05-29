@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/tool"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/tool"
 	"github.com/xuri/excelize/v2"
 )
 

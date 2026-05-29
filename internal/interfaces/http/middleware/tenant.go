@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"git.neolidy.top/neo/flowx/pkg/response"
 	"github.com/gin-gonic/gin"
+	"github.com/jiangfire/flowx/pkg/response"
 )
 
 // TenantMiddleware 多租户中间件

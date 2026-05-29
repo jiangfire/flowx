@@ -3,9 +3,9 @@ package datagov
 import (
 	"testing"
 
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	domaingov "git.neolidy.top/neo/flowx/internal/domain/datagov"
-	"git.neolidy.top/neo/flowx/internal/domain/tool"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	domaingov "github.com/jiangfire/flowx/internal/domain/datagov"
+	"github.com/jiangfire/flowx/internal/domain/tool"
 )
 
 // helper: create a policy

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	notifdomain "git.neolidy.top/neo/flowx/internal/domain/notification"
-	"git.neolidy.top/neo/flowx/pkg/pagination"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	notifdomain "github.com/jiangfire/flowx/internal/domain/notification"
+	"github.com/jiangfire/flowx/pkg/pagination"
 )
 
 var (

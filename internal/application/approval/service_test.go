@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/application/ai"
-	"git.neolidy.top/neo/flowx/internal/domain/approval"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"github.com/glebarez/sqlite"
+	"github.com/jiangfire/flowx/internal/application/ai"
+	"github.com/jiangfire/flowx/internal/domain/approval"
+	"github.com/jiangfire/flowx/internal/domain/base"
 	"gorm.io/gorm"
 )
 

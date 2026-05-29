@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	approvalapp "git.neolidy.top/neo/flowx/internal/application/approval"
-	"git.neolidy.top/neo/flowx/internal/domain/approval"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/pkg/pagination"
+	approvalapp "github.com/jiangfire/flowx/internal/application/approval"
+	"github.com/jiangfire/flowx/internal/domain/approval"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/pkg/pagination"
 	"gorm.io/gorm"
 )
 

@@ -8,13 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/application/auth"
-	notificationapp "git.neolidy.top/neo/flowx/internal/application/notification"
-	"git.neolidy.top/neo/flowx/internal/domain/notification"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
+	"github.com/jiangfire/flowx/internal/application/auth"
+	notificationapp "github.com/jiangfire/flowx/internal/application/notification"
+	"github.com/jiangfire/flowx/internal/domain/notification"
+	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
+	"github.com/jiangfire/flowx/internal/interfaces/http/middleware"
 	"gorm.io/gorm"
 )
 

@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"git.neolidy.top/neo/flowx/internal/application/auth"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/tenant"
+	"github.com/jiangfire/flowx/internal/application/auth"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/tenant"
 	"gorm.io/gorm"
 )
 

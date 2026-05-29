@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	bpmnapp "git.neolidy.top/neo/flowx/internal/application/bpmn"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/bpmn"
 	"github.com/glebarez/sqlite"
+	bpmnapp "github.com/jiangfire/flowx/internal/application/bpmn"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/bpmn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"

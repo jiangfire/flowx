@@ -3,7 +3,7 @@ package notification
 import (
 	"context"
 
-	notifdomain "git.neolidy.top/neo/flowx/internal/domain/notification"
+	notifdomain "github.com/jiangfire/flowx/internal/domain/notification"
 )
 
 // NotificationFilter 通知查询过滤条件

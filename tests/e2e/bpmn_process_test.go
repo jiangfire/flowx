@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	bpmnapp "git.neolidy.top/neo/flowx/internal/application/bpmn"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
-	"git.neolidy.top/neo/flowx/internal/domain/bpmn"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
 	"github.com/glebarez/sqlite"
+	bpmnapp "github.com/jiangfire/flowx/internal/application/bpmn"
+	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/bpmn"
+	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
 	"gorm.io/gorm"
 )
 

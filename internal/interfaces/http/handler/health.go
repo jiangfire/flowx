@@ -3,9 +3,9 @@ package handler
 import (
 	"net/http"
 
-	"git.neolidy.top/neo/flowx/pkg/response"
-	"git.neolidy.top/neo/flowx/pkg/version"
 	"github.com/gin-gonic/gin"
+	"github.com/jiangfire/flowx/pkg/response"
+	"github.com/jiangfire/flowx/pkg/version"
 	"gorm.io/gorm"
 )
 
@@ -63,8 +63,8 @@ func (h *HealthHandler) ReadinessCheck(c *gin.Context) {
 	}
 
 	response.Success(c, gin.H{
-		"status":    "ready",
-		"version":   version.Version,
-		"database":  "connected",
+		"status":   "ready",
+		"version":  version.Version,
+		"database": "connected",
 	})
 }

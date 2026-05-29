@@ -3,7 +3,7 @@ package approval
 import (
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/base"
 )
 
 // Workflow 工作流定义模型

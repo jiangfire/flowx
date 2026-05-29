@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/domain/bpmn"
+	"github.com/jiangfire/flowx/internal/domain/bpmn"
 )
 
 // helper: create a simple process definition

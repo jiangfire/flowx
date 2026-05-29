@@ -1,7 +1,7 @@
 package tenant
 
 import (
-	"git.neolidy.top/neo/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/domain/base"
 	"gorm.io/gorm"
 )
 

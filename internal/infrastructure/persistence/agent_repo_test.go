@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"git.neolidy.top/neo/flowx/internal/domain/agent"
-	"git.neolidy.top/neo/flowx/internal/domain/base"
 	"github.com/glebarez/sqlite"
+	"github.com/jiangfire/flowx/internal/domain/agent"
+	"github.com/jiangfire/flowx/internal/domain/base"
 	"gorm.io/gorm"
 )
 

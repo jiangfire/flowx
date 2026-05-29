@@ -30,15 +30,15 @@ import (
 	"syscall"
 	"time"
 
-	"git.neolidy.top/neo/flowx/internal/app"
-	"git.neolidy.top/neo/flowx/internal/application/ai"
-	"git.neolidy.top/neo/flowx/internal/config"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/cache"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/server"
-	httpInterface "git.neolidy.top/neo/flowx/internal/interfaces/http"
+	"github.com/jiangfire/flowx/internal/app"
+	"github.com/jiangfire/flowx/internal/application/ai"
+	"github.com/jiangfire/flowx/internal/config"
+	"github.com/jiangfire/flowx/internal/infrastructure/cache"
+	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
+	"github.com/jiangfire/flowx/internal/infrastructure/server"
+	httpInterface "github.com/jiangfire/flowx/internal/interfaces/http"
 
-	_ "git.neolidy.top/neo/flowx/docs" // Swagger 文档
+	_ "github.com/jiangfire/flowx/docs" // Swagger 文档
 )
 
 func main() {

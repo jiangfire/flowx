@@ -8,13 +8,13 @@ import (
 	"testing"
 	"time"
 
-	approvalservice "git.neolidy.top/neo/flowx/internal/application/approval"
-	"git.neolidy.top/neo/flowx/internal/application/auth"
-	"git.neolidy.top/neo/flowx/internal/domain/approval"
-	"git.neolidy.top/neo/flowx/internal/infrastructure/persistence"
-	"git.neolidy.top/neo/flowx/internal/interfaces/http/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
+	approvalservice "github.com/jiangfire/flowx/internal/application/approval"
+	"github.com/jiangfire/flowx/internal/application/auth"
+	"github.com/jiangfire/flowx/internal/domain/approval"
+	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
+	"github.com/jiangfire/flowx/internal/interfaces/http/middleware"
 	"gorm.io/gorm"
 )
 

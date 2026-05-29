@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	notificationapp "git.neolidy.top/neo/flowx/internal/application/notification"
-	"git.neolidy.top/neo/flowx/pkg/response"
 	"github.com/gin-gonic/gin"
+	notificationapp "github.com/jiangfire/flowx/internal/application/notification"
+	"github.com/jiangfire/flowx/pkg/response"
 )
 
 // NotificationHandler 通知 HTTP 处理器

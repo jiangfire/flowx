@@ -8,9 +8,9 @@ import (
 	"sort"
 	"sync"
 
-	domainagent "git.neolidy.top/neo/flowx/internal/domain/agent"
-	"git.neolidy.top/neo/flowx/internal/domain/tool"
-	mcpif "git.neolidy.top/neo/flowx/internal/interfaces/mcp"
+	domainagent "github.com/jiangfire/flowx/internal/domain/agent"
+	"github.com/jiangfire/flowx/internal/domain/tool"
+	mcpif "github.com/jiangfire/flowx/internal/interfaces/mcp"
 )
 
 // Task 任务定义

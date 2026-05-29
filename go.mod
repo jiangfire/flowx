@@ -1,4 +1,4 @@
-module git.neolidy.top/neo/flowx
+module github.com/jiangfire/flowx
 
 go 1.26.3
 
