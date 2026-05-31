@@ -15,6 +15,7 @@ type Config struct {
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	Log      LogConfig      `mapstructure:"log"`
 	LLM      LLMConfig      `mapstructure:"llm"`
+	Webhook  WebhookConfig  `mapstructure:"webhook"`
 }
 
 // ServerConfig HTTP服务配置
@@ -32,12 +33,14 @@ func (s ServerConfig) Addr() string {
 
 // DatabaseConfig 数据库配置
 type DatabaseConfig struct {
+	Driver          string `mapstructure:"driver"` // postgres / sqlite
 	Host            string `mapstructure:"host"`
 	Port            int    `mapstructure:"port"`
 	User            string `mapstructure:"user"`
 	Password        string `mapstructure:"password"`
 	DBName          string `mapstructure:"dbname"`
 	SSLMode         string `mapstructure:"sslmode"`
+	Path            string `mapstructure:"path"` // SQLite 文件路径（含 :memory:）
 	MaxIdleConns    int    `mapstructure:"max_idle_conns"`
 	MaxOpenConns    int    `mapstructure:"max_open_conns"`
 	ConnMaxIdleTime int    `mapstructure:"conn_max_idle_time"` // seconds
@@ -83,6 +86,12 @@ type LLMConfig struct {
 	Timeout  int    `mapstructure:"timeout"` // seconds
 }
 
+// WebhookConfig Webhook 通知配置
+type WebhookConfig struct {
+	URL        string `mapstructure:"url"`
+	TimeoutSec int    `mapstructure:"timeout_sec"`
+}
+
 // Load 从配置文件加载配置，支持环境变量覆盖
 // 环境变量格式：FLOWX_<SECTION>_<KEY>，例如 FLOWX_SERVER_PORT
 func Load(configPath string) (*Config, error) {
@@ -92,6 +101,7 @@ func Load(configPath string) (*Config, error) {
 	v.SetDefault("server.host", "0.0.0.0")
 	v.SetDefault("server.port", 8080)
 	v.SetDefault("server.mode", "debug")
+	v.SetDefault("database.driver", "postgres")
 	v.SetDefault("database.host", "localhost")
 	v.SetDefault("database.port", 5432)
 	v.SetDefault("database.sslmode", "disable")
@@ -105,6 +115,7 @@ func Load(configPath string) (*Config, error) {
 	v.SetDefault("log.level", "debug")
 	v.SetDefault("llm.model", "gpt-4")
 	v.SetDefault("llm.timeout", 30)
+	v.SetDefault("webhook.timeout_sec", 10)
 
 	// 配置文件
 	if configPath != "" {

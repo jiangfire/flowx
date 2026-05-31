@@ -7,7 +7,8 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/jiangfire/flowx/internal/application/ai"
+	ai "github.com/jiangfire/flowx/internal/application/ai"
+	notifapp "github.com/jiangfire/flowx/internal/application/notification"
 	"github.com/jiangfire/flowx/internal/domain/approval"
 	"github.com/jiangfire/flowx/internal/domain/base"
 	"github.com/jiangfire/flowx/pkg/pagination"
@@ -87,15 +88,17 @@ type ApprovalService interface {
 
 // approvalService 审批服务实现
 type approvalService struct {
-	repo   ApprovalRepository
-	llmSvc ai.LLMService
+	repo     ApprovalRepository
+	llmSvc   ai.LLMService
+	notifier notifapp.Notifier
 }
 
 // NewApprovalService 创建审批服务实例
-func NewApprovalService(repo ApprovalRepository, llmSvc ai.LLMService) ApprovalService {
+func NewApprovalService(repo ApprovalRepository, llmSvc ai.LLMService, notifier notifapp.Notifier) ApprovalService {
 	return &approvalService{
-		repo:   repo,
-		llmSvc: llmSvc,
+		repo:     repo,
+		llmSvc:   llmSvc,
+		notifier: notifier,
 	}
 }
 
@@ -289,19 +292,16 @@ func (s *approvalService) Approve(ctx context.Context, tenantID string, approver
 		return nil, ErrInstanceFinished
 	}
 
-	// 获取当前步骤的待审批记录
 	currentStep := inst.CurrentStep + 1
 	pendingApproval, err := s.repo.GetPendingApproval(ctx, req.InstanceID, currentStep)
 	if err != nil {
 		return nil, ErrApprovalNotFound
 	}
 
-	// 验证审批人
 	if pendingApproval.ApproverID != approverID {
 		return nil, ErrApprovalNotFound
 	}
 
-	// 更新审批记录
 	now := time.Now()
 	pendingApproval.Status = "approved"
 	pendingApproval.Comment = req.Comment
@@ -310,45 +310,55 @@ func (s *approvalService) Approve(ctx context.Context, tenantID string, approver
 		return nil, fmt.Errorf("更新审批记录失败: %w", err)
 	}
 
-	// 获取工作流定义，检查是否还有下一步
 	w, err := s.repo.GetWorkflowByID(ctx, tenantID, inst.WorkflowID)
 	if err != nil {
-		return pendingApproval, nil // 审批已成功，工作流获取失败不影响
+		return pendingApproval, nil
 	}
 
 	steps, ok := w.Definition["steps"].([]any)
-	if ok {
-		inst.CurrentStep = currentStep
-		if currentStep >= len(steps) {
-			// 最后一步审批通过
-			inst.Status = "approved"
-		} else {
-			// 创建下一步审批记录
-			nextStep := steps[currentStep]
-			stepMap, ok := nextStep.(map[string]any)
-			if ok {
-				approvers, ok := stepMap["approvers"].([]any)
-				if ok && len(approvers) > 0 {
-					nextApproverID, ok := approvers[0].(string)
-					if ok {
-						a := &approval.Approval{
-							BaseModel:  base.BaseModel{TenantID: tenantID},
-							InstanceID: inst.ID,
-							Step:       currentStep + 1,
-							ApproverID: nextApproverID,
-							Status:     "pending",
-						}
-						if err := s.repo.CreateApproval(ctx, a); err != nil {
-							// 审批已成功，记录创建失败但不影响主流程
-							slog.Error("创建下一步审批记录失败", "error", err, "instance_id", inst.ID)
-						}
+	if !ok {
+		return pendingApproval, nil
+	}
+
+	inst.CurrentStep = currentStep
+	if currentStep >= len(steps) {
+		inst.Status = "approved"
+	} else {
+		nextStep := steps[currentStep]
+		stepMap, ok := nextStep.(map[string]any)
+		if ok {
+			approvers, ok := stepMap["approvers"].([]any)
+			if ok && len(approvers) > 0 {
+				nextApproverID, ok := approvers[0].(string)
+				if ok {
+					a := &approval.Approval{
+						BaseModel:  base.BaseModel{TenantID: tenantID},
+						InstanceID: inst.ID,
+						Step:       currentStep + 1,
+						ApproverID: nextApproverID,
+						Status:     "pending",
+					}
+					if err := s.repo.CreateApproval(ctx, a); err != nil {
+						slog.Error("创建下一步审批记录失败", "error", err, "instance_id", inst.ID)
+					} else if s.notifier != nil {
+						s.sendNotification(ctx, tenantID, nextApproverID, "reminder", "approval",
+							fmt.Sprintf("新的审批待处理: %s", inst.Title),
+							fmt.Sprintf("您有一个新的审批任务「%s」需要处理", inst.Title),
+							inst.ID)
 					}
 				}
 			}
 		}
-		if err := s.repo.UpdateInstance(ctx, inst); err != nil {
-			return nil, fmt.Errorf("更新工作流实例失败: %w", err)
-		}
+	}
+	if err := s.repo.UpdateInstance(ctx, inst); err != nil {
+		return nil, fmt.Errorf("更新工作流实例失败: %w", err)
+	}
+
+	if s.notifier != nil && inst.Status == "approved" {
+		s.sendNotification(ctx, tenantID, inst.InitiatorID, "alert", "approval",
+			fmt.Sprintf("审批已通过: %s", inst.Title),
+			fmt.Sprintf("您的审批申请「%s」已全部通过", inst.Title),
+			inst.ID)
 	}
 
 	return pendingApproval, nil
@@ -387,6 +397,13 @@ func (s *approvalService) Reject(ctx context.Context, tenantID string, approverI
 	inst.Status = "rejected"
 	if err := s.repo.UpdateInstance(ctx, inst); err != nil {
 		return nil, fmt.Errorf("更新工作流实例失败: %w", err)
+	}
+
+	if s.notifier != nil {
+		s.sendNotification(ctx, tenantID, inst.InitiatorID, "alert", "approval",
+			fmt.Sprintf("审批已驳回: %s", inst.Title),
+			fmt.Sprintf("您的审批申请「%s」已被驳回，原因: %s", inst.Title, req.Comment),
+			inst.ID)
 	}
 
 	return pendingApproval, nil
@@ -504,4 +521,20 @@ func (s *approvalService) GetSuggestion(ctx context.Context, tenantID string, in
 // GetMyPendingApprovals 获取我的待审批列表
 func (s *approvalService) GetMyPendingApprovals(ctx context.Context, tenantID string, approverID string) ([]approval.WorkflowInstance, error) {
 	return s.repo.GetPendingApprovalsByApprover(ctx, tenantID, approverID)
+}
+
+// sendNotification 发送通知（失败不影响主流程）
+func (s *approvalService) sendNotification(ctx context.Context, tenantID string, receiverID string, notifType string, category string, title string, content string, refID string) {
+	_, err := s.notifier.SendSimple(ctx, tenantID, &notifapp.SendSimpleRequest{
+		Title:      title,
+		Content:    content,
+		Type:       notifType,
+		Category:   category,
+		ReceiverID: receiverID,
+		RefType:    "approval",
+		RefID:      refID,
+	})
+	if err != nil {
+		slog.Warn("发送审批通知失败", "error", err, "receiver_id", receiverID)
+	}
 }

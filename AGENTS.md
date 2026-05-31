@@ -8,8 +8,11 @@ go test ./internal/application/bpmn/ -v -run TestName  # single test
 go test ./tests/e2e/... -v                    # E2E integration tests
 gofmt -w . && go vet ./...                    # format + static check (run before commit)
 go build ./cmd/server                         # verify compilation
+go run ./cmd/server                           # simple start (SQLite in-memory, no PG/Redis needed)
 swag init -g cmd/server/main.go --parseDependency --parseInternal  # regenerate swagger docs
 ```
+
+Simple start: set `database.driver: "sqlite"` in `config.yaml` — no PostgreSQL or Redis required. SQLite uses `github.com/glebarez/sqlite` (pure Go, no CGO). If Redis is unavailable the server warns and continues.
 
 CI runs: `go vet` → `golangci-lint` → `gosec` → `go test -race` → `go build`. Match this locally before pushing.
 
@@ -31,6 +34,8 @@ tests/e2e/                  # integration tests with real services + SQLite
 ```
 
 Key wiring: `container.go` creates repos from `*gorm.DB`, injects into services, services into handlers. To add a new module: add model in `domain/`, repo in `persistence/`, service in `application/`, handler in `handler/`, register in `container.go` + `router.go`.
+
+Additional packages under `application/`: `ai/` (LLM service with retry + health check), `datagov/expression/` (expression evaluator used by BPMN engine).
 
 ## Domain models
 
@@ -82,7 +87,9 @@ Handlers use swag annotations (`// @Summary`, `// @Router`, etc.). After changin
 
 ## Config
 
-`config.example.yaml` loaded via Viper. Supports env vars with `FLOWX_` prefix (e.g., `FLOWX_DATABASE_HOST`). Health endpoints: `/api/v1/health` (liveness), `/api/v1/ready` (readiness with DB ping).
+`config.example.yaml` loaded via Viper. Supports env vars with `FLOWX_` prefix (e.g., `FLOWX_DATABASE_HOST`). Health endpoints: `/api/v1/health` (liveness), `/api/v1/ready` (readiness with DB ping + LLM check).
+
+Key config options: `database.driver` (postgres/sqlite), `database.path` (SQLite file path), `llm.model` (wired into OpenAI API call), `webhook.url` + `webhook.timeout_sec` (notification webhook).
 
 ## Go version
 

@@ -77,24 +77,24 @@ func main() {
 		os.Exit(0)
 	}
 
-	// 初始化Redis
+	// 初始化Redis（可选，无法连接时仅记录日志）
 	redisClient, err := cache.InitRedis(cfg.Redis)
 	if err != nil {
-		slog.Error("初始化Redis失败", "error", err)
-		os.Exit(1)
+		slog.Warn("Redis 连接失败，服务将继续运行（部分功能可能不可用）", "error", err)
+	} else {
+		defer func() {
+			if err := cache.CloseRedis(redisClient); err != nil {
+				slog.Error("关闭Redis连接失败", "error", err)
+			}
+		}()
 	}
-	defer func() {
-		if err := cache.CloseRedis(redisClient); err != nil {
-			slog.Error("关闭Redis连接失败", "error", err)
-		}
-	}()
 
 	// 初始化 LLM 服务
 	llmTimeout := time.Duration(cfg.LLM.Timeout) * time.Second
 	if llmTimeout <= 0 {
 		llmTimeout = 30 * time.Second
 	}
-	llmSvc := ai.NewLLMService(cfg.LLM.Endpoint, cfg.LLM.APIKey, llmTimeout)
+	llmSvc := ai.NewLLMService(cfg.LLM.Endpoint, cfg.LLM.APIKey, cfg.LLM.Model, llmTimeout)
 
 	// 创建Gin引擎
 	r := server.NewServer(cfg.Server)

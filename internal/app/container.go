@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -37,6 +37,7 @@ type Container struct {
 	MCPHandler      http.Handler
 	approvalSvc     approval.ApprovalService
 	dataGovSvc      *datagovapp.DataGovService
+	notifSvc        *notificationapp.NotificationService
 	registry        mcpif.ToolRegistry
 }
 
@@ -46,11 +47,11 @@ func NewContainer(db *gorm.DB, cfg config.Config, llmSvc aiapp.LLMService) *Cont
 	c.initAuthServices(db, cfg)
 	c.initDataGovServices(db)
 	c.initToolServices(db)
+	c.initNotificationServices(db, cfg)
 	c.initApprovalServices(db, llmSvc)
 	c.initAgentServices(db, llmSvc)
-	c.initNotificationServices(db)
 	c.initBPMNServices(db)
-	c.HealthHandler = handler.NewHealthHandler(db)
+	c.HealthHandler = handler.NewHealthHandler(db, llmSvc)
 	return c
 }
 
@@ -78,7 +79,7 @@ func (c *Container) initToolServices(db *gorm.DB) {
 	// 初始化 MCP Registry 并同步 DB 工具
 	c.registry = mcpif.NewToolRegistry()
 	if err := mcpif.SyncToolsFromDB(context.Background(), c.registry, toolRepo); err != nil {
-		fmt.Printf("同步工具到 MCP Registry 失败: %v\n", err)
+		slog.Error("同步工具到 MCP Registry 失败", "error", err)
 	}
 
 	// 初始化 MCP SSE Server
@@ -104,7 +105,11 @@ func (c *Container) initDataGovServices(db *gorm.DB) {
 // initApprovalServices 初始化审批相关服务
 func (c *Container) initApprovalServices(db *gorm.DB, llmSvc aiapp.LLMService) {
 	approvalRepo := persistence.NewApprovalRepository(db)
-	approvalSvc := approval.NewApprovalService(approvalRepo, llmSvc)
+	var notifier notificationapp.Notifier
+	if c.notifSvc != nil {
+		notifier = c.notifSvc
+	}
+	approvalSvc := approval.NewApprovalService(approvalRepo, llmSvc, notifier)
 	c.ApprovalHandler = handler.NewApprovalHandler(approvalSvc)
 	c.approvalSvc = approvalSvc
 }
@@ -121,12 +126,23 @@ func (c *Container) initAgentServices(db *gorm.DB, llmSvc aiapp.LLMService) {
 }
 
 // initNotificationServices 初始化通知相关服务
-func (c *Container) initNotificationServices(db *gorm.DB) {
+func (c *Container) initNotificationServices(db *gorm.DB, cfg config.Config) {
 	notifRepo := persistence.NewNotificationRepository(db)
 	templateRepo := persistence.NewNotificationTemplateRepository(db)
 	preferenceRepo := persistence.NewNotificationPreferenceRepository(db)
-	notifService := notificationapp.NewNotificationService(notifRepo, templateRepo, preferenceRepo)
+
+	inAppSender := notificationapp.NewInAppSender()
+	webhookSender := notificationapp.NewWebhookSender(notificationapp.WebhookConfig{
+		URL:        cfg.Webhook.URL,
+		TimeoutSec: cfg.Webhook.TimeoutSec,
+	})
+
+	notifService := notificationapp.NewNotificationService(
+		notifRepo, templateRepo, preferenceRepo,
+		inAppSender, webhookSender,
+	)
 	c.NotifHandler = handler.NewNotificationHandler(notifService)
+	c.notifSvc = notifService
 }
 
 // initBPMNServices 初始化 BPMN 流程相关服务
@@ -142,8 +158,7 @@ func (c *Container) initBPMNServices(db *gorm.DB) {
 	// 启动时恢复运行中和挂起的流程实例
 	go func() {
 		if err := processSvc.RestoreRunningInstances(context.Background()); err != nil {
-			// 启动恢复失败不应阻塞服务启动，仅记录日志
-			fmt.Printf("BPMN 流程实例恢复失败: %v\n", err)
+			slog.Error("BPMN 流程实例恢复失败", "error", err)
 		}
 	}()
 }

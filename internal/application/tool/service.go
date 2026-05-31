@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	datagovapp "github.com/jiangfire/flowx/internal/application/datagov"
 	"github.com/jiangfire/flowx/internal/domain/base"
@@ -92,13 +93,14 @@ type ListConnectorsFilter struct {
 
 // ToolService 工具应用服务
 type ToolService struct {
-	toolRepo      ToolRepository
-	connectorRepo ConnectorRepository
-	policyRepo    datagovapp.DataPolicyRepository
-	assetRepo     datagovapp.DataAssetRepository
-	ruleRepo      datagovapp.DataQualityRuleRepository
-	checkRepo     datagovapp.DataQualityCheckRepository
-	db            *gorm.DB
+	toolRepo        ToolRepository
+	connectorRepo   ConnectorRepository
+	policyRepo      datagovapp.DataPolicyRepository
+	assetRepo       datagovapp.DataAssetRepository
+	ruleRepo        datagovapp.DataQualityRuleRepository
+	checkRepo       datagovapp.DataQualityCheckRepository
+	qualityExecutor *datagovapp.QualityExecutor
+	db              *gorm.DB
 }
 
 // NewToolService 创建工具服务实例
@@ -112,13 +114,14 @@ func NewToolService(
 	db *gorm.DB,
 ) *ToolService {
 	return &ToolService{
-		toolRepo:      toolRepo,
-		connectorRepo: connectorRepo,
-		policyRepo:    policyRepo,
-		assetRepo:     assetRepo,
-		ruleRepo:      ruleRepo,
-		checkRepo:     checkRepo,
-		db:            db,
+		toolRepo:        toolRepo,
+		connectorRepo:   connectorRepo,
+		policyRepo:      policyRepo,
+		assetRepo:       assetRepo,
+		ruleRepo:        ruleRepo,
+		checkRepo:       checkRepo,
+		qualityExecutor: datagovapp.NewQualityExecutor(db),
+		db:              db,
 	}
 }
 
@@ -188,8 +191,9 @@ func (s *ToolService) CreateTool(ctx context.Context, tenantID string, req *Crea
 	}
 
 	// 自动注册数据资产
+	var asset *domaingov.DataAsset
 	if s.assetRepo != nil {
-		asset := &domaingov.DataAsset{
+		asset = &domaingov.DataAsset{
 			BaseModel:      base.BaseModel{TenantID: tenantID},
 			Name:           tl.Name + " (工具元数据)",
 			Type:           "config",
@@ -207,7 +211,9 @@ func (s *ToolService) CreateTool(ctx context.Context, tenantID string, req *Crea
 				"connector_id":  tl.ConnectorID,
 			},
 		}
-		_ = s.assetRepo.Create(ctx, asset)
+		if err := s.assetRepo.Create(ctx, asset); err != nil {
+			slog.Warn("自动注册数据资产失败", "error", err, "tool_id", tl.ID)
+		}
 	}
 
 	// 自动触发质量检查
@@ -220,7 +226,7 @@ func (s *ToolService) CreateTool(ctx context.Context, tenantID string, req *Crea
 		if err == nil {
 			for _, rule := range rules {
 				if shouldRunRule(&rule, tl) {
-					runQualityCheck(ctx, s.checkRepo, &rule, tl.ID, tenantID)
+					runQualityCheck(ctx, s.checkRepo, s.qualityExecutor, &rule, asset, tenantID)
 				}
 			}
 		}
@@ -551,32 +557,73 @@ func shouldRunRule(rule *domaingov.DataQualityRule, tl *tool.Tool) bool {
 	if rule.Config == nil {
 		return false
 	}
-	// 如果规则配置了 tool_type 且匹配
+	matched := false
+	hasCondition := false
 	if v, ok := rule.Config["tool_type"].(string); ok {
-		return v == tl.Type
+		hasCondition = true
+		if v == tl.Type {
+			matched = true
+		}
 	}
-	// 如果规则配置了 tool_category 且匹配
 	if v, ok := rule.Config["tool_category"].(string); ok {
-		return v == tl.Category
+		hasCondition = true
+		if v == tl.Category {
+			matched = true
+		}
 	}
-	// 没有工具相关配置，跳过（规则针对特定资产，非工具）
-	return false
+	if !hasCondition {
+		return false
+	}
+	return matched
 }
 
-// runQualityCheck 创建模拟的质量检查记录
-func runQualityCheck(ctx context.Context, checkRepo datagovapp.DataQualityCheckRepository, rule *domaingov.DataQualityRule, toolID string, tenantID string) {
+// runQualityCheck 执行质量检查并保存结果
+func runQualityCheck(ctx context.Context, checkRepo datagovapp.DataQualityCheckRepository, executor *datagovapp.QualityExecutor, rule *domaingov.DataQualityRule, asset *domaingov.DataAsset, tenantID string) {
+	assetID := ""
+	if asset != nil {
+		assetID = asset.ID
+	}
+
 	check := &domaingov.DataQualityCheck{
 		BaseModel:   base.BaseModel{TenantID: tenantID},
 		RuleID:      rule.ID,
-		AssetID:     toolID,
-		Status:      "passed",
-		PassRate:    100.0,
+		AssetID:     assetID,
+		Status:      "running",
+		TotalCount:  1,
 		TriggeredBy: "auto",
-		Result: base.JSON{
-			"rule_name": rule.Name,
-			"tool_id":   toolID,
-			"message":   "自动质量检查通过",
-		},
 	}
-	_ = checkRepo.Create(ctx, check)
+
+	if err := checkRepo.Create(ctx, check); err != nil {
+		return
+	}
+
+	if asset == nil {
+		check.Status = "error"
+		check.ErrorMsg = "关联的数据资产不存在"
+	} else if executor != nil {
+		result, err := executor.Execute(ctx, rule, asset)
+		if err != nil {
+			check.Status = "error"
+			check.ErrorMsg = err.Error()
+		} else {
+			check.TotalCount = result.TotalRecords
+			check.FailCount = result.FailedCount
+			check.PassRate = result.PassRate
+			check.Result = base.JSON{
+				"rule_name":    rule.Name,
+				"asset_id":     assetID,
+				"message":      result.Message,
+				"fail_details": result.FailDetails,
+			}
+			if result.FailedCount > 0 {
+				check.Status = "failed"
+			} else {
+				check.Status = "passed"
+			}
+		}
+	}
+
+	if err := checkRepo.Update(ctx, check); err != nil {
+		slog.Error("更新质量检查记录失败", "error", err, "check_id", check.ID, "rule_id", rule.ID)
+	}
 }

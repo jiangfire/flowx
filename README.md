@@ -6,11 +6,11 @@
 
 - 🔧 **工具治理** — 工具全生命周期管理，策略校验自动拦截违规操作
 - 📋 **BPMN 流程引擎** — 支持 9 种元素类型、并行/排他/包容网关、子流程，Gateway 状态持久化支持崩溃恢复
-- 🤖 **Agent 智能体** — 工具编排、审批分析、数据质量检查三种内置 Agent，集成 LLM
+- 🤖 **Agent 智能体** — 工具编排、审批分析、数据质量检查三种内置 Agent，集成 LLM（支持重试与降级）
 - ✅ **审批工作流** — 多步审批、转审、AI 智能建议、工作流发布机制
 - 🛡️ **策略执行引擎** — 自定义表达式 + 四种策略类型（quality/classification/access/retention）
-- 📊 **数据治理** — 数据资产注册、质量规则、质量检查、Excel 导入导出，全有或全无事务
-- 🔔 **通知系统** — 多渠道通知、模板管理、偏好设置
+- 📊 **数据治理** — 数据资产注册、质量规则、真实质量检查（5种规则类型）、Excel 导入导出，全有或全无事务
+- 🔔 **通知系统** — 多渠道通知（站内/Webhook）、模板管理、偏好设置，审批流程联动
 - 🏢 **多租户** — 基于 JWT 的租户隔离
 - 🔌 **MCP 协议** — Model Context Protocol，支持 SSE 传输和工具注册表同步
 
@@ -21,7 +21,7 @@
 | 语言 | Go 1.26.3 |
 | Web 框架 | Gin |
 | ORM | GORM |
-| 数据库 | PostgreSQL / SQLite（测试） |
+| 数据库 | PostgreSQL / SQLite（纯 Go 无 CGO） |
 | 缓存 | Redis |
 | 认证 | JWT (golang-jwt/v5) |
 | 配置 | Viper |
@@ -38,11 +38,12 @@ flowx/
 │   ├── app/container.go     # 依赖注入容器
 │   ├── application/         # 应用服务层
 │   │   ├── agent/           # Agent 智能体（引擎 + 编排 + 服务）
+│   │   ├── ai/              # LLM 集成（OpenAI 兼容接口）
 │   │   ├── approval/        # 审批工作流
 │   │   ├── auth/            # JWT 认证
 │   │   ├── bpmn/            # BPMN 流程引擎
-│   │   ├── datagov/         # 数据治理（策略引擎 + 表达式引擎）
-│   │   ├── notification/    # 通知服务
+│   │   ├── datagov/         # 数据治理（策略引擎 + 表达式引擎 + 质量检查）
+│   │   ├── notification/    # 通知服务（渠道发送器 + 模板 + 偏好）
 │   │   └── tool/            # 工具管理
 │   ├── domain/              # 领域模型
 │   ├── infrastructure/      # 基础设施
@@ -75,8 +76,8 @@ flowx/
 ### 环境要求
 
 - Go 1.26.3+
-- PostgreSQL 14+（生产）/ SQLite（开发测试）
-- Redis 7+（必需依赖）
+- PostgreSQL 14+（生产）/ SQLite（开发，纯 Go 无 CGO，开箱即用）
+- Redis 7+（可选）
 
 ### 本地开发
 
@@ -118,9 +119,16 @@ make build          # 编译
 make run            # 运行
 make test           # 全量测试
 make test-short     # 快速测试
+make clean          # 清理构建产物
+make deps           # 安装依赖
+make migrate        # 执行数据库迁移
+make swagger        # 生成 Swagger 文档
 make docker-build   # Docker 构建
 make docker-up      # Docker 启动
 make docker-down    # Docker 停止
+make docker-logs    # Docker 日志
+make docker-restart # Docker 重启
+make all            # 测试 + 编译
 ```
 
 ## 配置说明
@@ -131,14 +139,19 @@ make docker-down    # Docker 停止
 |--------|------|--------|
 | `server.port` | 服务端口 | `8080` |
 | `server.mode` | 运行模式 (debug/release/test) | `debug` |
+| `database.driver` | 数据库驱动 (postgres/sqlite) | `postgres` |
+| `database.path` | SQLite 文件路径 | `file:flowx.db` |
 | `database.host` | 数据库地址 | `localhost` |
 | `database.port` | 数据库端口 | `5432` |
 | `database.dbname` | 数据库名 | `flowx` |
-| `redis.host` | Redis 地址 | `localhost` |
+| `redis.host` | Redis 地址（可选） | `localhost` |
 | `jwt.secret` | JWT 签名密钥 | **必须修改** |
 | `jwt.expire_hours` | Token 过期时间（小时） | `24` |
 | `llm.endpoint` | LLM 服务地址（OpenAI 兼容） | `http://localhost:11434/v1` |
 | `llm.model` | LLM 模型名称 | `qwen2.5:7b` |
+| `llm.timeout` | LLM 请求超时（秒） | `30` |
+| `webhook.url` | 通知 Webhook URL | 空（不发送） |
+| `webhook.timeout_sec` | Webhook 请求超时（秒） | `10` |
 
 也支持环境变量，格式为 `FLOWX_` 前缀 + 大写配置路径，例如 `FLOWX_DATABASE_HOST`、`FLOWX_JWT_SECRET`。
 
@@ -152,13 +165,13 @@ make docker-down    # Docker 停止
 | 工具 | 8 | CRUD + 导入导出 |
 | 连接器 | 5 | CRUD |
 | 工作流 | 5 | CRUD + 激活 / 归档 |
-| 审批 | 8 | 发起 / 列表 / 通过 / 驳回 / 转审 / 取消 / AI 建议 |
+| 审批 | 9 | 发起 / 列表 / 待审批 / 详情 / 通过 / 驳回 / 转审 / 取消 / AI 建议 |
 | Agent | 6 | 工具列表 / 任务 CRUD / 审批 |
 | 数据策略 | 7 | CRUD + 导入导出 |
 | 数据资产 | 7 | CRUD + 导入导出 |
 | 质量规则 | 7 | CRUD + 导入导出 |
 | 质量检查 | 3 | 执行 / 列表 / 详情 |
-| 通知 | 8 | CRUD + 已读 / 发送 |
+| 通知 | 9 | CRUD + 已读 / 全部已读 / 发送 |
 | 通知模板 | 5 | CRUD |
 | 通知偏好 | 4 | CRUD |
 | BPMN 流程 | 12 | 定义部署 / 实例管理 / 任务处理 |
@@ -280,14 +293,6 @@ go test ./internal/application/bpmn/... -v
 └─────────────────────────────────────────────────┘
 ```
 
-## 已知问题与限制
-
-### 当前限制
-
-- **Agent/MCP** — LLM 集成依赖外部服务（Ollama），需确保 LLM 服务可用
-- **数据质量检查** — 当前为简化版执行，未接入真实数据探查连接器
-- **通知渠道** — 当前仅支持站内通知，邮件/飞书等外部渠道待接入
-
 ## License
 
-MIT
+AGPL-3.0

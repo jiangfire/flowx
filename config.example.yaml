@@ -7,6 +7,8 @@ server:
     - "http://localhost:8080"
 
 database:
+  # driver: "sqlite"          # 取消注释将使用 SQLite（无需 PostgreSQL，开箱即用）
+  # path: "file:flowx.db"     # SQLite 文件路径
   host: "localhost"
   port: 5432
   user: "flowx"
@@ -17,6 +19,7 @@ database:
   max_open_conns: 100
   conn_max_idle_time: 300  # seconds (5 minutes)
 
+# Redis 可选：无法连接时服务仍可启动
 redis:
   host: "localhost"
   port: 6379
@@ -35,3 +38,7 @@ llm:
   api_key: ""
   model: "qwen2.5:7b"
   timeout: 30
+
+webhook:
+  url: ""             # 通知 webhook URL，空则不发送
+  timeout_sec: 10     # webhook 请求超时（秒）

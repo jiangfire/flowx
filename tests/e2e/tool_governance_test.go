@@ -163,7 +163,7 @@ func TestE2E_ToolGovernance_FullLifecycle(t *testing.T) {
 	checkRepo := persistence.NewDataQualityCheckRepository(db)
 	checks, _, err := checkRepo.List(ctx, datagovapp.DataQualityCheckFilter{
 		TenantID: tenantID,
-		AssetID:  createdTool.ID,
+		AssetID:  asset.ID,
 		PageSize: 1000,
 	})
 	if err != nil {
@@ -174,7 +174,7 @@ func TestE2E_ToolGovernance_FullLifecycle(t *testing.T) {
 	}
 	foundCheck := false
 	for _, c := range checks {
-		if c.RuleID == ruleEDA.ID && c.AssetID == createdTool.ID {
+		if c.RuleID == ruleEDA.ID && c.AssetID == asset.ID {
 			foundCheck = true
 			if c.Status != "passed" {
 				t.Errorf("步骤3失败 - 质量检查状态应为 'passed'，实际为 '%s'", c.Status)
@@ -358,9 +358,19 @@ func TestE2E_ToolGovernance_MultipleQualityRules(t *testing.T) {
 
 	// ========== 验证产生了 2 条质量检查记录 ==========
 	checkRepo := persistence.NewDataQualityCheckRepository(db)
+	assetRepo := persistence.NewDataAssetRepository(db)
+	assets, _, _ := assetRepo.List(ctx, datagovapp.DataAssetFilter{
+		TenantID: tenantID,
+		Source:   "tool",
+		PageSize: 1000,
+	})
+	asset := findAssetBySourceID(assets, createdTool.ID)
+	if asset == nil {
+		t.Fatalf("未找到工具 %s 对应的数据资产", createdTool.ID)
+	}
 	checks, _, err := checkRepo.List(ctx, datagovapp.DataQualityCheckFilter{
 		TenantID: tenantID,
-		AssetID:  createdTool.ID,
+		AssetID:  asset.ID,
 		PageSize: 1000,
 	})
 	if err != nil {

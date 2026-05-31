@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"time"
 )
@@ -29,20 +30,23 @@ type ApprovalHistory struct {
 // LLMService LLM 服务接口
 type LLMService interface {
 	GenerateApprovalSuggestion(ctx context.Context, req *ApprovalSuggestionRequest) (string, error)
+	Ping(ctx context.Context) error
 }
 
 // llmService LLM 服务实现
 type llmService struct {
 	baseURL    string
 	apiKey     string
+	model      string
 	httpClient *http.Client
 }
 
 // NewLLMService 创建 LLM 服务实例
-func NewLLMService(baseURL, apiKey string, timeout time.Duration) LLMService {
+func NewLLMService(baseURL, apiKey, model string, timeout time.Duration) LLMService {
 	return &llmService{
 		baseURL: baseURL,
 		apiKey:  apiKey,
+		model:   model,
 		httpClient: &http.Client{
 			Timeout: timeout,
 		},
@@ -70,14 +74,88 @@ type openAIResponse struct {
 	} `json:"choices"`
 }
 
+// modelsResponse /v1/models 接口响应体
+type modelsResponse struct {
+	Data []struct {
+		ID string `json:"id"`
+	} `json:"data"`
+}
+
+const (
+	maxRetries    = 3
+	baseBackoffMs = 500
+)
+
+// doRequest 发送带重试的 HTTP 请求
+func (s *llmService) doRequest(ctx context.Context, method, path string, body []byte) (*http.Response, error) {
+	var lastErr error
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		if attempt > 0 {
+			backoff := time.Duration(baseBackoffMs*int(math.Pow(2, float64(attempt-1)))) * time.Millisecond
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(backoff):
+			}
+		}
+
+		url := s.baseURL + path
+		httpReq, err := http.NewRequestWithContext(ctx, method, url, bytes.NewReader(body))
+		if err != nil {
+			return nil, fmt.Errorf("创建请求失败: %w", err)
+		}
+		httpReq.Header.Set("Content-Type", "application/json")
+		if s.apiKey != "" {
+			httpReq.Header.Set("Authorization", "Bearer "+s.apiKey)
+		}
+
+		resp, err := s.httpClient.Do(httpReq)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+
+		if resp.StatusCode >= 500 {
+			resp.Body.Close()
+			lastErr = fmt.Errorf("LLM 服务返回服务器错误: HTTP %d", resp.StatusCode)
+			continue
+		}
+
+		return resp, nil
+	}
+	return nil, fmt.Errorf("请求 LLM 服务失败（已重试 %d 次）: %w", maxRetries, lastErr)
+}
+
+// Ping 检查 LLM 服务连通性
+func (s *llmService) Ping(ctx context.Context) error {
+	resp, err := s.doRequest(ctx, http.MethodGet, "/v1/models", nil)
+	if err != nil {
+		return fmt.Errorf("LLM 服务连通性检查失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("LLM 服务异常: HTTP %d, %s", resp.StatusCode, string(body))
+	}
+
+	var modelsResp modelsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&modelsResp); err != nil {
+		return fmt.Errorf("LLM 服务响应解析失败: %w", err)
+	}
+
+	return nil
+}
+
 // GenerateApprovalSuggestion 生成审批建议
 func (s *llmService) GenerateApprovalSuggestion(ctx context.Context, req *ApprovalSuggestionRequest) (string, error) {
-	// 构建系统提示词
+	if req == nil {
+		return "", fmt.Errorf("审批建议请求不能为空")
+	}
 	systemPrompt := buildSystemPrompt(req)
 
-	// 构建请求体
 	reqBody := openAIRequest{
-		Model: "gpt-4",
+		Model: s.model,
 		Messages: []openAIMessage{
 			{Role: "system", Content: systemPrompt},
 			{Role: "user", Content: fmt.Sprintf("请为以下审批提供建议：\n标题：%s\n工作流类型：%s\n当前步骤：%s", req.InstanceTitle, req.WorkflowType, req.StepName)},
@@ -89,18 +167,9 @@ func (s *llmService) GenerateApprovalSuggestion(ctx context.Context, req *Approv
 		return "", fmt.Errorf("序列化请求失败: %w", err)
 	}
 
-	// 创建 HTTP 请求
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, s.baseURL+"/v1/chat/completions", bytes.NewReader(bodyBytes))
+	resp, err := s.doRequest(ctx, http.MethodPost, "/v1/chat/completions", bodyBytes)
 	if err != nil {
-		return "", fmt.Errorf("创建请求失败: %w", err)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("Authorization", "Bearer "+s.apiKey)
-
-	// 发送请求
-	resp, err := s.httpClient.Do(httpReq)
-	if err != nil {
-		return "", fmt.Errorf("请求 LLM 服务失败: %w", err)
+		return "", err
 	}
 	defer func() { _ = resp.Body.Close() }()
 
@@ -109,7 +178,6 @@ func (s *llmService) GenerateApprovalSuggestion(ctx context.Context, req *Approv
 		return "", fmt.Errorf("LLM 服务返回错误: HTTP %d, %s", resp.StatusCode, string(body))
 	}
 
-	// 解析响应
 	var openAIResp openAIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&openAIResp); err != nil {
 		return "", fmt.Errorf("解析 LLM 响应失败: %w", err)

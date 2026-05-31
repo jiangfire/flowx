@@ -28,7 +28,7 @@ func setupServiceTest(t *testing.T) (ApprovalService, *gorm.DB) {
 
 	// 使用内存中的 mock repository
 	repo := newMockApprovalRepository(db)
-	svc := NewApprovalService(repo, nil)
+	svc := NewApprovalService(repo, nil, nil)
 	return svc, db
 }
 
@@ -56,9 +56,9 @@ func setupServiceTestWithLLM(t *testing.T, suggestion string) (ApprovalService, 
 		_, _ = w.Write(respBytes)
 	}))
 
-	llmSvc := ai.NewLLMService(server.URL, "test-key", 5*time.Second)
+	llmSvc := ai.NewLLMService(server.URL, "test-key", "gpt-4", 5*time.Second)
 	repo := newMockApprovalRepository(db)
-	svc := NewApprovalService(repo, llmSvc)
+	svc := NewApprovalService(repo, llmSvc, nil)
 	t.Cleanup(func() { server.Close() })
 	return svc, db
 }

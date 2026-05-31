@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strings"
 	"time"
@@ -122,6 +123,7 @@ type NotificationService struct {
 	notifRepo      NotificationRepository
 	templateRepo   NotificationTemplateRepository
 	preferenceRepo NotificationPreferenceRepository
+	senders        map[string]ChannelSender
 }
 
 // NewNotificationService 创建通知服务实例
@@ -129,11 +131,17 @@ func NewNotificationService(
 	notifRepo NotificationRepository,
 	templateRepo NotificationTemplateRepository,
 	preferenceRepo NotificationPreferenceRepository,
+	senders ...ChannelSender,
 ) *NotificationService {
+	senderMap := make(map[string]ChannelSender, len(senders))
+	for _, s := range senders {
+		senderMap[s.Channel()] = s
+	}
 	return &NotificationService{
 		notifRepo:      notifRepo,
 		templateRepo:   templateRepo,
 		preferenceRepo: preferenceRepo,
+		senders:        senderMap,
 	}
 }
 
@@ -146,6 +154,9 @@ func (s *NotificationService) CreateNotification(ctx context.Context, tenantID s
 	}
 	if req.Type == "" {
 		return nil, ErrNotificationTypeRequired
+	}
+	if req.ReceiverID == "" {
+		return nil, errors.New("通知接收者不能为空")
 	}
 
 	status := "sent"
@@ -500,13 +511,14 @@ func (s *NotificationService) SendNotification(ctx context.Context, tenantID str
 	// 检查用户偏好（是否被免打扰）
 	pref, err := s.preferenceRepo.GetByUserAndType(ctx, tenantID, req.ReceiverID, tpl.Type, tpl.Channel)
 	if err == nil {
-		// 偏好存在，检查是否被免打扰
 		if pref.MuteUntil != nil && pref.MuteUntil.After(time.Now()) {
 			return nil, ErrUserMuted
 		}
 		if !pref.Enabled {
 			return nil, ErrUserMuted
 		}
+	} else {
+		slog.Warn("查询通知偏好失败，跳过偏好检查", "error", err, "receiver_id", req.ReceiverID)
 	}
 
 	// 渲染模板
@@ -521,6 +533,9 @@ func (s *NotificationService) SendNotification(ctx context.Context, tenantID str
 	channel := req.Channel
 	if channel == "" {
 		channel = tpl.Channel
+	}
+	if channel == "" {
+		channel = "in_app"
 	}
 
 	// 创建通知
@@ -538,6 +553,98 @@ func (s *NotificationService) SendNotification(ctx context.Context, tenantID str
 
 	if err := s.notifRepo.Create(ctx, n); err != nil {
 		return nil, fmt.Errorf("创建通知失败: %w", err)
+	}
+
+	if sender, ok := s.senders[channel]; ok {
+		if err := sender.Send(ctx, n); err != nil {
+			n.Status = "failed"
+			_ = s.notifRepo.Update(ctx, n)
+			slog.Warn("通知渠道发送失败",
+				"id", n.ID,
+				"channel", channel,
+				"error", err,
+			)
+		}
+	} else if channel != "in_app" {
+		slog.Warn("通知渠道无对应发送器，仅持久化到站内",
+			"id", n.ID,
+			"channel", channel,
+		)
+	}
+
+	return n, nil
+}
+
+// SendSimpleRequest 简单通知请求（不使用模板）
+type SendSimpleRequest struct {
+	Title      string    `json:"title" binding:"required"`
+	Content    string    `json:"content"`
+	Type       string    `json:"type" binding:"required"`
+	Category   string    `json:"category"`
+	Channel    string    `json:"channel"`
+	ReceiverID string    `json:"receiver_id" binding:"required"`
+	RefType    string    `json:"ref_type"`
+	RefID      string    `json:"ref_id"`
+	Extra      base.JSON `json:"extra"`
+}
+
+// SendSimple 发送简单通知（不使用模板）
+func (s *NotificationService) SendSimple(ctx context.Context, tenantID string, req *SendSimpleRequest) (*notifdomain.Notification, error) {
+	if req.Title == "" {
+		return nil, ErrNotificationTitleRequired
+	}
+	if req.Type == "" {
+		return nil, ErrNotificationTypeRequired
+	}
+	if req.ReceiverID == "" {
+		return nil, errors.New("通知接收者不能为空")
+	}
+
+	channel := req.Channel
+	if channel == "" {
+		channel = "in_app"
+	}
+
+	pref, err := s.preferenceRepo.GetByUserAndType(ctx, tenantID, req.ReceiverID, req.Type, channel)
+	if err == nil {
+		if pref.MuteUntil != nil && pref.MuteUntil.After(time.Now()) {
+			return nil, ErrUserMuted
+		}
+		if !pref.Enabled {
+			return nil, ErrUserMuted
+		}
+	} else {
+		slog.Warn("查询通知偏好失败，跳过偏好检查", "error", err, "receiver_id", req.ReceiverID)
+	}
+
+	n := &notifdomain.Notification{
+		BaseModel:  base.BaseModel{TenantID: tenantID},
+		Title:      req.Title,
+		Content:    req.Content,
+		Type:       req.Type,
+		Category:   req.Category,
+		Channel:    channel,
+		ReceiverID: req.ReceiverID,
+		Status:     "sent",
+		RefType:    req.RefType,
+		RefID:      req.RefID,
+		Extra:      req.Extra,
+	}
+
+	if err := s.notifRepo.Create(ctx, n); err != nil {
+		return nil, fmt.Errorf("创建通知失败: %w", err)
+	}
+
+	if sender, ok := s.senders[channel]; ok {
+		if err := sender.Send(ctx, n); err != nil {
+			n.Status = "failed"
+			_ = s.notifRepo.Update(ctx, n)
+			slog.Warn("通知渠道发送失败",
+				"id", n.ID,
+				"channel", channel,
+				"error", err,
+			)
+		}
 	}
 
 	return n, nil

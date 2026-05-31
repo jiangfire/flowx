@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	aiapp "github.com/jiangfire/flowx/internal/application/ai"
 	"github.com/jiangfire/flowx/pkg/response"
 	"github.com/jiangfire/flowx/pkg/version"
 	"gorm.io/gorm"
@@ -11,12 +14,13 @@ import (
 
 // HealthHandler 健康检查处理器
 type HealthHandler struct {
-	db *gorm.DB
+	db     *gorm.DB
+	llmSvc aiapp.LLMService
 }
 
 // NewHealthHandler 创建健康检查处理器
-func NewHealthHandler(db *gorm.DB) *HealthHandler {
-	return &HealthHandler{db: db}
+func NewHealthHandler(db *gorm.DB, llmSvc aiapp.LLMService) *HealthHandler {
+	return &HealthHandler{db: db, llmSvc: llmSvc}
 }
 
 // @Summary      健康检查
@@ -36,7 +40,7 @@ func (h *HealthHandler) HealthCheck(c *gin.Context) {
 }
 
 // @Summary      就绪检查
-// @Description  检查服务是否已准备好接收流量（readiness probe），包含数据库连接检查
+// @Description  检查服务是否已准备好接收流量（readiness probe），包含数据库和LLM连接检查
 // @Tags         系统
 // @Accept       json
 // @Produce      json
@@ -53,18 +57,40 @@ func (h *HealthHandler) ReadinessCheck(c *gin.Context) {
 
 	sqlDB, err := h.db.DB()
 	if err != nil {
-		response.Error(c, http.StatusServiceUnavailable, "NOT_READY", "数据库连接异常")
-		return
+		// SQLite 等纯 Go 驱动不支持 database/sql 接口，改用 GORM Ping
+		sqlDB = nil
 	}
 
-	if err := sqlDB.Ping(); err != nil {
-		response.Error(c, http.StatusServiceUnavailable, "NOT_READY", "数据库连接失败")
-		return
+	if sqlDB != nil {
+		if err := sqlDB.Ping(); err != nil {
+			response.Error(c, http.StatusServiceUnavailable, "NOT_READY", "数据库连接失败")
+			return
+		}
+	} else {
+		var result int
+		if err := h.db.Raw("SELECT 1").Scan(&result).Error; err != nil {
+			response.Error(c, http.StatusServiceUnavailable, "NOT_READY", "数据库连接失败")
+			return
+		}
 	}
 
-	response.Success(c, gin.H{
+	readyInfo := gin.H{
 		"status":   "ready",
 		"version":  version.Version,
 		"database": "connected",
-	})
+	}
+
+	if h.llmSvc != nil {
+		ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+		defer cancel()
+		if err := h.llmSvc.Ping(ctx); err != nil {
+			readyInfo["llm"] = "unavailable"
+		} else {
+			readyInfo["llm"] = "connected"
+		}
+	} else {
+		readyInfo["llm"] = "not_configured"
+	}
+
+	response.Success(c, readyInfo)
 }

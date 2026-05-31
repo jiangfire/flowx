@@ -45,7 +45,7 @@ func TestGenerateApprovalSuggestion_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	svc := NewLLMService(server.URL, "test-api-key", 5*time.Second)
+	svc := NewLLMService(server.URL, "test-api-key", "gpt-4", 5*time.Second)
 
 	result, err := svc.GenerateApprovalSuggestion(context.Background(), &ApprovalSuggestionRequest{
 		InstanceTitle: "部署 nginx 工具",
@@ -72,7 +72,7 @@ func TestGenerateApprovalSuggestion_APIError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	svc := NewLLMService(server.URL, "test-api-key", 5*time.Second)
+	svc := NewLLMService(server.URL, "test-api-key", "gpt-4", 5*time.Second)
 
 	_, err := svc.GenerateApprovalSuggestion(context.Background(), &ApprovalSuggestionRequest{
 		InstanceTitle: "部署 nginx 工具",
@@ -96,7 +96,7 @@ func TestGenerateApprovalSuggestion_Timeout(t *testing.T) {
 	defer server.Close()
 
 	// 设置超时时间为 100ms
-	svc := NewLLMService(server.URL, "test-api-key", 100*time.Millisecond)
+	svc := NewLLMService(server.URL, "test-api-key", "gpt-4", 100*time.Millisecond)
 
 	_, err := svc.GenerateApprovalSuggestion(context.Background(), &ApprovalSuggestionRequest{
 		InstanceTitle: "部署 nginx 工具",
@@ -130,7 +130,7 @@ func TestGenerateApprovalSuggestion_EmptyContext(t *testing.T) {
 	}))
 	defer server.Close()
 
-	svc := NewLLMService(server.URL, "test-api-key", 5*time.Second)
+	svc := NewLLMService(server.URL, "test-api-key", "gpt-4", 5*time.Second)
 
 	result, err := svc.GenerateApprovalSuggestion(context.Background(), &ApprovalSuggestionRequest{
 		InstanceTitle: "测试审批",
@@ -171,7 +171,7 @@ func TestGenerateApprovalSuggestion_WithHistory(t *testing.T) {
 	}))
 	defer server.Close()
 
-	svc := NewLLMService(server.URL, "test-api-key", 5*time.Second)
+	svc := NewLLMService(server.URL, "test-api-key", "gpt-4", 5*time.Second)
 
 	result, err := svc.GenerateApprovalSuggestion(context.Background(), &ApprovalSuggestionRequest{
 		InstanceTitle: "数据审核",
@@ -205,7 +205,7 @@ func TestGenerateApprovalSuggestion_InvalidJSON(t *testing.T) {
 	}))
 	defer server.Close()
 
-	svc := NewLLMService(server.URL, "test-api-key", 5*time.Second)
+	svc := NewLLMService(server.URL, "test-api-key", "gpt-4", 5*time.Second)
 
 	_, err := svc.GenerateApprovalSuggestion(context.Background(), &ApprovalSuggestionRequest{
 		InstanceTitle: "测试审批",

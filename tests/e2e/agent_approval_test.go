@@ -39,7 +39,7 @@ func setupE2E(t *testing.T) (*agentapp.AgentService, approvalapp.ApprovalService
 
 	// 创建审批服务（无 LLM，E2E 测试不需要 AI 建议）
 	approvalRepo := persistence.NewApprovalRepository(db)
-	approvalSvc := approvalapp.NewApprovalService(approvalRepo, nil)
+	approvalSvc := approvalapp.NewApprovalService(approvalRepo, nil, nil)
 
 	// 创建 Agent 引擎并注册内置 Agent
 	registry := mcpif.NewToolRegistry()

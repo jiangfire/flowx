@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	aiapp "github.com/jiangfire/flowx/internal/application/ai"
@@ -27,6 +28,13 @@ func (a *toolOrchestrationAgent) Description() string {
 func (a *toolOrchestrationAgent) HandledTypes() []string { return []string{"tool_execute"} }
 
 func (a *toolOrchestrationAgent) Execute(ctx context.Context, task *Task, tools mcpif.ToolCaller) (*StepResult, error) {
+	if tools == nil {
+		return &StepResult{
+			AgentName: a.Name(),
+			Status:    "failed",
+			Error:     "工具调用器未初始化",
+		}, nil
+	}
 	// 从任务上下文中获取工具名称和参数
 	toolName, _ := task.Context["tool_name"].(string)
 	args, _ := task.Context["args"].(map[string]any)
@@ -80,6 +88,7 @@ func (a *approvalAgent) HandledTypes() []string { return []string{"approval_revi
 func (a *approvalAgent) Execute(ctx context.Context, task *Task, tools mcpif.ToolCaller) (*StepResult, error) {
 	suggestion := "建议审批通过，工具配置符合安全规范"
 	riskLevel := "low"
+	llmAvailable := false
 
 	if a.llmSvc != nil {
 		llmSuggestion, err := a.llmSvc.GenerateApprovalSuggestion(ctx, &aiapp.ApprovalSuggestionRequest{
@@ -91,6 +100,9 @@ func (a *approvalAgent) Execute(ctx context.Context, task *Task, tools mcpif.Too
 		if err == nil && llmSuggestion != "" {
 			suggestion = llmSuggestion
 			riskLevel = "medium"
+			llmAvailable = true
+		} else if err != nil {
+			slog.Warn("LLM 审批建议生成失败，使用默认建议", "error", err, "task_id", task.ID)
 		}
 	}
 
@@ -104,6 +116,7 @@ func (a *approvalAgent) Execute(ctx context.Context, task *Task, tools mcpif.Too
 			"reason":         task.Context["reason"],
 			"reviewed_at":    time.Now().Format(time.RFC3339),
 			"requires_human": true,
+			"llm_available":  llmAvailable,
 		},
 	}, nil
 }
@@ -165,7 +178,7 @@ func (a *dataQualityAgent) Execute(ctx context.Context, task *Task, tools mcpif.
 		}
 	}
 
-	if totalItems == 0 {
+	if totalItems == 0 && tools != nil {
 		totalItems = len(tools.ListTools())
 	}
 

@@ -31,7 +31,7 @@ func setupApprovalHandlerTest(t *testing.T) (*ApprovalHandler, *gin.Engine, stri
 	}
 
 	repo := persistence.NewApprovalRepository(db)
-	svc := approvalservice.NewApprovalService(repo, nil)
+	svc := approvalservice.NewApprovalService(repo, nil, nil)
 	handler := NewApprovalHandler(svc)
 
 	jwtService := auth.NewJWTService("test-secret-key-approval-handler-12345", 24*time.Hour)

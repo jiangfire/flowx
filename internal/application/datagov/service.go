@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/jiangfire/flowx/internal/domain/base"
@@ -170,6 +171,7 @@ type DataGovService struct {
 	ruleRepo   DataQualityRuleRepository
 	checkRepo  DataQualityCheckRepository
 	db         *gorm.DB
+	executor   *QualityExecutor
 }
 
 // NewDataGovService 创建数据治理服务实例
@@ -186,6 +188,7 @@ func NewDataGovService(
 		ruleRepo:   ruleRepo,
 		checkRepo:  checkRepo,
 		db:         db,
+		executor:   NewQualityExecutor(db),
 	}
 }
 
@@ -617,19 +620,16 @@ func (s *DataGovService) DeleteCheck(ctx context.Context, tenantID string, id st
 
 // RunQualityCheck 执行数据质量检查
 func (s *DataGovService) RunQualityCheck(ctx context.Context, tenantID string, req *RunQualityCheckRequest) (*datagov.DataQualityCheck, error) {
-	// 校验规则存在
 	rule, err := s.ruleRepo.GetByID(ctx, tenantID, req.RuleID)
 	if err != nil {
 		return nil, ErrQualityRuleNotFound
 	}
 
-	// 校验资产存在
 	asset, err := s.assetRepo.GetByID(ctx, tenantID, req.AssetID)
 	if err != nil {
 		return nil, ErrAssetNotFound
 	}
 
-	// 创建检查记录
 	startTime := time.Now()
 	check := &datagov.DataQualityCheck{
 		BaseModel:   base.BaseModel{TenantID: tenantID},
@@ -644,15 +644,34 @@ func (s *DataGovService) RunQualityCheck(ctx context.Context, tenantID string, r
 		return nil, fmt.Errorf("创建质量检查记录失败: %w", err)
 	}
 
-	// 模拟质量检查执行（简化版）
+	result, err := s.executor.Execute(ctx, rule, asset)
+	if err != nil {
+		duration := time.Since(startTime).Milliseconds()
+		check.Status = "error"
+		check.ErrorMsg = err.Error()
+		check.Duration = duration
+		if err := s.checkRepo.Update(ctx, check); err != nil {
+			slog.Error("更新质量检查错误状态失败", "error", err, "check_id", check.ID)
+		}
+		return nil, fmt.Errorf("质量检查执行失败: %w", err)
+	}
+
 	duration := time.Since(startTime).Milliseconds()
-	check.Status = "passed"
-	check.PassRate = 100.0
+	check.TotalCount = result.TotalRecords
+	check.FailCount = result.FailedCount
+	check.PassRate = result.PassRate
 	check.Duration = duration
 	check.Result = base.JSON{
-		"rule_name":  rule.Name,
-		"asset_name": asset.Name,
-		"message":    "质量检查通过",
+		"rule_name":    rule.Name,
+		"asset_name":   asset.Name,
+		"message":      result.Message,
+		"fail_details": result.FailDetails,
+	}
+
+	if result.FailedCount > 0 {
+		check.Status = "failed"
+	} else {
+		check.Status = "passed"
 	}
 
 	if err := s.checkRepo.Update(ctx, check); err != nil {

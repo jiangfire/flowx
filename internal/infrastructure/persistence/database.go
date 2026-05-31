@@ -17,15 +17,15 @@ import (
 	"github.com/jiangfire/flowx/internal/domain/tool"
 	"github.com/jiangfire/flowx/internal/domain/workflow"
 
+	"github.com/glebarez/sqlite"
 	"github.com/google/uuid"
 	gormpostgres "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 )
 
-// InitDB 初始化PostgreSQL数据库连接
+// InitDB 初始化数据库连接，支持 postgres 和 sqlite
 func InitDB(cfg config.DatabaseConfig, logLevel string) (*gorm.DB, error) {
-	// 根据日志级别映射 GORM 日志级别
 	var gormLogLevel gormlogger.LogLevel
 	switch strings.ToLower(logLevel) {
 	case "silent":
@@ -38,25 +38,48 @@ func InitDB(cfg config.DatabaseConfig, logLevel string) (*gorm.DB, error) {
 		gormLogLevel = gormlogger.Info
 	}
 
-	db, err := gorm.Open(gormpostgres.Open(cfg.DSN()), &gorm.Config{
+	gormConfig := &gorm.Config{
 		Logger: gormlogger.Default.LogMode(gormLogLevel),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("连接数据库失败: %w", err)
 	}
 
-	// 获取底层sql.DB以配置连接池
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, fmt.Errorf("获取底层数据库连接失败: %w", err)
-	}
+	var db *gorm.DB
+	var err error
 
-	// 配置连接池
-	sqlDB.SetMaxIdleConns(cfg.MaxIdleConns)
-	sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
-	sqlDB.SetConnMaxLifetime(time.Hour)
-	if cfg.ConnMaxIdleTime > 0 {
-		sqlDB.SetConnMaxIdleTime(time.Duration(cfg.ConnMaxIdleTime) * time.Second)
+	driver := strings.ToLower(cfg.Driver)
+	switch driver {
+	case "sqlite", "sqlite3":
+		dsn := cfg.Path
+		if dsn == "" {
+			dsn = "file:flowx.db?cache=shared&_pragma=busy_timeout(5000)"
+		}
+		db, err = gorm.Open(sqlite.Open(dsn), gormConfig)
+		if err != nil {
+			return nil, fmt.Errorf("连接 SQLite 数据库失败: %w", err)
+		}
+		slog.Info("SQLite 数据库连接初始化成功", "dsn", dsn)
+	default:
+		db, err = gorm.Open(gormpostgres.Open(cfg.DSN()), gormConfig)
+		if err != nil {
+			return nil, fmt.Errorf("连接数据库失败: %w", err)
+		}
+
+		sqlDB, err := db.DB()
+		if err != nil {
+			return nil, fmt.Errorf("获取底层数据库连接失败: %w", err)
+		}
+
+		sqlDB.SetMaxIdleConns(cfg.MaxIdleConns)
+		sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
+		sqlDB.SetConnMaxLifetime(time.Hour)
+		if cfg.ConnMaxIdleTime > 0 {
+			sqlDB.SetConnMaxIdleTime(time.Duration(cfg.ConnMaxIdleTime) * time.Second)
+		}
+
+		slog.Info("数据库连接初始化成功",
+			"host", cfg.Host,
+			"port", cfg.Port,
+			"dbname", cfg.DBName,
+		)
 	}
 
 	// 注册UUID v7生成器作为默认主键生成回调
@@ -82,12 +105,6 @@ func InitDB(cfg config.DatabaseConfig, logLevel string) (*gorm.DB, error) {
 	if err := autoMigrate(db); err != nil {
 		return nil, fmt.Errorf("数据库迁移失败: %w", err)
 	}
-
-	slog.Info("数据库连接初始化成功",
-		"host", cfg.Host,
-		"port", cfg.Port,
-		"dbname", cfg.DBName,
-	)
 
 	return db, nil
 }
@@ -125,7 +142,7 @@ func autoMigrate(db *gorm.DB) error {
 func CloseDB(db *gorm.DB) error {
 	sqlDB, err := db.DB()
 	if err != nil {
-		return err
+		return nil
 	}
 	return sqlDB.Close()
 }
