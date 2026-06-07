@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/glebarez/sqlite"
 	bpmnapp "github.com/jiangfire/flowx/internal/application/bpmn"
 	"github.com/jiangfire/flowx/internal/domain/base"
 	"github.com/jiangfire/flowx/internal/domain/bpmn"
 	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
+	"github.com/jiangfire/flowx/internal/testutil"
 	"gorm.io/gorm"
 )
 
@@ -24,25 +24,16 @@ type processDefinitionTable struct {
 
 func (processDefinitionTable) TableName() string { return "process_definitions" }
 
-// setupBPMNE2E 创建 BPMN E2E 测试环境：使用 SQLite 内存数据库和真实服务实例
+// setupBPMNE2E creates BPMN E2E test environment with real services
 func setupBPMNE2E(t *testing.T) (*bpmnapp.ProcessService, *gorm.DB) {
 	t.Helper()
 
-	// 创建 SQLite 内存数据库
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("创建测试数据库失败: %v", err)
-	}
-
-	// 自动迁移所有相关模型（包括流程定义表）
-	if err := db.AutoMigrate(
+	db := testutil.SetupTestDB(t,
 		&bpmn.ProcessInstance{},
 		&bpmn.ProcessTask{},
 		&bpmn.ExecutionHistory{},
 		&processDefinitionTable{},
-	); err != nil {
-		t.Fatalf("数据库迁移失败: %v", err)
-	}
+	)
 
 	// 创建真实引擎和仓储实例
 	engine := bpmnapp.NewEngine()

@@ -1,39 +1,32 @@
 # FlowX CI 工作流
-# 在每次推送和 PR 时自动运行代码检查、测试和构建
+# 在每次推送和 PR 时自动运行代码检查、测试（SQLite + PostgreSQL）和构建
 
 name: CI
 
 on:
-  # 推送到 main 分支时触发
   push:
     branches: [main]
-  # 向 main 分支发起 PR 时触发
   pull_request:
     branches: [main]
 
-# 防止同一分支/PR的多次运行互相干扰
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # 代码检查、测试与构建
   build:
-    name: 检查、测试与构建
+    name: 检查、测试 (SQLite) 与构建
     runs-on: ubuntu-latest
 
     steps:
-      # 步骤1: 检出代码
       - name: 检出代码
         uses: actions/checkout@v4
 
-      # 步骤2: 安装 Go 1.26
       - name: 安装 Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.26"
 
-      # 步骤3: 缓存 Go 模块，加速后续构建
       - name: 缓存 Go 模块
         uses: actions/cache@v4
         with:
@@ -44,16 +37,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      # 步骤4: 下载依赖
       - name: 下载依赖
         run: go mod download
 
-      # 步骤5: 运行 go vet 静态分析
       - name: 代码静态检查 (go vet)
         run: go vet ./...
 
-      # 步骤6: 运行 golangci-lint 代码质量检查
-      # 使用 goinstall 模式，用项目自身的 Go 1.26 编译 golangci-lint，避免版本不兼容
       - name: 代码质量检查 (golangci-lint)
         uses: golangci/golangci-lint-action@v6
         with:
@@ -61,17 +50,14 @@ jobs:
           install-mode: goinstall
           args: ./...
 
-      # 步骤7: 运行 gosec 安全检查
       - name: 安全检查 (gosec)
         run: |
           go install github.com/securego/gosec/v2/cmd/gosec@latest
           gosec ./...
 
-      # 步骤8: 运行测试并生成覆盖率报告
       - name: 运行测试
         run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
-      # 输出测试覆盖率摘要
       - name: 显示测试覆盖率
         run: |
           echo "## 测试覆盖率" >> $GITHUB_STEP_SUMMARY
@@ -79,8 +65,53 @@ jobs:
           go tool cover -func=coverage.out >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
-      # 步骤9: 构建二进制文件（禁用 CGO 以确保静态链接）
       - name: 构建二进制文件
         env:
           CGO_ENABLED: "0"
         run: go build -ldflags="-s -w" -o flowx-server ./cmd/server
+
+  integration-postgres:
+    name: 集成测试 (PostgreSQL)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: flowx
+          POSTGRES_PASSWORD: flowx123
+          POSTGRES_DB: flowx
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+
+      - name: 缓存 Go 模块
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: 下载依赖
+        run: go mod download
+
+      - name: 运行 PostgreSQL 集成测试
+        env:
+          TEST_DB_DRIVER: postgres
+          TEST_PG_DSN: "host=localhost port=5432 user=flowx password=flowx123 dbname=flowx sslmode=disable"
+        run: go test -race -v ./internal/infrastructure/persistence/... ./tests/e2e/...

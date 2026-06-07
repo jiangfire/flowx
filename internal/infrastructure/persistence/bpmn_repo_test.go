@@ -5,28 +5,23 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glebarez/sqlite"
 	bpmnapp "github.com/jiangfire/flowx/internal/application/bpmn"
 	"github.com/jiangfire/flowx/internal/domain/base"
 	"github.com/jiangfire/flowx/internal/domain/bpmn"
+	"github.com/jiangfire/flowx/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
 
 func setupBPMNTestDB(t *testing.T) *gorm.DB {
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	require.NoError(t, err)
-
-	err = db.AutoMigrate(
+	t.Helper()
+	return testutil.SetupTestDB(t,
 		&processDefinitionPO{},
 		&bpmn.ProcessInstance{},
 		&bpmn.ProcessTask{},
 		&bpmn.ExecutionHistory{},
 	)
-	require.NoError(t, err)
-
-	return db
 }
 
 // ==================== ProcessDefinitionRepository Tests ====================

@@ -6,36 +6,27 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/glebarez/sqlite"
 	agentapp "github.com/jiangfire/flowx/internal/application/agent"
 	approvalapp "github.com/jiangfire/flowx/internal/application/approval"
 	"github.com/jiangfire/flowx/internal/domain/agent"
 	"github.com/jiangfire/flowx/internal/domain/approval"
 	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
+	"github.com/jiangfire/flowx/internal/testutil"
 	mcpif "github.com/jiangfire/flowx/internal/interfaces/mcp"
 	"gorm.io/gorm"
 )
 
-// setupE2E 创建 E2E 测试环境：使用 SQLite 内存数据库和真实服务实例
+// setupE2E creates E2E test environment with real services
 func setupE2E(t *testing.T) (*agentapp.AgentService, approvalapp.ApprovalService, *gorm.DB) {
 	t.Helper()
 
-	// 创建 SQLite 内存数据库
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("创建测试数据库失败: %v", err)
-	}
-
-	// 自动迁移所有相关模型
-	if err := db.AutoMigrate(
+	db := testutil.SetupTestDB(t,
 		&agent.AgentTask{},
 		&agent.AgentTaskLog{},
 		&approval.Workflow{},
 		&approval.WorkflowInstance{},
 		&approval.Approval{},
-	); err != nil {
-		t.Fatalf("数据库迁移失败: %v", err)
-	}
+	)
 
 	// 创建审批服务（无 LLM，E2E 测试不需要 AI 建议）
 	approvalRepo := persistence.NewApprovalRepository(db)

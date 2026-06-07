@@ -4,24 +4,17 @@ import (
 	"context"
 	"testing"
 
-	"github.com/glebarez/sqlite"
 	datagovapp "github.com/jiangfire/flowx/internal/application/datagov"
 	"github.com/jiangfire/flowx/internal/domain/base"
 	"github.com/jiangfire/flowx/internal/domain/datagov"
+	"github.com/jiangfire/flowx/internal/testutil"
 	"gorm.io/gorm"
 )
 
 // setupDatagovTestDB 创建数据治理 Repository 测试数据库
 func setupDatagovTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("创建测试数据库失败: %v", err)
-	}
-	if err := db.AutoMigrate(&datagov.DataPolicy{}, &datagov.DataAsset{}, &datagov.DataQualityRule{}, &datagov.DataQualityCheck{}); err != nil {
-		t.Fatalf("数据库迁移失败: %v", err)
-	}
-	return db
+	return testutil.SetupTestDB(t, &datagov.DataPolicy{}, &datagov.DataAsset{}, &datagov.DataQualityRule{}, &datagov.DataQualityCheck{})
 }
 
 // ==================== 测试辅助函数 ====================

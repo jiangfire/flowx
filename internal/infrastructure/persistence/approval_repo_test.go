@@ -4,24 +4,17 @@ import (
 	"context"
 	"testing"
 
-	"github.com/glebarez/sqlite"
 	approvalapp "github.com/jiangfire/flowx/internal/application/approval"
 	"github.com/jiangfire/flowx/internal/domain/approval"
 	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/testutil"
 	"gorm.io/gorm"
 )
 
 // setupApprovalTestDB 创建审批模块测试数据库
 func setupApprovalTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("创建测试数据库失败: %v", err)
-	}
-	if err := db.AutoMigrate(&approval.Workflow{}, &approval.WorkflowInstance{}, &approval.Approval{}); err != nil {
-		t.Fatalf("数据库迁移失败: %v", err)
-	}
-	return db
+	return testutil.SetupTestDB(t, &approval.Workflow{}, &approval.WorkflowInstance{}, &approval.Approval{})
 }
 
 // ===================== Workflow CRUD 测试 =====================

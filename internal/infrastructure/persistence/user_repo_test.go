@@ -4,22 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/glebarez/sqlite"
 	"github.com/jiangfire/flowx/internal/domain/tenant"
+	"github.com/jiangfire/flowx/internal/testutil"
 	"gorm.io/gorm"
 )
 
 // setupUserTestDB 创建用户模块测试数据库
 func setupUserTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("创建测试数据库失败: %v", err)
-	}
-	if err := db.AutoMigrate(&tenant.User{}); err != nil {
-		t.Fatalf("数据库迁移失败: %v", err)
-	}
-	return db
+	return testutil.SetupTestDB(t, &tenant.User{})
 }
 
 // TestGetByUsername_Success 按用户名查询用户成功

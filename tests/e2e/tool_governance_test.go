@@ -3,44 +3,31 @@ package e2e
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
-	"sync/atomic"
 	"testing"
 
-	"github.com/glebarez/sqlite"
 	datagovapp "github.com/jiangfire/flowx/internal/application/datagov"
 	toolapp "github.com/jiangfire/flowx/internal/application/tool"
 	"github.com/jiangfire/flowx/internal/domain/base"
 	domaingov "github.com/jiangfire/flowx/internal/domain/datagov"
 	"github.com/jiangfire/flowx/internal/domain/tool"
 	"github.com/jiangfire/flowx/internal/infrastructure/persistence"
+	"github.com/jiangfire/flowx/internal/testutil"
 	bizerrors "github.com/jiangfire/flowx/pkg/errors"
 	"gorm.io/gorm"
 )
 
-var e2eTestDBCounter int64
-
-// setupE2EDB 创建 E2E 测试用的 SQLite 内存数据库，并自动迁移所有相关表
+// setupE2EDB creates the E2E test database
 func setupE2EDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	dbName := fmt.Sprintf("file:mem_%d?mode=memory&cache=shared", atomic.AddInt64(&e2eTestDBCounter, 1))
-	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("创建 E2E 测试数据库失败: %v", err)
-	}
-	// 迁移所有需要的领域模型表
-	if err := db.AutoMigrate(
+	return testutil.SetupTestDBShared(t,
 		&tool.Tool{},
 		&tool.Connector{},
 		&domaingov.DataPolicy{},
 		&domaingov.DataAsset{},
 		&domaingov.DataQualityRule{},
 		&domaingov.DataQualityCheck{},
-	); err != nil {
-		t.Fatalf("E2E 数据库迁移失败: %v", err)
-	}
-	return db
+	)
 }
 
 // setupE2EService 创建完整的 E2E 测试环境，包含所有真实仓储和服务

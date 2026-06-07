@@ -4,24 +4,17 @@ import (
 	"context"
 	"testing"
 
-	"github.com/glebarez/sqlite"
 	toolapp "github.com/jiangfire/flowx/internal/application/tool"
 	"github.com/jiangfire/flowx/internal/domain/base"
 	"github.com/jiangfire/flowx/internal/domain/tool"
+	"github.com/jiangfire/flowx/internal/testutil"
 	"gorm.io/gorm"
 )
 
 // setupToolRepoTestDB 创建工具 Repository 测试数据库
 func setupToolRepoTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("创建测试数据库失败: %v", err)
-	}
-	if err := db.AutoMigrate(&tool.Tool{}, &tool.Connector{}); err != nil {
-		t.Fatalf("数据库迁移失败: %v", err)
-	}
-	return db
+	return testutil.SetupTestDB(t, &tool.Tool{}, &tool.Connector{})
 }
 
 // createTestTool 创建测试用工具

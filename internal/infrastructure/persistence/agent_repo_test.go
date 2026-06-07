@@ -4,23 +4,16 @@ import (
 	"context"
 	"testing"
 
-	"github.com/glebarez/sqlite"
 	"github.com/jiangfire/flowx/internal/domain/agent"
 	"github.com/jiangfire/flowx/internal/domain/base"
+	"github.com/jiangfire/flowx/internal/testutil"
 	"gorm.io/gorm"
 )
 
 // setupAgentTestDB 创建 Agent 模块测试数据库
 func setupAgentTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("创建测试数据库失败: %v", err)
-	}
-	if err := db.AutoMigrate(&agent.AgentTask{}); err != nil {
-		t.Fatalf("数据库迁移失败: %v", err)
-	}
-	return db
+	return testutil.SetupTestDB(t, &agent.AgentTask{})
 }
 
 // TestCreateAgentTask_Success 创建任务成功

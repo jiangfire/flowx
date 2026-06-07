@@ -4,28 +4,21 @@ import (
 	"context"
 	"testing"
 
-	"github.com/glebarez/sqlite"
 	notifapp "github.com/jiangfire/flowx/internal/application/notification"
 	"github.com/jiangfire/flowx/internal/domain/base"
 	"github.com/jiangfire/flowx/internal/domain/notification"
+	"github.com/jiangfire/flowx/internal/testutil"
 	"gorm.io/gorm"
 )
 
 // setupNotificationRepoTestDB 创建通知 Repository 测试数据库
 func setupNotificationRepoTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("创建测试数据库失败: %v", err)
-	}
-	if err := db.AutoMigrate(
+	return testutil.SetupTestDB(t,
 		&notification.Notification{},
 		&notification.NotificationTemplate{},
 		&notification.NotificationPreference{},
-	); err != nil {
-		t.Fatalf("数据库迁移失败: %v", err)
-	}
-	return db
+	)
 }
 
 // createTestNotification 创建测试用通知
