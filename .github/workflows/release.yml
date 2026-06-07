@@ -57,17 +57,17 @@ jobs:
     steps:
       # 步骤1: 检出代码
       - name: 检出代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # 步骤2: 安装 Go 1.26
       - name: 安装 Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "1.26"
 
       # 步骤3: 缓存 Go 模块
       - name: 缓存 Go 模块
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/go/pkg/mod
@@ -93,7 +93,7 @@ jobs:
 
       # 步骤6: 上传构建产物，供后续 Release 任务使用
       - name: 上传构建产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: flowx-server-${{ matrix.os }}-${{ matrix.arch }}
           path: flowx-server-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }}
@@ -108,11 +108,11 @@ jobs:
     steps:
       # 步骤1: 检出代码（用于生成校验和）
       - name: 检出代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # 步骤2: 下载所有构建产物
       - name: 下载所有构建产物
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: ./dist
           merge-multiple: true
