@@ -19,13 +19,13 @@ type Notification struct {
 	Type       string     `gorm:"size:50;not null;index" json:"type"`          // 通知类型（system/reminder/alert/message）
 	Category   string     `gorm:"size:50;index" json:"category"`               // 通知分类
 	Channel    string     `gorm:"size:50" json:"channel"`                      // 通知渠道（in_app/email/sms/webhook）
-	SenderID   string     `gorm:"size:26" json:"sender_id"`                    // 发送者ID（系统通知为空）
-	ReceiverID string     `gorm:"size:26;not null;index" json:"receiver_id"`   // 接收者ID
+	SenderID   string     `gorm:"size:36" json:"sender_id"`                    // 发送者ID（系统通知为空）
+	ReceiverID string     `gorm:"size:36;not null;index" json:"receiver_id"`   // 接收者ID
 	IsRead     bool       `gorm:"default:false;index" json:"is_read"`          // 是否已读
 	ReadAt     *time.Time `json:"read_at"`                                     // 阅读时间
 	Status     string     `gorm:"size:20;default:pending;index" json:"status"` // 状态：pending/sent/failed
 	RefType    string     `gorm:"size:50" json:"ref_type"`                     // 关联类型
-	RefID      string     `gorm:"size:26" json:"ref_id"`                       // 关联ID
+	RefID      string     `gorm:"size:36" json:"ref_id"`                       // 关联ID
 	Extra      base.JSON  `gorm:"type:jsonb" json:"extra"`                     // 扩展信息
 }
 
@@ -56,7 +56,7 @@ func (NotificationPreference) TableName() string {
 // NotificationPreference 通知偏好领域模型
 type NotificationPreference struct {
 	base.BaseModel
-	UserID    string     `gorm:"size:26;not null;index" json:"user_id"` // 用户ID
+	UserID    string     `gorm:"size:36;not null;index" json:"user_id"` // 用户ID
 	Type      string     `gorm:"size:50;not null;index" json:"type"`    // 通知类型
 	Channel   string     `gorm:"size:50;not null" json:"channel"`       // 通知渠道
 	Enabled   bool       `gorm:"not null" json:"enabled"`               // 是否启用

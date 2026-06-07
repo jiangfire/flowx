@@ -73,7 +73,7 @@ func setupDB(t *testing.T, shared bool, tables ...interface{}) *gorm.DB {
 			db.Exec(fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", schema))
 			sqlDB, _ := db.DB()
 			if sqlDB != nil {
-				sqlDB.Close()
+				_ = sqlDB.Close()
 			}
 		})
 	default:
@@ -88,7 +88,7 @@ func setupDB(t *testing.T, shared bool, tables ...interface{}) *gorm.DB {
 		t.Cleanup(func() {
 			sqlDB, _ := db.DB()
 			if sqlDB != nil {
-				sqlDB.Close()
+				_ = sqlDB.Close()
 			}
 		})
 	}

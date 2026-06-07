@@ -116,7 +116,7 @@ func (s *llmService) doRequest(ctx context.Context, method, path string, body []
 		}
 
 		if resp.StatusCode >= 500 {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			lastErr = fmt.Errorf("LLM 服务返回服务器错误: HTTP %d", resp.StatusCode)
 			continue
 		}

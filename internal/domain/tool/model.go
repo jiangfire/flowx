@@ -15,7 +15,7 @@ type Tool struct {
 	Name        string    `gorm:"size:200;not null" json:"name"`              // 工具名称
 	Type        string    `gorm:"size:50;not null;index" json:"type"`         // 工具类型（eda/cae/custom）
 	Description string    `gorm:"type:text" json:"description"`               // 工具描述
-	ConnectorID string    `gorm:"size:26;index" json:"connector_id"`          // 关联的连接器
+	ConnectorID string    `gorm:"size:36;index" json:"connector_id"`          // 关联的连接器
 	Config      base.JSON `gorm:"type:jsonb" json:"config"`                   // 工具配置（JSON）
 	Status      string    `gorm:"size:20;default:active;index" json:"status"` // 状态：active/inactive/maintenance
 	Endpoint    string    `gorm:"size:500" json:"endpoint"`                   // 工具访问地址

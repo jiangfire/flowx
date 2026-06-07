@@ -38,7 +38,7 @@ type DataAsset struct {
 	Name           string    `gorm:"size:200;not null" json:"name"`                        // 资产名称
 	Type           string    `gorm:"size:50;not null;index" json:"type"`                   // 资产类型（dataset/model/report/config）
 	Source         string    `gorm:"size:100" json:"source"`                               // 数据来源（tool名称或系统名）
-	SourceID       string    `gorm:"size:26;index" json:"source_id"`                       // 来源实体ID
+	SourceID       string    `gorm:"size:36;index" json:"source_id"`                       // 来源实体ID
 	Description    string    `gorm:"type:text" json:"description"`                         // 资产描述
 	Format         string    `gorm:"size:50" json:"format"`                                // 数据格式（csv/json/parquet/excel）
 	Schema         base.JSON `gorm:"type:jsonb" json:"schema"`                             // 数据结构定义
@@ -47,7 +47,7 @@ type DataAsset struct {
 	Location       string    `gorm:"size:500" json:"location"`                             // 存储位置
 	Tags           base.JSON `gorm:"type:jsonb" json:"tags"`                               // 标签
 	Classification string    `gorm:"size:50;default:internal;index" json:"classification"` // 数据分类（public/internal/confidential/restricted）
-	OwnerID        string    `gorm:"size:26;index" json:"owner_id"`                        // 负责人ID
+	OwnerID        string    `gorm:"size:36;index" json:"owner_id"`                        // 负责人ID
 	Status         string    `gorm:"size:20;default:active;index" json:"status"`           // 状态：active/archived/deprecated
 }
 
@@ -63,7 +63,7 @@ type DataQualityRule struct {
 	base.BaseModel
 	Name        string    `gorm:"size:200;not null" json:"name"`                 // 规则名称
 	Type        string    `gorm:"size:50;not null;index" json:"type"`            // 规则类型（not_null/unique/range/format/custom）
-	TargetAsset string    `gorm:"size:26;index" json:"target_asset"`             // 目标数据资产ID
+	TargetAsset string    `gorm:"size:36;index" json:"target_asset"`             // 目标数据资产ID
 	TargetField string    `gorm:"size:200" json:"target_field"`                  // 目标字段名
 	Description string    `gorm:"type:text" json:"description"`                  // 规则描述
 	Config      base.JSON `gorm:"type:jsonb" json:"config"`                      // 规则配置（如范围值、正则表达式等）
@@ -81,8 +81,8 @@ func (DataQualityCheck) TableName() string {
 // DataQualityCheck 数据质量检查记录
 type DataQualityCheck struct {
 	base.BaseModel
-	RuleID      string    `gorm:"size:26;index" json:"rule_id"`      // 关联的质量规则ID
-	AssetID     string    `gorm:"size:26;index" json:"asset_id"`     // 检查的数据资产ID
+	RuleID      string    `gorm:"size:36;index" json:"rule_id"`      // 关联的质量规则ID
+	AssetID     string    `gorm:"size:36;index" json:"asset_id"`     // 检查的数据资产ID
 	Status      string    `gorm:"size:20;index" json:"status"`       // 检查状态（passed/failed/running/error）
 	TotalCount  int64     `gorm:"default:0" json:"total_count"`      // 检查总记录数
 	FailCount   int64     `gorm:"default:0" json:"fail_count"`       // 不合格记录数

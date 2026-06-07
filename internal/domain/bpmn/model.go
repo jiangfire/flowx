@@ -60,36 +60,36 @@ type FormField struct {
 // ProcessInstance 流程实例
 type ProcessInstance struct {
 	base.BaseModel
-	DefinitionID          string     `gorm:"size:26;index" json:"definition_id"`
+	DefinitionID          string     `gorm:"size:36;index" json:"definition_id"`
 	DefinitionYAML        string     `gorm:"type:text" json:"-"`
 	Status                string     `gorm:"size:20;index" json:"status"` // running/suspended/completed/cancelled
 	Variables             base.JSON  `gorm:"type:jsonb" json:"variables"`
 	CurrentElements       base.JSON  `gorm:"type:jsonb" json:"current_elements"`
 	JoinState             base.JSON  `gorm:"type:jsonb" json:"join_state"`              // map[gatewayID]count
 	InclusiveGatewayState base.JSON  `gorm:"type:jsonb" json:"inclusive_gateway_state"` // map[gatewayID]dispatched
-	StartedBy             string     `gorm:"size:26" json:"started_by"`
+	StartedBy             string     `gorm:"size:36" json:"started_by"`
 	CompletedAt           *time.Time `json:"completed_at"`
 }
 
 // ProcessTask 流程任务（UserTask 产生的待办）
 type ProcessTask struct {
 	base.BaseModel
-	InstanceID    string     `gorm:"size:26;index" json:"instance_id"`
-	ElementID     string     `gorm:"size:26;index" json:"element_id"`
+	InstanceID    string     `gorm:"size:36;index" json:"instance_id"`
+	ElementID     string     `gorm:"size:36;index" json:"element_id"`
 	Name          string     `gorm:"size:200" json:"name"`
-	Assignee      string     `gorm:"size:26;index" json:"assignee"`
+	Assignee      string     `gorm:"size:36;index" json:"assignee"`
 	Status        string     `gorm:"size:20;index" json:"status"` // pending/completed/cancelled
 	FormFields    base.JSON  `gorm:"type:jsonb" json:"form_fields"`
 	SubmittedData base.JSON  `gorm:"type:jsonb" json:"submitted_data"`
-	CompletedBy   string     `gorm:"size:26" json:"completed_by"`
+	CompletedBy   string     `gorm:"size:36" json:"completed_by"`
 	CompletedAt   *time.Time `json:"completed_at"`
 }
 
 // ExecutionHistory 执行历史
 type ExecutionHistory struct {
 	base.BaseModel
-	InstanceID  string    `gorm:"size:26;index" json:"instance_id"`
-	ElementID   string    `gorm:"size:26;index" json:"element_id"`
+	InstanceID  string    `gorm:"size:36;index" json:"instance_id"`
+	ElementID   string    `gorm:"size:36;index" json:"element_id"`
 	ElementType string    `gorm:"size:50" json:"element_type"`
 	Action      string    `gorm:"size:20" json:"action"` // enter/leave/complete
 	Variables   base.JSON `gorm:"type:jsonb" json:"variables"`
