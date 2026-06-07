@@ -11,8 +11,8 @@ import (
 
 // BaseModel 基础模型，包含公共字段
 type BaseModel struct {
-	ID        string         `gorm:"type:varchar(26);primaryKey" json:"id"`
-	TenantID  string         `gorm:"type:varchar(26);index" json:"tenant_id"`
+	ID        string         `gorm:"type:varchar(36);primaryKey" json:"id"`
+	TenantID  string         `gorm:"type:varchar(36);index" json:"tenant_id"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`

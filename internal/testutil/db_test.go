@@ -4,8 +4,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-
-	"gorm.io/gorm"
 )
 
 type testModel struct {
@@ -109,7 +107,7 @@ func TestSetupTestDB_PostgresNoDSNPanics(t *testing.T) {
 		// SetupTestDB calls t.Fatal which calls FailNow -> runtime.Goexit
 		// This should exit the goroutine; the test verifies no panic to the caller
 		defer func() {
-			recover()
+			_ = recover()
 			done <- true
 		}()
 		_ = SetupTestDB(tt, &testModel{})
@@ -199,8 +197,7 @@ func TestSetupTestDB_JSONField(t *testing.T) {
 // TestSetupTestDB_GormDBType asserts the returned value is of type *gorm.DB
 // and basic operations succeed.
 func TestSetupTestDB_GormDBType(t *testing.T) {
-	var db *gorm.DB
-	db = SetupTestDB(t, &testModel{})
+	db := SetupTestDB(t, &testModel{})
 	_ = db
 }
 
