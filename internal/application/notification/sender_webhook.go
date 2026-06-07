@@ -90,7 +90,7 @@ func (s *WebhookSender) Send(ctx context.Context, n *notifdomain.Notification) e
 	if err != nil {
 		return fmt.Errorf("webhook 请求失败: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return fmt.Errorf("webhook 返回异常状态码: %d", resp.StatusCode)

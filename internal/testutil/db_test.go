@@ -54,7 +54,7 @@ func TestSetupTestDB_NoTables(t *testing.T) {
 }
 
 func TestSetupTestDB_NoEnvDefaultsToSQLite(t *testing.T) {
-	os.Unsetenv("TEST_DB_DRIVER")
+	_ = os.Unsetenv("TEST_DB_DRIVER")
 	db := SetupTestDB(t, &testModel{})
 	if db == nil {
 		t.Fatal("expected non-nil db")
@@ -98,7 +98,7 @@ func TestSetupTestDB_PostgresSkipIfUnavailable(t *testing.T) {
 
 func TestSetupTestDB_PostgresNoDSNPanics(t *testing.T) {
 	t.Setenv("TEST_DB_DRIVER", "postgres")
-	os.Unsetenv("TEST_PG_DSN")
+	_ = os.Unsetenv("TEST_PG_DSN")
 	// Should call t.Fatal (which calls runtime.Goexit in goroutine)
 	// We test this in a subtest to catch the failure
 	done := make(chan bool)

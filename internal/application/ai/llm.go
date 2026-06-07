@@ -132,7 +132,7 @@ func (s *llmService) Ping(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("LLM 服务连通性检查失败: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
