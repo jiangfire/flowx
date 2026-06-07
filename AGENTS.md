@@ -11,16 +11,17 @@ go build ./cmd/server                         # verify compilation
 go run ./cmd/server                           # simple start (SQLite in-memory, no PG/Redis needed)
 swag init -g cmd/server/main.go --parseDependency --parseInternal  # regenerate swagger docs
 
-# PostgreSQL integration tests (local)
+# PostgreSQL + Redis integration tests (local)
 docker compose -f docker-compose.test.yml up -d
 TEST_DB_DRIVER=postgres TEST_PG_DSN="host=localhost port=5432 user=flowx password=flowx123 dbname=flowx sslmode=disable" go test -race -v ./internal/infrastructure/persistence/... ./tests/e2e/...
+TEST_REDIS_HOST=localhost TEST_REDIS_PORT=6379 go test -race -v ./internal/infrastructure/cache/...
 docker compose -f docker-compose.test.yml down
 ```
 
 Simple start: set `database.driver: "sqlite"` in `config.yaml` — no PostgreSQL or Redis required. SQLite uses `github.com/glebarez/sqlite` (pure Go, no CGO). If Redis is unavailable the server warns and continues.
 
 CI runs (SQLite): `go vet` → `golangci-lint` → `gosec` → `go test -race` → `go build`.
-CI runs (PostgreSQL): parallel `integration-postgres` job with `postgres:16-alpine` service, runs persistence + E2E tests. Match this locally before pushing.
+CI runs (PostgreSQL + Redis): parallel `integration-postgres` job with `postgres:16-alpine` + `redis:7-alpine` services, runs persistence, cache, and E2E tests. Match this locally before pushing.
 
 ## Architecture
 

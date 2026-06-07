@@ -71,7 +71,7 @@ jobs:
         run: go build -ldflags="-s -w" -o flowx-server ./cmd/server
 
   integration-postgres:
-    name: 集成测试 (PostgreSQL)
+    name: 集成测试 (PostgreSQL + Redis)
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -84,6 +84,15 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -110,8 +119,10 @@ jobs:
       - name: 下载依赖
         run: go mod download
 
-      - name: 运行 PostgreSQL 集成测试
+      - name: 运行集成测试 (PostgreSQL + Redis)
         env:
           TEST_DB_DRIVER: postgres
           TEST_PG_DSN: "host=localhost port=5432 user=flowx password=flowx123 dbname=flowx sslmode=disable"
-        run: go test -race -v ./internal/infrastructure/persistence/... ./tests/e2e/...
+          TEST_REDIS_HOST: "localhost"
+          TEST_REDIS_PORT: "6379"
+        run: go test -race -v ./internal/infrastructure/persistence/... ./tests/e2e/... ./internal/infrastructure/cache/...

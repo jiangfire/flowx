@@ -38,5 +38,8 @@ func InitRedis(cfg config.RedisConfig) (*redis.Client, error) {
 
 // CloseRedis 关闭Redis连接
 func CloseRedis(client *redis.Client) error {
+	if client == nil {
+		return nil
+	}
 	return client.Close()
 }
