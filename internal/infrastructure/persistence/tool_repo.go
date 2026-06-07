@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	toolapp "github.com/jiangfire/flowx/internal/application/tool"
 	"github.com/jiangfire/flowx/internal/domain/base"
@@ -66,7 +67,7 @@ func (r *toolRepository) List(ctx context.Context, filter toolapp.ToolFilter) ([
 
 	// 按关键词搜索（名称模糊匹配）
 	if filter.Keyword != "" {
-		query = query.Where("name LIKE ?", "%"+filter.Keyword+"%")
+		query = query.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(filter.Keyword)+"%")
 	}
 
 	// 计算总数
@@ -154,7 +155,7 @@ func (r *connectorRepository) List(ctx context.Context, filter toolapp.Connector
 
 	// 按关键词搜索
 	if filter.Keyword != "" {
-		query = query.Where("name LIKE ?", "%"+filter.Keyword+"%")
+		query = query.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(filter.Keyword)+"%")
 	}
 
 	// 计算总数

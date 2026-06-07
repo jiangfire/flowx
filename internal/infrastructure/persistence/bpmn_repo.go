@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	bpmnapp "github.com/jiangfire/flowx/internal/application/bpmn"
 	"github.com/jiangfire/flowx/internal/domain/base"
@@ -102,7 +103,7 @@ func (r *processDefinitionRepository) List(ctx context.Context, filter bpmnapp.P
 		query = query.Where("status = ?", filter.Status)
 	}
 	if filter.Keyword != "" {
-		query = query.Where("name LIKE ?", "%"+filter.Keyword+"%")
+		query = query.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(filter.Keyword)+"%")
 	}
 
 	if err := query.Count(&total).Error; err != nil {

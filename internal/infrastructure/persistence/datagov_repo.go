@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	datagovapp "github.com/jiangfire/flowx/internal/application/datagov"
 	"github.com/jiangfire/flowx/internal/domain/base"
@@ -59,7 +60,7 @@ func (r *dataPolicyRepository) List(ctx context.Context, filter datagovapp.DataP
 		query = query.Where("scope = ?", filter.Scope)
 	}
 	if filter.Keyword != "" {
-		query = query.Where("name LIKE ?", "%"+filter.Keyword+"%")
+		query = query.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(filter.Keyword)+"%")
 	}
 
 	if err := query.Count(&total).Error; err != nil {
@@ -145,7 +146,7 @@ func (r *dataAssetRepository) List(ctx context.Context, filter datagovapp.DataAs
 		query = query.Where("source = ?", filter.Source)
 	}
 	if filter.Keyword != "" {
-		query = query.Where("name LIKE ?", "%"+filter.Keyword+"%")
+		query = query.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(filter.Keyword)+"%")
 	}
 
 	if err := query.Count(&total).Error; err != nil {
@@ -231,7 +232,7 @@ func (r *dataQualityRuleRepository) List(ctx context.Context, filter datagovapp.
 		query = query.Where("target_asset = ?", filter.TargetAsset)
 	}
 	if filter.Keyword != "" {
-		query = query.Where("name LIKE ?", "%"+filter.Keyword+"%")
+		query = query.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(filter.Keyword)+"%")
 	}
 
 	if err := query.Count(&total).Error; err != nil {
