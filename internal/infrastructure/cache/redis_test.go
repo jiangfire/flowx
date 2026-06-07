@@ -61,7 +61,7 @@ func TestInitRedis_Failure(t *testing.T) {
 	client, err := InitRedis(cfg)
 	if err == nil {
 		if client != nil {
-			CloseRedis(client)
+			_ = CloseRedis(client)
 		}
 		t.Fatal("expected InitRedis to fail with invalid address")
 	}
